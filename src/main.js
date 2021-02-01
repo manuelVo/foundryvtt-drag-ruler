@@ -6,7 +6,7 @@ import {registerSettings, settingsKey} from "./settings.js"
 Hooks.once("init", () => {
 	registerSettings()
 	hookTokenDragHandlers()
-	hookRulerHandlers()
+	hookRulerFunctions()
 	patchRulerMeasure()
 	patchRulerHighlightMeasurement()
 
@@ -26,11 +26,13 @@ Hooks.once("ready", () => {
 })
 
 Hooks.on("canvasReady", () => {
-	canvas.controls.ruler.draggedToken = null
-	Object.defineProperty(canvas.controls.ruler, "isDragRuler", {
-		get: function isDragRuler() {
-			return Boolean(this.draggedToken) // If draggedToken is set this is a drag ruler
-		}
+	canvas.controls.rulers.children.forEach(ruler => {
+		ruler.draggedToken = null
+		Object.defineProperty(ruler, "isDragRuler", {
+			get: function isDragRuler() {
+				return Boolean(this.draggedToken) // If draggedToken is set this is a drag ruler
+			}
+		})
 	})
 })
 
@@ -62,13 +64,29 @@ function hookTokenDragHandlers() {
 	}
 }
 
-function hookRulerHandlers() {
+function hookRulerFunctions() {
 	const originalMoveTokenHandler = Ruler.prototype.moveToken
 	Ruler.prototype.moveToken = function (event) {
 		const eventHandled = onRulerMoveToken.call(this, event)
 		if (!eventHandled)
 			return originalMoveTokenHandler.call(this, event)
 		return true
+	}
+
+	const originalToJSON = Ruler.prototype.toJSON
+	Ruler.prototype.toJSON = function () {
+		const json = originalToJSON.call(this)
+		if (this.draggedToken)
+			json["draggedToken"] = this.draggedToken.data._id
+		return json
+	}
+
+	const originalUpdate = Ruler.prototype.update
+	Ruler.prototype.update = function (data) {
+		if (data.draggedToken) {
+			this.draggedToken = canvas.tokens.get(data.draggedToken)
+		}
+		originalUpdate.call(this, data)
 	}
 }
 
@@ -127,6 +145,10 @@ function patchRulerMeasure() {
 	code = code.slice(code.indexOf("\n"), code.lastIndexOf("\n"))
 	code = strInsertAfter(code, "for ( let [i, d] of distances.entries() ) {\n", "segments[i].startDistance = totalDistance\n")
 	code = strInsertAfter(code, "this._highlightMeasurement(ray", ", s.startDistance")
+
+	// Don't show ruler if the measured token is invisible
+	code = "if (this.isDragRuler && !this.draggedToken.isVisible) return [];" + code
+
 	Ruler.prototype.measure = new Function("destination", "{gridSpaces=true}={}", code)
 }
 
