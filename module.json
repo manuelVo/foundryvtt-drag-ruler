@@ -1,0 +1,30 @@
+{
+	"name": "drag-ruler",
+	"title": "Drag Ruler",
+	"description": "When dragging a token displays a ruler showing how far you've moved that token.",
+	"version": "0.0.1",
+	"minimumCoreVersion" : "0.7.9",
+	"compatibleCoreVersion" : "0.7.9",
+	"authors": [
+		{
+			"name": "Manuel Vögele",
+			"email": "develop@manuel-voegele.de",
+			"discord": "Stäbchenfisch#5107"
+		}
+	],
+	"esmodules": [
+		"src/main.js"
+	],
+	"languages": [
+		{
+			"lang": "en",
+			"name": "English",
+			"path": "lang/en.json"
+		}
+	],
+	"url": "https://github.com/manuelVo/foundryvtt-drag-ruler",
+	"download": "https://github.com/manuelVo/foundryvtt-drag-ruler/archive/master.zip",
+	"manifest": "https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/master/module.json",
+	"readme": "https://github.com/manuelVo/foundryvtt-drag-ruler/blob/master/README.md",
+	"bugs": "https://github.com/manuelVo/foundryvtt-drag-ruler/issues"
+}

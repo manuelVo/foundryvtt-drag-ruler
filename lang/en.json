@@ -1,0 +1,23 @@
+{
+	"drag-ruler": {
+		"settings": {
+			"dashMultiplier": {
+				"name": "Dash Multiplier",
+				"hint": "This can be used to give tokens a secondary speed during coloring of the measured path. Set it to 0 to disable the secondary speed."
+			},
+			"speedAttribute": {
+				"name": "Speed Attribute",
+				"hint": "The attribute that defines a token's walking speed. This is used during coloring of the measured path."
+			},
+			"speedProvider": {
+				"name": "Speed Settings Provider",
+				"hint": "Select who provides speed information for tokens duing coloring. Using a game system or module may provide more flexible coloring than sticking to the options provided by Drag Ruler.",
+				"choices": {
+					"module": "Module",
+					"native": "Drag Ruler",
+					"system": "System"
+				}
+			}
+		}
+	}
+}
