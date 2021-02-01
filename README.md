@@ -49,7 +49,7 @@ Here is an example of how a Speed Provider might look like:
 ```javascript
 function mySpeedProvider(token, playerColor) {
 	const baseSpeed = token.actor.data.speed
-	const ranges = [{range: baseSpeed, color: playerColor, range: baseSpeed * 2, color: 0xFFFF00}]
+	const ranges = [{range: baseSpeed, color: playerColor}, {range: baseSpeed * 2, color: 0xFFFF00}]
 	if (!token.actor.data.isWearingArmor) {
 		ranges.push({range: baseSpeed * 3, color: 0xFF8000})
 	}
@@ -69,7 +69,7 @@ Hooks.once("dragRuler.ready", () => {
 
 function mySpeedProvider(token, playerColor) {
 	const baseSpeed = token.actor.data.speed
-	const ranges = [{range: baseSpeed, color: playerColor, range: baseSpeed * 2, color: 0xFFFF00}]
+	const ranges = [{range: baseSpeed, color: playerColor}, {range: baseSpeed * 2, color: 0xFFFF00}]
 	if (!token.actor.data.isWearingArmor) {
 		ranges.push({range: baseSpeed * 3, color: 0xFF8000})
 	}
