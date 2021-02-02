@@ -1,6 +1,7 @@
 "use strict"
 
 import {availableSpeedProviders, currentSpeedProvider, registerModule, registerSystem, setCurrentSpeedProvider} from "./api.js"
+import {moveTokens} from "./foundry_imports.js"
 import {registerSettings, settingsKey} from "./settings.js"
 
 Hooks.once("init", () => {
@@ -86,7 +87,8 @@ function onTokenDragLeftDrop(event) {
 	if (!canvas.controls.ruler.isDragRuler)
 		return false
 	canvas.controls.ruler.draggedToken = null
-	canvas.controls.ruler.moveToken(event)
+	const selectedTokens = canvas.tokens.placeables.filter(token => token._controlled)
+	moveTokens.call(canvas.controls.ruler, selectedTokens)
 	return true
 }
 
