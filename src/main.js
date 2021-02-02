@@ -143,6 +143,8 @@ function strInsertAfter(haystack, needle, strToInsert) {
 // These patches were written with foundry-0.7.9.js as reference
 function patchRulerMeasure() {
 	let code = Ruler.prototype.measure.toString()
+	// Replace CRLF with LF in case foundry.js has CRLF for some reason
+	code = code.replace(/\r\n/g, "\n")
 	// Remove function signature and closing curly bracket (those are on the first and last line)
 	code = code.slice(code.indexOf("\n"), code.lastIndexOf("\n"))
 	code = strInsertAfter(code, "for ( let [i, d] of distances.entries() ) {\n", "segments[i].startDistance = totalDistance\n")
@@ -193,6 +195,8 @@ function getColorForDistance(startDistance, subDistance) {
 // These patches were written with foundry-0.7.9.js as reference
 function patchRulerHighlightMeasurement() {
 	let code = Ruler.prototype._highlightMeasurement.toString()
+	// Replace CRLF with LF in case foundry.js has CRLF for some reason
+	code = code.replace(/\r\n/g, "\n")
 	// Remove function signature and closing curly bracket (those are on the first and last line)
 	code = code.slice(code.indexOf("\n"), code.lastIndexOf("\n"))
 
