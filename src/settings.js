@@ -4,6 +4,15 @@ import {getDefaultDashMultiplier, getDefaultSpeedAttribute} from "./systems.js"
 export const settingsKey = "drag-ruler";
 
 export function registerSettings() {
+	game.settings.register(settingsKey, "alwaysShowSpeedForPCs", {
+		name: "drag-ruler.settings.alwaysShowSpeedForPCs.name",
+		hint: "drag-ruler.settings.alwaysShowSpeedForPCs.hint",
+		scope: "world",
+		config: true,
+		type: Boolean,
+		default: true,
+	})
+
 	// This setting will be modified by the api if modules register to it
 	game.settings.register(settingsKey, "speedProvider", {
 		name: "drag-ruler.settings.speedProvider.name",

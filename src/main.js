@@ -174,7 +174,9 @@ function getColorForDistance(startDistance, subDistance) {
 		return this.color
 	// Don't apply colors if the current user doesn't have at least observer permissions
 	if (this.draggedToken.actor.permission < 2) {
-		return this.color
+		// If this is a pc and alwaysShowSpeedForPCs is enabled we show the color anyway
+		if (!(this.draggedToken.actor.data.type === "character" && game.settings.get(settingsKey, "alwaysShowSpeedForPCs")))
+			return this.color
 	}
 	const distance = startDistance + subDistance
 	const ranges = currentSpeedProvider(this.draggedToken, this.color)

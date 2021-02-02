@@ -1,6 +1,10 @@
 {
 	"drag-ruler": {
 		"settings": {
+			"alwaysShowSpeedForPCs": {
+				"name": "Show PC speed to everyone",
+				"hint": "If enabled the coloring based on actor speed for player characters will shown to everyone, even if they don't have observer permission for the character sheet."
+			},
 			"dashMultiplier": {
 				"name": "Dash Multiplier",
 				"hint": "This can be used to give tokens a secondary speed during coloring of the measured path. Set it to 0 to disable the secondary speed."
