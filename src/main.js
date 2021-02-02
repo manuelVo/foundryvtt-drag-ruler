@@ -172,6 +172,10 @@ function nativeSpeedProvider(token, playercolor) {
 function getColorForDistance(startDistance, subDistance) {
 	if (!this.isDragRuler)
 		return this.color
+	// Don't apply colors if the current user doesn't have at least observer permissions
+	if (this.draggedToken.actor.permission < 2) {
+		return this.color
+	}
 	const distance = startDistance + subDistance
 	const ranges = currentSpeedProvider(this.draggedToken, this.color)
 	if (ranges.length === 0)
