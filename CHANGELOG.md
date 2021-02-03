@@ -4,7 +4,7 @@
 - The drag ruler won't be shown to other players if they cannot see the dragged token
 
 ### Bugfixes
-- Drag Ruler will now work on installations where the `foundry.js` has `CRLF` line endings
+- Fixed a bug where Drag Ruler wouldn't work at all on some windows installations (specificially where the `foundry.js` has `CRLF` line endings)
 
 ## v1.0.1
 ### Bugfixes
