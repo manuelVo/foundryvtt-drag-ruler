@@ -44,10 +44,17 @@ async function animateToken(token, rays, tokenOffset, wasPaused) {
 
 	// Determine offset relative to the Token top-left.
 	// This is important so we can position the token relative to the ruler origin for non-1x1 tokens.
-	const origin = canvas.grid.getTopLeft(this.waypoints[0].x + tokenOffset.x, this.waypoints[0].y + tokenOffset.y);
-	const s2 = canvas.dimensions.size / 2;
-	const dx = Math.round((token.data.x - origin[0]) / s2) * s2;
-	const dy = Math.round((token.data.y - origin[1]) / s2) * s2;
+	origin = canvas.grid.getTopLeft(this.waypoints[0].x + tokenOffset.x, this.waypoints[0].y + tokenOffset.y);
+	let dx, dy
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+		dx = token.data.x - origin[0]
+		dy = token.data.y - origin[1]
+	}
+	else {
+		const s2 = canvas.dimensions.size / 2;
+		dx = Math.round((token.data.x - origin[0]) / s2) * s2;
+		dy = Math.round((token.data.y - origin[1]) / s2) * s2;
+	}
 
 	token._noAnimate = true;
 	for (let r of offsetRays) {

@@ -1,3 +1,7 @@
+## In development
+### Bugfixes
+- Fixed a bug where tokens wouldn't be moved to the corect end position on gridless maps
+
 ## v1.1.0
 ### New features
 - The drag ruler will now be colored for other players than the dragging player as well (only if they have at least observer permissions for that token)
