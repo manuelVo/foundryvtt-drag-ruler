@@ -92,8 +92,12 @@ function hookRulerFunctions() {
 }
 
 function onTokenLeftDragStart(event) {
-	canvas.controls.ruler._onDragStart(event)
 	canvas.controls.ruler.draggedToken = this
+	const tokenCenter = {x: this.x + canvas.grid.size / 2, y: this.y + canvas.grid.size / 2}
+	canvas.controls.ruler.clear();
+	canvas.controls.ruler._state = Ruler.STATES.STARTING;
+	canvas.controls.ruler.rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
+	canvas.controls.ruler._addWaypoint(tokenCenter);
 }
 
 function onTokenLeftDragMove(event) {

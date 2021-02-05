@@ -2,6 +2,9 @@
 ### Bugfixes
 - Fixed a bug where tokens wouldn't be moved to the corect end position on gridless maps
 - Ruler now appears immediately when the token is being dragged
+- On gridless maps the ruler will always start measuring at the center of the token
+  - This change has no impact on the distance that is being measured
+  - In addition to the cosmetical aspect this also fixes a bug that allowed players to glitch through walls
 
 ## v1.1.0
 ### New features

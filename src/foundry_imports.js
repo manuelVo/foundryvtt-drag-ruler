@@ -81,7 +81,8 @@ export function onMouseMove(event) {
 
 	// Extract event data
 	const mt = event._measureTime || 0;
-	const { destination, originalEvent } = event.data;
+	const originalEvent = event.data.originalEvent;
+	const destination = {x: event.data.destination.x + this.rulerOffset.x, y: event.data.destination.y + this.rulerOffset.y}
 
 	// Hide any existing Token HUD
 	canvas.hud.token.clear();
