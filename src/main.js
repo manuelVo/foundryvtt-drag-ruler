@@ -1,7 +1,7 @@
 "use strict"
 
 import {availableSpeedProviders, currentSpeedProvider, registerModule, registerSystem, setCurrentSpeedProvider} from "./api.js"
-import {moveTokens} from "./foundry_imports.js"
+import {moveTokens, onMouseMove} from "./foundry_imports.js"
 import {registerSettings, settingsKey} from "./settings.js"
 
 Hooks.once("init", () => {
@@ -98,7 +98,7 @@ function onTokenLeftDragStart(event) {
 
 function onTokenLeftDragMove(event) {
 	if (canvas.controls.ruler.isDragRuler)
-		canvas.controls.ruler._onMouseMove(event)
+		onMouseMove.call(canvas.controls.ruler, event)
 }
 
 function onTokenDragLeftDrop(event) {

@@ -74,3 +74,23 @@ function calculateTokenOffset(tokenA, tokenB) {
 function applyOffsetToRay(ray, offset) {
 	return new Ray({x: ray.A.x + offset.x, y: ray.A.y + offset.y}, {x: ray.B.x + offset.x, y: ray.B.y + offset.y})
 }
+
+// This is a modified version of Ruler._onMouseMove from foundry 0.7.9
+export function onMouseMove(event) {
+	if (this._state === Ruler.STATES.MOVING) return;
+
+	// Extract event data
+	const mt = event._measureTime || 0;
+	const { destination, originalEvent } = event.data;
+
+	// Hide any existing Token HUD
+	canvas.hud.token.clear();
+	delete event.data.hudState;
+
+	// Draw measurement updates
+	if (Date.now() - mt > 50) {
+		this.measure(destination, { gridSpaces: !originalEvent.shiftKey });
+		event._measureTime = Date.now();
+		this._state = Ruler.STATES.MEASURING;
+	}
+}
