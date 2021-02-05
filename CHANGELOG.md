@@ -1,4 +1,4 @@
-## In development
+## v1.1.1
 ### Bugfixes
 - Fixed a bug where tokens wouldn't be moved to the corect end position on gridless maps
 - Ruler now appears immediately when the token is being dragged
