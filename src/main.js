@@ -1,14 +1,13 @@
 "use strict"
 
 import {availableSpeedProviders, currentSpeedProvider, registerModule, registerSystem, setCurrentSpeedProvider} from "./api.js"
-import {moveTokens, onMouseMove} from "./foundry_imports.js"
+import {measure, moveTokens, onMouseMove} from "./foundry_imports.js"
 import {registerSettings, settingsKey} from "./settings.js"
 
 Hooks.once("init", () => {
 	registerSettings()
 	hookTokenDragHandlers()
 	hookRulerFunctions()
-	patchRulerMeasure()
 	patchRulerHighlightMeasurement()
 
 	availableSpeedProviders["native"] = nativeSpeedProvider
@@ -89,6 +88,16 @@ function hookRulerFunctions() {
 		}
 		originalUpdate.call(this, data)
 	}
+
+	const originalMeasure = Ruler.prototype.measure
+	Ruler.prototype.measure = function (destination, options={}) {
+		if (this.isDragRuler) {
+			return measure.call(this, destination, options)
+		}
+		else {
+			return originalMeasure.call(this, destination, options)
+		}
+	}
 }
 
 function onTokenLeftDragStart(event) {
@@ -142,22 +151,6 @@ function onRulerMoveToken(event) {
 function strInsertAfter(haystack, needle, strToInsert) {
 	const pos = haystack.indexOf(needle) + needle.length
 	return haystack.slice(0, pos) + strToInsert + haystack.slice(pos)
-}
-
-// These patches were written with foundry-0.7.9.js as reference
-function patchRulerMeasure() {
-	let code = Ruler.prototype.measure.toString()
-	// Replace CRLF with LF in case foundry.js has CRLF for some reason
-	code = code.replace(/\r\n/g, "\n")
-	// Remove function signature and closing curly bracket (those are on the first and last line)
-	code = code.slice(code.indexOf("\n"), code.lastIndexOf("\n"))
-	code = strInsertAfter(code, "for ( let [i, d] of distances.entries() ) {\n", "segments[i].startDistance = totalDistance\n")
-	code = strInsertAfter(code, "this._highlightMeasurement(ray", ", s.startDistance")
-
-	// Don't show ruler if the measured token is invisible
-	code = "if (this.isDragRuler && !this.draggedToken.isVisible) return [];" + code
-
-	Ruler.prototype.measure = new Function("destination", "{gridSpaces=true}={}", code)
 }
 
 function nativeSpeedProvider(token, playercolor) {
