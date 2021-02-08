@@ -2,6 +2,7 @@
 ### New features
 - Right click and spacebar can now be swapped, allowing to place waypoints with right click and removing them with spacebar
 - The module can now be configured use a fixed color instead of the player color for the first speed range
+- On gridless maps the ruler will now change it's color to indicate the different speed ranges
 
 ### Bugfixes
 - Disabling snap to grid with shift now works as expected

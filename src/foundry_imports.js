@@ -1,3 +1,5 @@
+import {getColorForDistance} from "./main.js"
+
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
 export async function moveTokens(draggedToken, selectedTokens) {
 	let wasPaused = game.paused;
@@ -142,12 +144,17 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 
 	// Draw measured path
 	r.clear();
+	let rulerColor
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
+		rulerColor = getColorForDistance.call(this, totalDistance)
+	else
+		rulerColor = this.color
 	for (let s of segments) {
 		const { ray, label, text, last } = s;
 
 		// Draw line segment
 		r.lineStyle(6, 0x000000, 0.5).moveTo(ray.A.x, ray.A.y).lineTo(ray.B.x, ray.B.y)
-			.lineStyle(4, this.color, 0.25).moveTo(ray.A.x, ray.A.y).lineTo(ray.B.x, ray.B.y);
+			.lineStyle(4, rulerColor, 0.25).moveTo(ray.A.x, ray.A.y).lineTo(ray.B.x, ray.B.y);
 
 		// Draw the distance label just after the endpoint of the segment
 		if (label) {
@@ -164,7 +171,7 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 
 	// Draw endpoints
 	for (let p of waypoints) {
-		r.lineStyle(2, 0x000000, 0.5).beginFill(this.color, 0.25).drawCircle(p.x, p.y, 8);
+		r.lineStyle(2, 0x000000, 0.5).beginFill(rulerColor, 0.25).drawCircle(p.x, p.y, 8);
 	}
 
 	// Return the measured segments

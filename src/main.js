@@ -206,7 +206,7 @@ function nativeSpeedProvider(token, playercolor) {
 	return [{range: tokenSpeed, color: playercolor}, {range: tokenSpeed * dashMultiplier, color: 0xFFFF00}]
 }
 
-function getColorForDistance(startDistance, subDistance) {
+export function getColorForDistance(startDistance, subDistance=0) {
 	if (!this.isDragRuler)
 		return this.color
 	// Don't apply colors if the current user doesn't have at least observer permissions

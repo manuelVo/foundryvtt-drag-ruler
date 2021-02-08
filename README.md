@@ -1,7 +1,7 @@
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/staebchenfisch)
 
 # Drag Ruler
-This module shows a ruler when you drag a token to infrom you how far you've dragged the token from it's start point. Additionally, if you're using a grid, the spaces the token will travel though will be colored depending on your tokens speed.
+This module shows a ruler when you drag a token to infrom you how far you've dragged the token from it's start point. Additionally, if you're using a grid, the spaces the token will travel though will be colored depending on your tokens speed. If you're using a gridless map the ruler color will change to convey this information.
 
 
 ## Path color
