@@ -4,6 +4,15 @@ import {getDefaultDashMultiplier, getDefaultSpeedAttribute} from "./systems.js"
 export const settingsKey = "drag-ruler";
 
 export function registerSettings() {
+	game.settings.register(settingsKey, "swapSpacebarRightClick", {
+		name: "drag-ruler.settings.swapSpacebarRightClick.name",
+		hint: "drag-ruler.settings.swapSpacebarRightClick.hint",
+		scope: "client",
+		config: true,
+		type: Boolean,
+		default: false,
+	})
+
 	game.settings.register(settingsKey, "alwaysShowSpeedForPCs", {
 		name: "drag-ruler.settings.alwaysShowSpeedForPCs.name",
 		hint: "drag-ruler.settings.alwaysShowSpeedForPCs.hint",

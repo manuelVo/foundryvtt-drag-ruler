@@ -1,3 +1,7 @@
+## In development
+### New features
+- Right click and spacebar can now be swapped, allowing to place waypoints with right click and removing them with spacebar
+
 ## v1.1.1
 ### Bugfixes
 - Fixed a bug where tokens wouldn't be moved to the corect end position on gridless maps

@@ -124,28 +124,52 @@ function onTokenDragLeftDrop(event) {
 }
 
 function onTokenDragLeftCancel(event) {
+	// This function is invoked by right clicking
 	if (!canvas.controls.ruler.isDragRuler)
 		return false
 	if (canvas.controls.ruler._state === Ruler.STATES.MEASURING) {
-		if (canvas.controls.ruler.waypoints.length > 1) {
-			canvas.controls.ruler._removeWaypoint(canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens), {snap: !event.shiftKey})
-			game.user.broadcastActivity({ruler: canvas.controls.ruler})
-			event.preventDefault()
+		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
+			if (canvas.controls.ruler.waypoints.length > 1)
+				event.preventDefault()
+			deleteWaypoint()
 		}
 		else {
-			canvas.controls.ruler._endMeasurement()
-			canvas.controls.ruler.draggedToken = null
-			return false
+			event.preventDefault()
+			canvas.controls.ruler._addWaypoint(canvas.controls.ruler.destination)
 		}
 	}
 	return true
 }
 
 function onRulerMoveToken(event) {
+	// This function is invoked by left clicking
 	if (!this.isDragRuler)
 		return false
-	this._addWaypoint(this.destination)
+	if (!game.settings.get(settingsKey, "swapSpacebarRightClick"))
+		this._addWaypoint(this.destination)
+	else
+		deleteWaypoint()
 	return true
+}
+
+function deleteWaypoint() {
+	if (canvas.controls.ruler.waypoints.length > 1) {
+		canvas.controls.ruler._removeWaypoint(canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens), /* TODO What is this? */{snap: !event.shiftKey})
+		game.user.broadcastActivity({ruler: canvas.controls.ruler})
+	}
+	else {
+		const token = canvas.controls.ruler.draggedToken
+		canvas.controls.ruler._endMeasurement()
+		canvas.controls.ruler.draggedToken = null
+
+		// Deactivate the drag workflow in mouse
+		token.mouseInteractionManager._deactivateDragEvents();
+		token.mouseInteractionManager.state = token.mouseInteractionManager.states.HOVER;
+
+		// This will cancel the current drag operation
+		// Pass in a fake event that hopefully is enough to allow other modules to function
+		token._onDragLeftCancel({preventDefault: () => {return}})
+	}
 }
 
 function strInsertAfter(haystack, needle, strToInsert) {

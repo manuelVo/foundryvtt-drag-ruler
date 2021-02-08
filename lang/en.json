@@ -21,6 +21,10 @@
 					"native": "Drag Ruler",
 					"system": "System"
 				}
+			},
+			"swapSpacebarRightClick": {
+				"name": "Swap spacebar and right click",
+				"hint": "Swaps the functions of spacebar and right click during dragging. If enabled right click will place waypoints and spacebar will delete them"
 			}
 		}
 	}
