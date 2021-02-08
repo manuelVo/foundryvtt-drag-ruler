@@ -102,11 +102,11 @@ function hookRulerFunctions() {
 
 function onTokenLeftDragStart(event) {
 	canvas.controls.ruler.draggedToken = this
-	const tokenCenter = {x: this.x + canvas.grid.size / 2, y: this.y + canvas.grid.size / 2}
+	const tokenCenter = {x: this.x + canvas.grid.grid.w / 2, y: this.y + canvas.grid.grid.h / 2}
 	canvas.controls.ruler.clear();
 	canvas.controls.ruler._state = Ruler.STATES.STARTING;
 	canvas.controls.ruler.rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
-	canvas.controls.ruler._addWaypoint(tokenCenter);
+	addWaypoint.call(canvas.controls.ruler, tokenCenter, false);
 }
 
 function onTokenLeftDragMove(event) {
@@ -117,9 +117,9 @@ function onTokenLeftDragMove(event) {
 function onTokenDragLeftDrop(event) {
 	if (!canvas.controls.ruler.isDragRuler)
 		return false
-	canvas.controls.ruler.draggedToken = null
 	const selectedTokens = canvas.tokens.placeables.filter(token => token._controlled)
-	moveTokens.call(canvas.controls.ruler, selectedTokens)
+	moveTokens.call(canvas.controls.ruler, canvas.controls.ruler.draggedToken, selectedTokens)
+	canvas.controls.ruler.draggedToken = null
 	return true
 }
 
@@ -135,7 +135,8 @@ function onTokenDragLeftCancel(event) {
 		}
 		else {
 			event.preventDefault()
-			canvas.controls.ruler._addWaypoint(canvas.controls.ruler.destination)
+			const snap = !event.shiftKey
+			addWaypoint.call(canvas.controls.ruler, canvas.controls.ruler.destination, snap)
 		}
 	}
 	return true
@@ -145,11 +146,22 @@ function onRulerMoveToken(event) {
 	// This function is invoked by left clicking
 	if (!this.isDragRuler)
 		return false
-	if (!game.settings.get(settingsKey, "swapSpacebarRightClick"))
-		this._addWaypoint(this.destination)
+	if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
+		const snap = !event.shiftKey
+		addWaypoint.call(this, this.destination, snap)
+	}
 	else
 		deleteWaypoint()
 	return true
+}
+
+function addWaypoint(point, snap=true) {
+	if (snap)
+		point = canvas.grid.getCenter(point.x, point.y);
+	else
+		point = [point.x, point.y]
+	this.waypoints.push(new PIXI.Point(point[0], point[1]));
+	this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
 }
 
 function deleteWaypoint() {

@@ -1,12 +1,11 @@
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
-export async function moveTokens(selectedTokens) {
+export async function moveTokens(draggedToken, selectedTokens) {
 	let wasPaused = game.paused;
 	if (wasPaused && !game.user.isGM) {
 		ui.notifications.warn(game.i18n.localize("GAME.PausedWarning"));
 		return false;
 	}
 	if (!this.visible || !this.destination) return false;
-	const draggedToken = this._getMovementToken();
 	if (!draggedToken) return;
 
 	// Get the movement rays and check collision along each Ray
@@ -44,22 +43,21 @@ async function animateToken(token, rays, tokenOffset, wasPaused) {
 
 	// Determine offset relative to the Token top-left.
 	// This is important so we can position the token relative to the ruler origin for non-1x1 tokens.
-	origin = canvas.grid.getTopLeft(this.waypoints[0].x + tokenOffset.x, this.waypoints[0].y + tokenOffset.y);
+	const origin = [this.waypoints[0].x + tokenOffset.x, this.waypoints[0].y + tokenOffset.y]
 	let dx, dy
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		dx = token.data.x - origin[0]
 		dy = token.data.y - origin[1]
 	}
 	else {
-		const s2 = canvas.dimensions.size / 2;
-		dx = Math.round((token.data.x - origin[0]) / s2) * s2;
-		dy = Math.round((token.data.y - origin[1]) / s2) * s2;
+		dx = token.data.x - origin[0]
+		dy = token.data.y - origin[1]
 	}
 
 	token._noAnimate = true;
 	for (let r of offsetRays) {
 		if (!wasPaused && game.paused) break;
-		const dest = canvas.grid.getTopLeft(r.B.x, r.B.y);
+		const dest = [r.B.x, r.B.y];
 		const path = new Ray({ x: token.x, y: token.y }, { x: dest[0] + dx, y: dest[1] + dy });
 		await token.update(path.B);
 		await token.animateMovement(path);
@@ -90,36 +88,44 @@ export function onMouseMove(event) {
 
 	// Draw measurement updates
 	if (Date.now() - mt > 50) {
-		this.measure(destination, { gridSpaces: !originalEvent.shiftKey });
+		this.measure(destination, {snap: !originalEvent.shiftKey});
 		event._measureTime = Date.now();
 		this._state = Ruler.STATES.MEASURING;
 	}
 }
 
 // This is a modified version of Ruler.measure form foundry 0.7.9
-export function measure(destination, {gridSpaces=true} = {}) {
+export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	if (this.isDragRuler && !this.draggedToken.isVisible)
 		return []
-	destination = new PIXI.Point(...canvas.grid.getCenter(destination.x, destination.y));
+
+	if (snap)
+		destination = new PIXI.Point(...canvas.grid.getCenter(destination.x, destination.y));
 	const waypoints = this.waypoints.concat([destination]);
+	const centeredWaypoints = waypoints.map(w => new PIXI.Point(...canvas.grid.getCenter(w.x, w.y)))
 	const r = this.ruler;
 	this.destination = destination;
 
 	// Iterate over waypoints and construct segment rays
 	const segments = [];
+	const centeredSegments = []
 	for (let [i, dest] of waypoints.slice(1).entries()) {
+		const centeredDest = centeredWaypoints[i + 1]
 		const origin = waypoints[i];
+		const centeredOrigin = centeredWaypoints[i]
 		const label = this.labels.children[i];
 		const ray = new Ray(origin, dest);
+		const centeredRay = new Ray(centeredOrigin, centeredDest)
 		if (ray.distance < 10) {
 			if (label) label.visible = false;
 			continue;
 		}
 		segments.push({ ray, label });
+		centeredSegments.push({ray: centeredRay, label})
 	}
 
 	// Compute measured distance
-	const distances = canvas.grid.measureDistances(segments, { gridSpaces });
+	const distances = canvas.grid.measureDistances(centeredSegments, { gridSpaces });
 	let totalDistance = 0;
 	for (let [i, d] of distances.entries()) {
 		let s = segments[i];
