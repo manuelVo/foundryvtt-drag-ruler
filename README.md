@@ -22,6 +22,14 @@ ShowDragDistance isn't maintained anymore. This means that it is at risk to stop
 In addition Drag Ruler provides more flexibility for game systems and modules via it's api to provide an experience that fits the rules of the game system that you are playing best.
 
 
+## Game systems with Drag Ruler integration
+Drag Ruler will work with all Foundry VTT game systems. However some game systems offer a special integration via the [Drag Ruler API](#api), that allows Drag Ruler to take the rules of the game system into account when dispaying speeds (such as weight carried or conditions that apply to the character), offering a smoother experience. While some game systems offer this integration natively, for other game systems there are modules providing the integration. If the integration is provided via a module you need to install and activate both Drag Ruler and the integration module to benefit from the integration.
+
+The game systems that offer Drag Ruler integration are:
+- Pathfinder 1 (starting with version 0.77.3)
+- Pathfinder 2e (via the module [PF2E Drag Ruler Integration](https://foundryvtt.com/packages/pf2e-dragruler/))
+
+
 ## API
 *Audience: This paragraph is intended for module and system devleopers that want to add more complex behavior to Drag Ruler. If you just want to use this plugins features skip this paragraph.*
 
