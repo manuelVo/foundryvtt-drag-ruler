@@ -154,7 +154,7 @@ function onRulerMoveToken(event) {
 
 function deleteWaypoint() {
 	if (canvas.controls.ruler.waypoints.length > 1) {
-		canvas.controls.ruler._removeWaypoint(canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens), /* TODO What is this? */{snap: !event.shiftKey})
+		canvas.controls.ruler._removeWaypoint(canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens))
 		game.user.broadcastActivity({ruler: canvas.controls.ruler})
 	}
 	else {
