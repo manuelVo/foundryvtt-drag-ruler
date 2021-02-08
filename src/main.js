@@ -8,6 +8,7 @@ Hooks.once("init", () => {
 	registerSettings()
 	hookTokenDragHandlers()
 	hookRulerFunctions()
+	hookKeyboardManagerFunctions()
 	patchRulerHighlightMeasurement()
 
 	availableSpeedProviders["native"] = nativeSpeedProvider
@@ -98,6 +99,31 @@ function hookRulerFunctions() {
 			return originalMeasure.call(this, destination, options)
 		}
 	}
+}
+
+function hookKeyboardManagerFunctions() {
+	const originalHandleKeys = KeyboardManager.prototype._handleKeys
+	KeyboardManager.prototype._handleKeys = function (event, key, up) {
+		const eventHandled = handleKeys.call(this, event, key, up)
+		if (!eventHandled)
+			originalHandleKeys.call(this, event, key, up)
+	}
+}
+
+function handleKeys(event, key, up) {
+	if (up || event.repeat || this.hasFocus)
+		return false
+
+	if (key.toLowerCase() === "x") return onKeyDownX()
+	return false
+}
+
+function onKeyDownX() {
+	if (!canvas.controls.ruler.isDragRuler)
+		return false
+
+	deleteWaypoint()
+	return true
 }
 
 function onTokenLeftDragStart(event) {
