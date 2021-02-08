@@ -22,6 +22,10 @@
 					"system": "System"
 				}
 			},
+			"staticFirstColor": {
+				"name": "Static First Color",
+				"hint": "Use a static color for the first movement range instead of the player color"
+			},
 			"swapSpacebarRightClick": {
 				"name": "Swap spacebar and right click",
 				"hint": "Swaps the functions of spacebar and right click during dragging. If enabled right click will place waypoints and spacebar will delete them"

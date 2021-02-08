@@ -216,7 +216,8 @@ function getColorForDistance(startDistance, subDistance) {
 			return this.color
 	}
 	const distance = startDistance + subDistance
-	const ranges = currentSpeedProvider(this.draggedToken, this.color)
+	const firstColor = game.settings.get(settingsKey, "staticFirstColor") ? 0x00FF00 : this.color
+	const ranges = currentSpeedProvider(this.draggedToken, firstColor)
 	if (ranges.length === 0)
 		return this.color
 	const currentRange = ranges.reduce((minRange, currentRange) => {

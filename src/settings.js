@@ -53,4 +53,13 @@ export function registerSettings() {
 		type: Number,
 		default: getDefaultDashMultiplier(),
 	})
+
+	game.settings.register(settingsKey, "staticFirstColor", {
+		name: "drag-ruler.settings.staticFirstColor.name",
+		hint: "drag-ruler.settings.staticFirstColor.hint",
+		scope: "world",
+		config: true,
+		type: Boolean,
+		default: false,
+	})
 }
