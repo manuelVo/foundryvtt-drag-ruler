@@ -2,6 +2,9 @@
 ### New features
 - Right click and spacebar can now be swapped, allowing to place waypoints with right click and removing them with spacebar
 
+### Bugfixes
+- Fixed a bug where the ruler would sometimes jump to a different target location when deleting a waypoint
+
 ## v1.1.1
 ### Bugfixes
 - Fixed a bug where tokens wouldn't be moved to the corect end position on gridless maps
