@@ -1,4 +1,4 @@
-## In development
+## 1.2.0
 ### New features
 - Right click and spacebar can now be swapped, allowing to place waypoints with right click and removing them with spacebar
 - The module can now be configured use a fixed color instead of the player color for the first speed range
