@@ -3,7 +3,7 @@
 - Right click and spacebar can now be swapped, allowing to place waypoints with right click and removing them with spacebar
 
 ### Bugfixes
-- Disabling snap to grid now works with shift as expected
+- Disabling snap to grid with shift now works as expected
 - Fixed a bug where the ruler would sometimes jump to a different target location when deleting a waypoint
 
 ## v1.1.1
