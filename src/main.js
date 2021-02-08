@@ -111,19 +111,32 @@ function hookKeyboardManagerFunctions() {
 }
 
 function handleKeys(event, key, up) {
-	if (up || event.repeat || this.hasFocus)
+	if (event.repeat || this.hasFocus)
 		return false
 
-	if (key.toLowerCase() === "x") return onKeyDownX()
+	if (key.toLowerCase() === "x") return onKeyX(up)
+	if (key.toLowerCase() === "shift") return onKeyShift(up)
 	return false
 }
 
-function onKeyDownX() {
+function onKeyX(up) {
+	if (up)
+		return false
 	if (!canvas.controls.ruler.isDragRuler)
 		return false
 
 	deleteWaypoint()
 	return true
+}
+
+function onKeyShift(up) {
+	if (!canvas.controls.ruler.isDragRuler)
+		return false
+
+	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens)
+	const rulerOffset = canvas.controls.ruler.rulerOffset
+	const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}
+	canvas.controls.ruler.measure(measurePosition, {snap: up})
 }
 
 function onTokenLeftDragStart(event) {
