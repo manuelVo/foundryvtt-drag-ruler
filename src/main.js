@@ -130,52 +130,57 @@ function onKeyX(up) {
 }
 
 function onKeyShift(up) {
-	if (!canvas.controls.ruler.isDragRuler)
+	const ruler = canvas.controls.ruler
+	if (!ruler.isDragRuler)
 		return false
 
 	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens)
-	const rulerOffset = canvas.controls.ruler.rulerOffset
+	const rulerOffset = ruler.rulerOffset
 	const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}
-	canvas.controls.ruler.measure(measurePosition, {snap: up})
+	ruler.measure(measurePosition, {snap: up})
 }
 
 function onTokenLeftDragStart(event) {
-	canvas.controls.ruler.draggedToken = this
+	const ruler = canvas.controls.ruler
+	ruler.draggedToken = this
 	const tokenCenter = {x: this.x + canvas.grid.grid.w / 2, y: this.y + canvas.grid.grid.h / 2}
-	canvas.controls.ruler.clear();
-	canvas.controls.ruler._state = Ruler.STATES.STARTING;
-	canvas.controls.ruler.rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
-	addWaypoint.call(canvas.controls.ruler, tokenCenter, false);
+	ruler.clear();
+	ruler._state = Ruler.STATES.STARTING;
+	ruler.rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
+	addWaypoint.call(ruler, tokenCenter, false)
 }
 
 function onTokenLeftDragMove(event) {
-	if (canvas.controls.ruler.isDragRuler)
-		onMouseMove.call(canvas.controls.ruler, event)
+	const ruler = canvas.controls.ruler
+	if (ruler.isDragRuler)
+		onMouseMove.call(ruler, event)
 }
 
 function onTokenDragLeftDrop(event) {
-	if (!canvas.controls.ruler.isDragRuler)
+	const ruler = canvas.controls.ruler
+	if (!ruler.isDragRuler)
 		return false
 	const selectedTokens = canvas.tokens.placeables.filter(token => token._controlled)
-	moveTokens.call(canvas.controls.ruler, canvas.controls.ruler.draggedToken, selectedTokens)
-	canvas.controls.ruler.draggedToken = null
+	moveTokens.call(ruler, ruler.draggedToken, selectedTokens)
+	ruler.draggedToken = null
 	return true
 }
 
 function onTokenDragLeftCancel(event) {
 	// This function is invoked by right clicking
-	if (!canvas.controls.ruler.isDragRuler)
+	const ruler = canvas.controls.ruler
+	if (!ruler.isDragRuler)
 		return false
-	if (canvas.controls.ruler._state === Ruler.STATES.MEASURING) {
+	if (ruler._state === Ruler.STATES.MEASURING) {
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
-			if (canvas.controls.ruler.waypoints.length > 1)
+			if (ruler.waypoints.length > 1)
 				event.preventDefault()
 			deleteWaypoint()
 		}
 		else {
 			event.preventDefault()
 			const snap = !event.shiftKey
-			addWaypoint.call(canvas.controls.ruler, canvas.controls.ruler.destination, snap)
+			addWaypoint.call(ruler, ruler.destination, snap)
 		}
 	}
 	return true
@@ -204,16 +209,17 @@ function addWaypoint(point, snap=true) {
 }
 
 function deleteWaypoint() {
-	if (canvas.controls.ruler.waypoints.length > 1) {
+	const ruler = canvas.controls.ruler
+	if (ruler.waypoints.length > 1) {
 		const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens)
-		const rulerOffset = canvas.controls.ruler.rulerOffset
-		canvas.controls.ruler._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y})
-		game.user.broadcastActivity({ruler: canvas.controls.ruler})
+		const rulerOffset = ruler.rulerOffset
+		ruler._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y})
+		game.user.broadcastActivity({ruler: ruler})
 	}
 	else {
-		const token = canvas.controls.ruler.draggedToken
-		canvas.controls.ruler._endMeasurement()
-		canvas.controls.ruler.draggedToken = null
+		const token = ruler.draggedToken
+		ruler._endMeasurement()
+		ruler.draggedToken = null
 
 		// Deactivate the drag workflow in mouse
 		token.mouseInteractionManager._deactivateDragEvents();
