@@ -1,3 +1,7 @@
+## In development
+### Other
+- Drag Ruler is now aware of good default values for the lancer game system (thanks to Grygon)
+
 ## 1.2.2
 ### Translation
 - Added japanese translation (thanks to touge)
