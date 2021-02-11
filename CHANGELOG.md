@@ -1,4 +1,4 @@
-## In development
+## 1.2.2
 ### Translation
 - Added japanese translation (thanks to touge)
 
