@@ -30,6 +30,10 @@ The game systems that offer Drag Ruler integration are:
 - Pathfinder 2e (via the module [PF2E Drag Ruler Integration](https://foundryvtt.com/packages/pf2e-dragruler/))
 
 
+## Translations
+Drag Ruler is available in the follwing languages:
+- Japanese (thanks to touge)
+
 ## API
 *Audience: This paragraph is intended for module and system devleopers that want to add more complex behavior to Drag Ruler. If you just want to use this plugins features skip this paragraph.*
 
