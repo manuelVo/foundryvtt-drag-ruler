@@ -1,6 +1,7 @@
 "use strict"
 
 import {availableSpeedProviders, currentSpeedProvider, registerModule, registerSystem, setCurrentSpeedProvider} from "./api.js"
+import {getHexSizeSupportTokenGridCenter} from "./compatibility.js"
 import {measure, moveTokens, onMouseMove} from "./foundry_imports.js"
 import {registerSettings, settingsKey} from "./settings.js"
 
@@ -143,7 +144,11 @@ function onKeyShift(up) {
 function onTokenLeftDragStart(event) {
 	const ruler = canvas.controls.ruler
 	ruler.draggedToken = this
-	const tokenCenter = {x: this.x + canvas.grid.grid.w / 2, y: this.y + canvas.grid.grid.h / 2}
+	let tokenCenter
+	if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
+		tokenCenter = getHexSizeSupportTokenGridCenter(this)
+	else
+		tokenCenter = {x: this.x + canvas.grid.grid.w / 2, y: this.y + canvas.grid.grid.h / 2}
 	ruler.clear();
 	ruler._state = Ruler.STATES.STARTING;
 	ruler.rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}

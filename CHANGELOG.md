@@ -1,3 +1,7 @@
+## In development
+### Compatiblity
+- Drag Ruler is now compatible with Hex Token Size Support. For compatibility Hex Token Size Support Version 0.5.4 or higher is required. Thanks to Ourobor for helping making this possible.
+
 ## 1.2.0
 ### New features
 - Right click and spacebar can now be swapped, allowing to place waypoints with right click and removing them with spacebar
