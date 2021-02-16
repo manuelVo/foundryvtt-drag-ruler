@@ -165,7 +165,7 @@ function onTokenDragLeftDrop(event) {
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler)
 		return false
-	const selectedTokens = canvas.tokens.placeables.filter(token => token._controlled)
+	const selectedTokens = canvas.tokens.controlled
 	moveTokens.call(ruler, ruler.draggedToken, selectedTokens)
 	ruler.draggedToken = null
 	return true
