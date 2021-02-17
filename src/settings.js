@@ -1,4 +1,4 @@
-import {availableSpeedProviders, getDefaultSpeedProvider, updateSpeedProvider} from "./api.js";
+import {availableSpeedProviders, currentSpeedProvider, getDefaultSpeedProvider, updateSpeedProvider} from "./api.js";
 import {SpeedProvider} from "./speed_provider.js"
 
 export const settingsKey = "drag-ruler";
@@ -54,7 +54,7 @@ class SpeedProviderSettings extends FormApplication {
 	getData(options={}) {
 		const data = {}
 		data.isGM = game.user.isGM
-		const selectedProvider = game.settings.get(settingsKey, "speedProvider")
+		const selectedProvider = currentSpeedProvider.id
 
 		// Insert all speed providers into the template data
 		data.providers = Object.values(availableSpeedProviders).map(speedProvider => {
