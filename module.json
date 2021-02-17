@@ -15,6 +15,9 @@
 	"esmodules": [
 		"src/main.js"
 	],
+	"templates": [
+		"speed_provider_settings.html"
+	],
 	"languages": [
 		{
 			"lang": "en",

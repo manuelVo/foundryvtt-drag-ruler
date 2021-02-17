@@ -1,6 +1,18 @@
 ## In development
-### Other
-- Drag Ruler is now aware of good default values for the lancer game system (thanks to Grygon)
+### New features
+- The color used to indicate speed ranges is now configurable
+- The settings dialog has been reworked
+
+### System compatibility
+- Drag Ruler's Generic SpeedProvider is now aware of good default values for the lancer game system (thanks to Grygon)
+
+### API changes
+This release introduces a new API that is incompatible with the old API. The new API offers more flexibility for users and Speed Providers alike and allows to add new features in the future without breaking compatibility again. The old API will continue to function, but to profit from any of the features below Speed Providers need to switch to the new API. For more details check out the API documentation.
+
+The following things have changed with the new API:
+- Colors used by speed providers can now be changed by the user via configuration
+- Speed Providers can now offer settings to the user that will be integrated into Drag Ruler's settings menu
+
 
 ## 1.2.2
 ### Translation

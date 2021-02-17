@@ -1,37 +1,60 @@
+import {GenericSpeedProvider, SpeedProvider} from "./speed_provider.js"
+import {settingsKey} from "./settings.js"
+
 export const availableSpeedProviders = {}
 export let currentSpeedProvider = undefined
 
 function register(module, type, speedProvider) {
-	const providerSetting = game.settings.settings.get("drag-ruler.speedProvider")
+	const id = `${type}.${module.id}`
+	let providerInstance
+	if (speedProvider.prototype instanceof SpeedProvider) {
+		providerInstance = new speedProvider(id)
+	}
+	else {
+		speedProvider.id = id
+		providerInstance = speedProvider
+	}
+	setupProvider(providerInstance)
+}
 
-	// Add the registered module to the settings entry
-	providerSetting.config = true
-	const moduleName = module.data.title
-	const typeTitle = game.i18n.localize(`drag-ruler.settings.speedProvider.choices.${type}`)
-	providerSetting.choices[`${type}.${module.id}`] = `${typeTitle} ${moduleName}`
-	availableSpeedProviders[`${type}.${module.id}`] = speedProvider
-	providerSetting.default = getDefaultSpeedProvider()
+function setupProvider(speedProvider) {
+	if (speedProvider instanceof SpeedProvider) {
+		const unreachableColor = {id: "unreachable", default: speedProvider.defaultUnreachableColor, name: "drag-ruler.settings.speedProviderSettings.color.unreachable.name"}
+		for (const color of speedProvider.colors.concat([unreachableColor])) {
+			game.settings.register(settingsKey, `speedProviders.${speedProvider.id}.color.${color.id}`, {
+				config: false,
+				scope: "client",
+				type: Number,
+				default: color.default,
+			})
+		}
+		for (const setting of speedProvider.settings) {
+			setting.config = false
+			game.settings.register(settingsKey, `speedProviders.${speedProvider.id}.setting.${setting.id}`, setting)
+		}
+	}
 
+	availableSpeedProviders[speedProvider.id] = speedProvider
+	game.settings.settings.get("drag-ruler.speedProvider").default = getDefaultSpeedProvider()
 	updateSpeedProvider()
 }
 
-function getDefaultSpeedProvider() {
-	const providerSetting = game.settings.settings.get("drag-ruler.speedProvider")
-	const settingKeys = Object.keys(providerSetting.choices)
+export function getDefaultSpeedProvider() {
+	const providerIds = Object.keys(availableSpeedProviders)
 	// Game systems take the highest precedence for the being the default
-	const gameSystem = settingKeys.find(key => key.startsWith("system."))
+	const gameSystem = providerIds.find(key => key.startsWith("system."))
 	if (gameSystem)
 		return gameSystem
 
 	// If no game system is registered modules are next up.
 	// For lack of a method to select the best module we're just falling back to taking the next best module
 	// settingKeys should always be sorted the same way so this should achive a stable default
-	const module = settingKeys.find(key => key.startsWith("module."))
+	const module = providerIds.find(key => key.startsWith("module."))
 	if (module)
 		return module
 
 	// If neither a game system or a module is found fall back to the native implementation
-	return settingKeys[0]
+	return providerIds[0]
 }
 
 export function updateSpeedProvider() {
@@ -40,8 +63,37 @@ export function updateSpeedProvider() {
 	currentSpeedProvider = availableSpeedProviders[configuredProvider] ?? availableSpeedProviders[game.settings.settings.get("drag-ruler.speedProvider").default]
 }
 
-export function setCurrentSpeedProvider(newSpeedProvider) {
-	currentSpeedProvider = newSpeedProvider
+export function initApi() {
+	const genericSpeedProviderInstance = new GenericSpeedProvider("native")
+	setupProvider(genericSpeedProviderInstance)
+}
+
+export function getRangesFromSpeedProvider(token) {
+	try {
+		if (currentSpeedProvider instanceof Function)
+			return currentSpeedProvider(token, 0x00FF00)
+		const ranges = currentSpeedProvider.getRanges(token)
+		for (const range of ranges) {
+			range.color = game.settings.get(settingsKey, `speedProviders.${currentSpeedProvider.id}.color.${range.color}`)
+		}
+		return ranges
+	}
+	catch (e) {
+		console.error(e)
+		return []
+	}
+}
+
+export function getUnreachableColorFromSpeedProvider() {
+	if (currentSpeedProvider instanceof Function)
+		return 0xFF0000
+	try {
+		return game.settings.get(settingsKey, `speedProviders.${currentSpeedProvider.id}.color.unreachable`)
+	}
+	catch (e) {
+		console.error(e)
+		return 0xFF0000
+	}
 }
 
 export function registerModule(moduleId, speedProvider) {

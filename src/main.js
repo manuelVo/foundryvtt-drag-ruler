@@ -1,30 +1,28 @@
 "use strict"
 
-import {availableSpeedProviders, currentSpeedProvider, registerModule, registerSystem, setCurrentSpeedProvider} from "./api.js"
+import {getRangesFromSpeedProvider, getUnreachableColorFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js"
 import {getHexSizeSupportTokenGridCenter} from "./compatibility.js"
 import {measure, moveTokens, onMouseMove} from "./foundry_imports.js"
 import {registerSettings, settingsKey} from "./settings.js"
+import {SpeedProvider} from "./speed_provider.js"
 
 Hooks.once("init", () => {
 	registerSettings()
+	initApi()
 	hookTokenDragHandlers()
 	hookRulerFunctions()
 	hookKeyboardManagerFunctions()
 	patchRulerHighlightMeasurement()
 
-	availableSpeedProviders["native"] = nativeSpeedProvider
-	setCurrentSpeedProvider(nativeSpeedProvider)
-
 	window.dragRuler = {
 		getColorForDistance,
 		registerModule,
-		registerSystem
+		registerSystem,
 	}
-
 })
 
 Hooks.once("ready", () => {
-	Hooks.callAll("dragRuler.ready")
+	Hooks.callAll("dragRuler.ready", SpeedProvider)
 })
 
 Hooks.on("canvasReady", () => {
@@ -241,21 +239,6 @@ function strInsertAfter(haystack, needle, strToInsert) {
 	return haystack.slice(0, pos) + strToInsert + haystack.slice(pos)
 }
 
-function nativeSpeedProvider(token, playercolor) {
-	const speedAttribute = game.settings.get(settingsKey, "speedAttribute")
-	if (!speedAttribute)
-		return []
-	const tokenSpeed = getProperty(token, speedAttribute)
-	if (tokenSpeed === undefined) {
-		console.warn(`Drag Ruler | The configured token speed attribute "${speedAttribute}" didn't return a speed value. To use colors based on drag distance set the setting to the correct value (or clear the box to disable this feature).`)
-		return []
-	}
-	const dashMultiplier = game.settings.get(settingsKey, "dashMultiplier")
-	if (!dashMultiplier)
-		return [{range: tokenSpeed, color: playercolor}]
-	return [{range: tokenSpeed, color: playercolor}, {range: tokenSpeed * dashMultiplier, color: 0xFFFF00}]
-}
-
 export function getColorForDistance(startDistance, subDistance=0) {
 	if (!this.isDragRuler)
 		return this.color
@@ -266,15 +249,14 @@ export function getColorForDistance(startDistance, subDistance=0) {
 			return this.color
 	}
 	const distance = startDistance + subDistance
-	const firstColor = game.settings.get(settingsKey, "staticFirstColor") ? 0x00FF00 : this.color
-	const ranges = currentSpeedProvider(this.draggedToken, firstColor)
+	const ranges = getRangesFromSpeedProvider(this.draggedToken)
 	if (ranges.length === 0)
 		return this.color
 	const currentRange = ranges.reduce((minRange, currentRange) => {
 		if (distance <= currentRange.range && currentRange.range < minRange.range)
 			return currentRange
 		return minRange
-	}, {range: Infinity, color: 0xFF0000})
+	}, {range: Infinity, color: getUnreachableColorFromSpeedProvider()})
 	return currentRange.color
 }
 
