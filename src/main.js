@@ -3,6 +3,7 @@
 import {getRangesFromSpeedProvider, getUnreachableColorFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js"
 import {getHexSizeSupportTokenGridCenter} from "./compatibility.js"
 import {measure, moveTokens, onMouseMove} from "./foundry_imports.js"
+import {performMigrations} from "./migration.js"
 import {registerSettings, settingsKey} from "./settings.js"
 import {SpeedProvider} from "./speed_provider.js"
 
@@ -22,6 +23,7 @@ Hooks.once("init", () => {
 })
 
 Hooks.once("ready", () => {
+	performMigrations()
 	Hooks.callAll("dragRuler.ready", SpeedProvider)
 })
 

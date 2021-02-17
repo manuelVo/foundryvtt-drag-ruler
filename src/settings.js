@@ -4,6 +4,13 @@ import {SpeedProvider} from "./speed_provider.js"
 export const settingsKey = "drag-ruler";
 
 export function registerSettings() {
+	game.settings.register(settingsKey, "dataVersion", {
+		scope: "world",
+		config: false,
+		type: String,
+		default: "fresh install"
+	})
+
 	game.settings.register(settingsKey, "swapSpacebarRightClick", {
 		name: "drag-ruler.settings.swapSpacebarRightClick.name",
 		hint: "drag-ruler.settings.swapSpacebarRightClick.hint",
