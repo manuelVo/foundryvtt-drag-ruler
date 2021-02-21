@@ -1,4 +1,4 @@
-## In development
+## 1.3.0
 ### New features
 - The color used to indicate speed ranges is now configurable
 - The settings dialog has been reworked
