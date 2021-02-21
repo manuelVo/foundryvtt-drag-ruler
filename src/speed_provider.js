@@ -57,6 +57,18 @@ export class SpeedProvider {
 	}
 
 	/**
+	 * Returns a boolean indicating whether this token will use a Ruler or not.
+	 * If this is returns `false` for a token Drag Ruler will be disabled for that token. Dragging a token for which this function
+	 * returns false will behave as if Drag Ruler wasn't installed.
+	 * If usesRuler returns `false` it's guranteed that the `getRanges` function won't be called for that token.
+	 *
+	 * Implementing this method is optional and only needs to be done if you want to disable Drag Ruler for some tokens.
+	 */
+	usesRuler(token) {
+		return true
+	}
+
+	/**
 	 * Returns the value that is currently set for the setting registered with the provided settingId.
 	 *
 	 * This function shouldn't be overridden by speed provider implementations. It can be called to fetch speed provider specific settings.
@@ -71,16 +83,6 @@ export class SpeedProvider {
 			}
 			throw new Error(`Drag Ruler | "${settingId}" is not a registered setting for "${this.id}". If you're the module/system developer, please add it to the return values of your Speed Providers "get settings()" function.`)
 		}
-	}
-
-	/**
-	 * Returns a boolean indicating whether this token will use a Ruler or not.
-	 * If this is returns `false` for a token Drag Ruler will be disabled for that token. Dragging a token for which this function
-	 * returns false will behave as if Drag Ruler wasn't installed.
-	 * If usesRuler returns `false` it's guranteed that the `getRanges` function won't be called for that token.
-	 */
-	usesRuler(token) {
-		return true
 	}
 
 	/**

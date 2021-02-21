@@ -129,3 +129,6 @@ The `getRanges` function is the second function that every Speed Provider must o
 This line registers the Speed Provider class that was just created with Drag Ruler. The paramter must be the id of the module you're writing. This id must exactly match the id specified in you manifest. As the second parameter the Speed Provider class that was just created is passed in.
 
 If you're not writing a module but a game system use `dragRuler.registerSystem` instead of `dragRuler.registerModule.
+
+### Additional capabilities of the API
+In addition to the basic capabilities of the API presented in the example above, Drag Ruler's API offers more capabilities, like adding settings to your Speed Provider. To learn more about additional capabilities refer to the documentation of the `SpeedProvider` base class in [speed_provider.js](src/speed_provider.js).
