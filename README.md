@@ -33,61 +33,99 @@ The game systems that offer Drag Ruler integration are:
 
 ## Translations
 Drag Ruler is available in the follwing languages:
+- English
 - Japanese (thanks to touge)
 
 ## API
 *Audience: This paragraph is intended for module and system devleopers that want to add more complex behavior to Drag Ruler. If you just want to use this plugins features skip this paragraph.*
 
-The path coloring behavior of Drag Ruler can be altered by modules and systems to allow for for more complex coloring than provided by default. This allows specifying custom colors, using more different colors than offered by default and performing more calculations for determining the colors (for example a token may only be allowd to run if it isn't waring armor). Doing so is simple. This paragraph gives a short introduction on how to accomplish this, followed by a full example of how a call to the api might look like.
-
-### Registering your Module/System
-*This section is written from the perspective of a module developer. If you're writing a game system the process is exactly the same, except that you need to invoke `registerSystem` instead of `registerModule` and need to use the id of your system instead of a module id.*
-
-The first thing you'll have to do is to make your module known to Drag Ruler. To do this, you have to call the `dragRuler.registerModule` function after the `dragRuler.ready` hook has fired. This might look like this:
-
-```javascript
-Hooks.once("dragRuler.ready", () => {
-	dragRuler.registerModule("id-of-your-module", mySpeedProvider)
-})
-```
-
-The function `registerModule` takes two parameters: The first parameter must be the ID of your module as specified in your manifest. The second parameter is a reference to the Speed Provider of your module. What that Speed Provider looks like will be detailed in the paragraph [Writing the Speed Provider](#writing-the-speed-provider)
-
-### Writing the Speed Provider
-The Speed Provider is a function that calculates the speeds that a token can reach and assigns a color to each of the speeds. That function receives two arguments. The first argument is the token for which the speed should be calculated. The second argument is the color of the player that is dragging the token.
-
-The function should contain an array of objects in the format `{range: Integer, color: Integer}`. The range indicates a distance that the token can cover with a certain speed and the color indicates which color should be used for that range. Spaces that cannot be reached with any of the speeds provided by this function will be colored in red (`0xFF0000`). The returned array doesn't need to be sorted in any particular order. However the array is not allowe to contain two objects with an identical range, as that results in undefined behavior.
-
-The Speed Provider will be called once for each square that will be colored. For this reason it is advisable to not perform any expensive calculations in the Speed Provider.
-
-Here is an example of how a Speed Provider might look like:
-```javascript
-function mySpeedProvider(token, playerColor) {
-	const baseSpeed = token.actor.data.speed
-	const ranges = [{range: baseSpeed, color: playerColor}, {range: baseSpeed * 2, color: 0xFFFF00}]
-	if (!token.actor.data.isWearingArmor) {
-		ranges.push({range: baseSpeed * 3, color: 0xFF8000})
-	}
-	return ranges
-}
-```
-
-With this speed provider, the fields reachable with the token's base speed will be colored in the color of the player that is dragging the token. Each token is able to dash, which allows it to run twice it's base speed. Spaces that are reachable by dashing will be colored yellow (`0xFFFF00`). If the token isn't wearing any armor it is also allowed to sprint, allowing it to cover a distance of 3 times it's base speed. Those squares will be colored in orange (`0xFF8000`). All spaces further away from the token will be colored in red. Tokens wearing armor aren't allowed to sprint and for them all spaces that exceed 2 times their base speed will be colored red.
+The path coloring behavior of Drag Ruler can be altered by modules and systems to allow for for more complex coloring than provided by default. This allows specifying custom colors, using more different colors than offered by default and performing more calculations for determining the colors (for example a token may only be allowd to run if it isn't waring armor). Doing so is simple. This paragraph will provide an example by showing an implementation of the api for a fictional game system, that contains everything you need to get started. Afterwards the code will be dissected into small parts and explained.
 
 ### Full example
-This is a full example of how using the api might look like. It's built from the examples above. For a explanation to what is going on refer to the previous chapters.
+```javascript
+Hooks.once("dragRuler.ready", (SpeedProvider) => {
+    class FictionalGameSystemSpeedProvider extends SpeedProvider {
+        get colors() {
+            return [
+                {id: "walk", default: 0x00FF00, name: "my-module-id.speeds.walk"},
+                {id: "dash", default: 0xFFFF00, name: "my-module-id.speeds.dash"},
+                {id: "run", default: 0xFF8000, name: "my-module-id.speeds.run"}
+            ]
+        }
+
+        getRanges(token) {
+            const baseSpeed = token.actor.data.speed
+
+			// A character can always walk it's base speed and dash twice it's base speed
+			const ranges = [
+				{range: baseSpeed, color: "walk"},
+				{range: baseSpeed * 2, color: "dash"}
+			]
+
+			// Characters that aren't wearing armor are allowed to run with three times their speed
+			if (!token.actor.data.isWearingArmor) {
+				ranges.push({range: baseSpeed * 3, color: "dash"})
+			}
+
+            return ranges
+        }
+    }
+
+    dragRuler.registerModule("my-module-id", FictionalGameSystemSpeedProvider)
+})
+```
+
+### Exmplanation of the code
+```javascript
+Hooks.once("dragRuler.ready", (SpeedProvider) => {
+    class FictionalGameSystemSpeedProvider extends SpeedProvider {
+```
+
+After Drag Ruler has initialized and is ready to receive API calls it will fire the `dragRuler.ready` event. This is the signal for your module/gamesystem that it can now register itself in Drag Ruler. To do this you'll need to implement a Speed Provider. The Hook will provide you with one Argument: The class `SpeedProvider`, which serves as base class for all speed providers. To implement a Speed Provider you create a subclass of `SpeedProvider`. Within that class you override functions of the base class to implement the functionality you need. The functions `colors` and `getRanges` must be overridden by all Speed Provider implementations. Overriding other functions of the Speed Provider is optional and can be done if you need additional functionality for your speed provider.
 
 ```javascript
-Hooks.once("dragRuler.ready", () => {
-	dragRuler.registerModule("id-of-your-module", mySpeedProvider)
-})
-
-function mySpeedProvider(token, playerColor) {
-	const baseSpeed = token.actor.data.speed
-	const ranges = [{range: baseSpeed, color: playerColor}, {range: baseSpeed * 2, color: 0xFFFF00}]
-	if (!token.actor.data.isWearingArmor) {
-		ranges.push({range: baseSpeed * 3, color: 0xFF8000})
-	}
-	return ranges
-}
+        get colors() {
+            return [
+                {id: "walk", default: 0x00FF00, name: "my-module-id.speeds.walk"},
+                {id: "dash", default: 0xFFFF00, name: "my-module-id.speeds.dash"},
+                {id: "run", default: 0xFF8000, name: "my-module-id.speeds.run"}
+            ]
+        }
 ```
+
+The getter `colors` is one of the two functions that must be overridden by all implementations of `SpeedProvider`. It must return an array of all colors, that may be used by this speed provider. Each color must be an object and has three attributes:
+
+- *id*: A name for this color that identifies this color. It will be used in other functions within your speed provider to reference to this color. Ther must not be two colors with the same id.
+- *default*: The default color value that should be used by this color.
+- *name*: A human readable name for this color that will be used in the Speed Provider Settings dialog. Drag Ruler will try to internationalize this string. This field is optional, but it's highly recommended to use it.
+
+```javascript
+        getRanges(token) {
+            const baseSpeed = token.actor.data.speed
+
+			// A character can always walk it's base speed and dash twice it's base speed
+			const ranges = [
+				{range: baseSpeed, color: "walk"},
+				{range: baseSpeed * 2, color: "dash"}
+			]
+
+			// Characters that aren't wearing armor are allowed to run with three times their speed
+			if (!token.actor.data.isWearingArmor) {
+				ranges.push({range: baseSpeed * 3, color: "dash"})
+			}
+
+            return ranges
+        }
+```
+
+The `getRanges` function is the second function that every Speed Provider must override. This function receives a token as a parameter and must return an array of all the ranges that this token can reach. Each range is represented by an object having these fields:
+- *range*: The maximum distance a token is allowed to move within this range
+- *color*: The id of the color that is used to represent this range. This id must match the id as defined in the `colors` getter.
+
+```javascript
+    dragRuler.registerModule("my-module-id", FictionalGameSystemSpeedProvider)
+```
+
+This line registers the Speed Provider class that was just created with Drag Ruler. The paramter must be the id of the module you're writing. This id must exactly match the id specified in you manifest. As the second parameter the Speed Provider class that was just created is passed in.
+
+If you're not writing a module but a game system use `dragRuler.registerSystem` instead of `dragRuler.registerModule.
