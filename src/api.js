@@ -12,6 +12,7 @@ function register(module, type, speedProvider) {
 	}
 	else {
 		speedProvider.id = id
+		speedProvider.usesRuler = () => true
 		providerInstance = speedProvider
 	}
 	setupProvider(providerInstance)

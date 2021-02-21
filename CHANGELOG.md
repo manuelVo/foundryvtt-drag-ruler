@@ -12,6 +12,7 @@ This release introduces a new API that is incompatible with the old API. The new
 The following things have changed with the new API:
 - Colors used by speed providers can now be changed by the user via configuration
 - Speed Providers can now offer settings to the user that will be integrated into Drag Ruler's settings menu
+- Speed Providers can now conditionally disable Drag Ruler for some tokens
 
 
 ## 1.2.2

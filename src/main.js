@@ -1,6 +1,6 @@
 "use strict"
 
-import {getRangesFromSpeedProvider, getUnreachableColorFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js"
+import {currentSpeedProvider, getRangesFromSpeedProvider, getUnreachableColorFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js"
 import {getHexSizeSupportTokenGridCenter} from "./compatibility.js"
 import {measure, moveTokens, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
@@ -142,6 +142,8 @@ function onKeyShift(up) {
 }
 
 function onTokenLeftDragStart(event) {
+	if (!currentSpeedProvider.usesRuler(this))
+		return
 	const ruler = canvas.controls.ruler
 	ruler.draggedToken = this
 	let tokenCenter

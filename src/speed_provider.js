@@ -74,6 +74,16 @@ export class SpeedProvider {
 	}
 
 	/**
+	 * Returns a boolean indicating whether this token will use a Ruler or not.
+	 * If this is returns `false` for a token Drag Ruler will be disabled for that token. Dragging a token for which this function
+	 * returns false will behave as if Drag Ruler wasn't installed.
+	 * If usesRuler returns `false` it's guranteed that the `getRanges` function won't be called for that token.
+	 */
+	usesRuler(token) {
+		return true
+	}
+
+	/**
 	 * Constructs a new instance of he speed provider
 	 *
 	 * This function should neither be called or overridden by speed provider implementations
