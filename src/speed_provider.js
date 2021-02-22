@@ -115,7 +115,7 @@ export class GenericSpeedProvider extends SpeedProvider {
 		}
 		const dashMultiplier = this.getSetting("dashMultiplier")
 		if (!dashMultiplier)
-			return [{range: tokenSpeed, color: playercolor}]
+			return [{range: tokenSpeed, color: "walk"}]
 		return [{range: tokenSpeed, color: "walk"}, {range: tokenSpeed * dashMultiplier, color: "dash"}]
 	}
 
