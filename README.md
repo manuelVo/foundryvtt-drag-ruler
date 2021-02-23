@@ -29,6 +29,7 @@ The game systems that offer Drag Ruler integration are:
 - Cypher System (starting with version 1.13.0)
 - Pathfinder 1 (starting with version 0.77.3)
 - Pathfinder 2e (via the module [PF2E Drag Ruler Integration](https://foundryvtt.com/packages/pf2e-dragruler/))
+- Tormenta20 (starting with version 1.1.37)
 
 
 ## Translations
