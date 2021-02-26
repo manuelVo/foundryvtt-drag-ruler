@@ -37,7 +37,7 @@
 				"noSettings": "This speed provider doesn't offer any configuration options.",
 				"color": {
 					"name": "Color for {colorName}",
-					"hint": "The color that will be used to color square that are within {colorName} range",
+					"hint": "The color that will be used to color squares that are within {colorName} range",
 					"unreachable": {
 						"name": "unreachable",
 						"hint": "The color for spaces that aren't reachable by the dragged token"
