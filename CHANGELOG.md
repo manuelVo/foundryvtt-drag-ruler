@@ -1,3 +1,8 @@
+## In development
+### Translation
+- Updated japanese translation (thanks to togue)
+
+
 ## 1.3.1
 ### Bugfixes
 - Fixed a bug where the coloring of ranges wouldn't work with the generic speed provider if the Dash Multiplier was set to 0
