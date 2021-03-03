@@ -111,6 +111,7 @@ class SpeedProviderSettings extends FormApplication {
 	}
 
 	async _updateObject(event, formData) {
+		const selectedSpeedProvider = game.user.isGM ? formData.speedProvider : game.settings.get(settingsKey, "speedProvider")
 		for (let [key, value] of Object.entries(formData)) {
 			// Check if this is color, convert the value to an integer
 			const splitKey = key.split(".", 3)
@@ -121,7 +122,7 @@ class SpeedProviderSettings extends FormApplication {
 			}
 
 			// Don't change settings for speed providers that aren't currently active
-			if (key !== "speedProvider" && !key.startsWith(formData.speedProvider))
+			if (key !== "speedProvider" && !key.startsWith(selectedSpeedProvider))
 				continue
 
 			// Get the key for the current setting

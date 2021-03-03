@@ -1,3 +1,8 @@
+## In development
+### Bugfixes
+- Speed Provider Settings are now being saved for non GM players
+
+
 ## 1.3.2
 ### Translation
 - Updated japanese translation (thanks to togue)
