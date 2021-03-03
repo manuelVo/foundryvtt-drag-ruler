@@ -1,4 +1,4 @@
-## In development
+## 1.3.3
 ### Bugfixes
 - Speed Provider Settings are now being saved for non GM players
 
