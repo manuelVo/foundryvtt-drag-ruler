@@ -157,7 +157,7 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		rulerColor = getColorForDistance.call(this, totalDistance)
 	else
 		rulerColor = this.color
-	for (const [s, cs] of zip(segments, centeredSegments)) {
+	for (const [s, cs] of zip(segments.reverse(), centeredSegments.reverse())) {
 		const { ray, label, text, last } = s;
 
 		// Draw line segment

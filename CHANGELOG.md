@@ -2,6 +2,7 @@
 ### New features
 - If the [Terrain Ruler module](https://foundryvtt.com/packages/terrain-ruler/) is installed and activated, Drag Ruler will now take difficult terrain that was placed with the [TerrainLayer module](https://foundryvtt.com/packages/TerrainLayer/) into account.
 - The GM's Drag Ruler can now be hidden from non GM players via a setting.
+- When multiple different colors apply to a single grid space because the path crosses itself the color representing ranges further away will take priortiy over colors representing closer ranges.
 
 ## 1.3.4
 ### Module compatibility
