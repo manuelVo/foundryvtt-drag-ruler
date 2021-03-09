@@ -6,6 +6,7 @@ import {measure, moveTokens, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
 import {registerSettings, settingsKey} from "./settings.js"
 import {SpeedProvider} from "./speed_provider.js"
+import { getSnapPointForToken } from "./util.js"
 
 Hooks.once("init", () => {
 	registerSettings()
@@ -158,7 +159,7 @@ function onTokenLeftDragStart(event) {
 	if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
 		tokenCenter = getHexSizeSupportTokenGridCenter(this)
 	else
-		tokenCenter = {x: this.x + canvas.grid.grid.w / 2, y: this.y + canvas.grid.grid.h / 2}
+		tokenCenter = this.center
 	ruler.clear();
 	ruler._state = Ruler.STATES.STARTING;
 	ruler.rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
@@ -216,10 +217,8 @@ function onRulerMoveToken(event) {
 
 function addWaypoint(point, snap=true) {
 	if (snap)
-		point = canvas.grid.getCenter(point.x, point.y);
-	else
-		point = [point.x, point.y]
-	this.waypoints.push(new PIXI.Point(point[0], point[1]));
+		point = getSnapPointForToken(point.x, point.y, this.draggedToken)
+	this.waypoints.push(new PIXI.Point(point.x, point.y));
 	this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
 }
 

@@ -1,6 +1,7 @@
 import {highlightMeasurementTerrainRuler} from "./compatibility.js";
+import {getGridPositionFromPixels} from "./foundry_fixes.js";
 import {getColorForDistance} from "./main.js"
-import {zip} from "./util.js"
+import {applyTokenSizeOffset, getSnapPointForToken, getTokenShape, getTokenSize, highlightTokenShape, zip} from "./util.js";
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
 export async function moveTokens(draggedToken, selectedTokens) {
@@ -104,9 +105,12 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		return []
 
 	if (snap)
-		destination = new PIXI.Point(...canvas.grid.getCenter(destination.x, destination.y));
+		destination = getSnapPointForToken(destination.x, destination.y, this.draggedToken)
+
 	const waypoints = this.waypoints.concat([destination]);
-	const centeredWaypoints = waypoints.map(w => new PIXI.Point(...canvas.grid.getCenter(w.x, w.y)))
+	// Move the waypoints to the center of the grid if a size is used that measures from edge to edge
+	const centeredWaypoints = applyTokenSizeOffset(waypoints, this.draggedToken)
+
 	const r = this.ruler;
 	this.destination = destination;
 
@@ -138,10 +142,10 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 
 	let totalDistance = 0;
 	for (let [i, d] of distances.entries()) {
-		let s = segments[i];
+		let s = centeredSegments[i];
 		s.startDistance = totalDistance
 		totalDistance += d;
-		s.last = i === (segments.length - 1);
+		s.last = i === (centeredSegments.length - 1);
 		s.distance = d;
 		s.text = this._getSegmentLabel(d, totalDistance, s.last);
 	}
@@ -157,27 +161,28 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		rulerColor = getColorForDistance.call(this, totalDistance)
 	else
 		rulerColor = this.color
+	const shape = getTokenShape(this.draggedToken)
 	for (const [s, cs] of zip(segments.reverse(), centeredSegments.reverse())) {
-		const { ray, label, text, last } = s;
+		const { label, text, last } = cs;
 
 		// Draw line segment
-		r.lineStyle(6, 0x000000, 0.5).moveTo(ray.A.x, ray.A.y).lineTo(ray.B.x, ray.B.y)
-			.lineStyle(4, rulerColor, 0.25).moveTo(ray.A.x, ray.A.y).lineTo(ray.B.x, ray.B.y);
+		r.lineStyle(6, 0x000000, 0.5).moveTo(s.ray.A.x, s.ray.A.y).lineTo(s.ray.B.x, s.ray.B.y)
+			.lineStyle(4, rulerColor, 0.25).moveTo(s.ray.A.x, s.ray.A.y).lineTo(s.ray.B.x, s.ray.B.y);
 
 		// Draw the distance label just after the endpoint of the segment
 		if (label) {
 			label.text = text;
 			label.alpha = last ? 1.0 : 0.5;
 			label.visible = true;
-			let labelPosition = ray.project((ray.distance + 50) / ray.distance);
+			let labelPosition = cs.ray.project((cs.ray.distance + 50) / cs.ray.distance);
 			label.position.set(labelPosition.x, labelPosition.y);
 		}
 
 		// Highlight grid positions
 		if (terrainRulerAvailable)
-			highlightMeasurementTerrainRuler.call(this, cs.ray, s.startDistance)
+			highlightMeasurementTerrainRuler.call(this, cs.ray, cs.startDistance, shape)
 		else
-			highlightMeasurementNative.call(this, ray, s.startDistance);
+			highlightMeasurementNative.call(this, cs.ray, cs.startDistance, shape);
 	}
 
 	// Draw endpoints
@@ -189,7 +194,7 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	return segments;
 }
 
-export function highlightMeasurementNative(ray, startDistance) {
+export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0, y: 0}]) {
 	const spacer = canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ? 1.41 : 1;
 	const nMax = Math.max(Math.floor(ray.distance / (spacer * Math.min(canvas.grid.w, canvas.grid.h))), 1);
 	const tMax = Array.fromRange(nMax+1).map(t => t / nMax);
@@ -198,7 +203,7 @@ export function highlightMeasurementNative(ray, startDistance) {
 	let prior = null;
 
 	// Iterate over ray portions
-	for ( let [i, t] of tMax.entries() ) {
+	for ( let [i, t] of tMax.reverse().entries() ) {
 		let {x, y} = ray.project(t);
 
 		// Get grid position
@@ -208,23 +213,26 @@ export function highlightMeasurementNative(ray, startDistance) {
 
 		// Highlight the grid position
 		let [xg, yg] = canvas.grid.grid.getPixelsFromGridPosition(x1, y1);
-		let subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xg, y: yg})}], {gridSpaces: true})[0]
-		let color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
-		canvas.grid.highlightPosition(this.name, {x: xg, y: yg, color: color});
+		const subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xg, y: yg})}], {gridSpaces: true})[0]
+		const color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
+		const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedToken);
+		const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);
 
-		// Skip the first one
 		prior = [x1, y1];
-		if ( i === 0 ) continue;
 
 		// If the positions are not neighbors, also highlight their halfway point
-		if ( !canvas.grid.isNeighbor(x0, y0, x1, y1) ) {
-			let th = tMax[i - 1] + (0.5 / nMax);
+		if (i > 0 && !canvas.grid.isNeighbor(x0, y0, x1, y1)) {
+			let th = tMax[i - 1] - (0.5 / nMax);
 			let {x, y} = ray.project(th);
 			let [x1h, y1h] = canvas.grid.grid.getGridPositionFromPixels(x, y);
 			let [xgh, ygh] = canvas.grid.grid.getPixelsFromGridPosition(x1h, y1h);
-			subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xgh, y: ygh})}], {gridSpaces: true})[0]
-			color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
-			canvas.grid.highlightPosition(this.name, {x: xgh, y: ygh, color: color});
+			const subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xgh, y: ygh})}], {gridSpaces: true})[0]
+			const color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
+			const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedToken);
+			const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);
+			highlightTokenShape.call(this, {x: snapX, y: snapY}, tokenShape, color);
 		}
+
+		highlightTokenShape.call(this, {x: snapX, y: snapY}, tokenShape, color);
 	}
 }

@@ -1,6 +1,8 @@
 ## In development
 ### New features
 - If the [Terrain Ruler module](https://foundryvtt.com/packages/terrain-ruler/) is installed and activated, Drag Ruler will now take difficult terrain that was placed with the [TerrainLayer module](https://foundryvtt.com/packages/TerrainLayer/) into account.
+- The ruler will now always be drawn from the tokens center (even for tokens larger than 1x1) on all grid types (on Hex Grids this requires the Hex Token Size Support module).
+- For tokens larger than 1x1 the highlighted path will now reflect the tokens size (on Hex Grids this requires the Hex Token Size Support module)
 - The GM's Drag Ruler can now be hidden from non GM players via a setting.
 - When multiple different colors apply to a single grid space because the path crosses itself the color representing ranges further away will take priortiy over colors representing closer ranges.
 
