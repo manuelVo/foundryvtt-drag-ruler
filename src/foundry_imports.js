@@ -1,4 +1,6 @@
+import {highlightMeasurementTerrainRuler} from "./compatibility.js";
 import {getColorForDistance} from "./main.js"
+import {zip} from "./util.js"
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
 export async function moveTokens(draggedToken, selectedTokens) {
@@ -127,7 +129,13 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	}
 
 	// Compute measured distance
-	const distances = canvas.grid.measureDistances(centeredSegments, { gridSpaces });
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS
+	let distances
+	if (terrainRulerAvailable)
+		distances = game.terrainRuler.measureDistances(centeredSegments)
+	else
+		distances = canvas.grid.measureDistances(centeredSegments, { gridSpaces });
+
 	let totalDistance = 0;
 	for (let [i, d] of distances.entries()) {
 		let s = segments[i];
@@ -149,7 +157,7 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		rulerColor = getColorForDistance.call(this, totalDistance)
 	else
 		rulerColor = this.color
-	for (let s of segments) {
+	for (const [s, cs] of zip(segments, centeredSegments)) {
 		const { ray, label, text, last } = s;
 
 		// Draw line segment
@@ -166,7 +174,10 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		}
 
 		// Highlight grid positions
-		highlightMeasurementNative.call(this, ray, s.startDistance);
+		if (terrainRulerAvailable)
+			highlightMeasurementTerrainRuler.call(this, cs.ray, s.startDistance)
+		else
+			highlightMeasurementNative.call(this, ray, s.startDistance);
 	}
 
 	// Draw endpoints

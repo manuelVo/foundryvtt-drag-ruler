@@ -1,3 +1,7 @@
+## In development
+### New features
+- If the [Terrain Ruler module](https://foundryvtt.com/packages/terrain-ruler/) is installed and activated, Drag Ruler will now take difficult terrain that was placed with the [TerrainLayer module](https://foundryvtt.com/packages/TerrainLayer/) into account.
+
 ## 1.3.4
 ### Module compatibility
 - Increased compatiblility with other modules (namely Drag Ruler and Terrain Ruler are no longer incompatible)

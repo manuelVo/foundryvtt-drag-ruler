@@ -15,6 +15,13 @@ You can add waypoints to the path by pressing spacebar while you drag the token.
 
 ![Demonstration of Waypoints](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/5177746fbb4edb28b6ba09137247d142af575c47/media/waypoints.webp)
 
+## Difficult Terrain
+**To use support for difficult terrain you must install the [Terrain Ruler module](https://foundryvtt.com/packages/terrain-ruler)**
+
+With the Terrain Ruler module installed, Drag Ruler is able to take difficult terrain that was placed with the [TerrainLayer module](https://foundryvtt.com/packages/TerrainLayer/) into account when measuring distances.
+
+![Demonstration of Difficult Terrain support](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/bb8ac5d1acb9d6374d06f7e9c8e2c2dd61192d56/media/terrain_layer.webp)
+
 
 ## Why would I want to use this instead of ShowDragDistance?
 ShowDragDistance isn't maintained anymore. This means that it is at risk to stop working with every foundry update. In fact this process has already begun. As of Foundry Version 0.7.9 ShowDragDistance doesn't work anymore on gridless maps. Drag Ruler on the other hand is fully compatible with the current Foundry release and I'll continue updating it for future foundry releases for the forseeable future.
