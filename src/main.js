@@ -84,6 +84,9 @@ function hookRulerFunctions() {
 
 	const originalUpdate = Ruler.prototype.update
 	Ruler.prototype.update = function (data) {
+		// Don't show a GMs drag ruler to non GM players
+		if (data.draggedToken && this.user.isGM && !game.user.isGM && !game.settings.get(settingsKey, "showGMRulerToPlayers"))
+			return
 		if (data.draggedToken) {
 			this.draggedToken = canvas.tokens.get(data.draggedToken)
 		}
@@ -98,6 +101,12 @@ function hookRulerFunctions() {
 		else {
 			return originalMeasure.call(this, destination, options)
 		}
+	}
+
+	const originalEndMeasurement = Ruler.prototype._endMeasurement
+	Ruler.prototype._endMeasurement = function () {
+		originalEndMeasurement.call(this)
+		this.draggedToken = null
 	}
 }
 
@@ -167,15 +176,15 @@ function onTokenDragLeftDrop(event) {
 	if (!ruler.isDragRuler)
 		return false
 	const selectedTokens = canvas.tokens.controlled
+	ruler._state = Ruler.STATES.MOVING
 	moveTokens.call(ruler, ruler.draggedToken, selectedTokens)
-	ruler.draggedToken = null
 	return true
 }
 
 function onTokenDragLeftCancel(event) {
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
-	if (!ruler.isDragRuler)
+	if (!ruler.isDragRuler || ruler._state === Ruler.STATES.MOVING)
 		return false
 	if (ruler._state === Ruler.STATES.MEASURING) {
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
@@ -225,7 +234,6 @@ function deleteWaypoint() {
 	else {
 		const token = ruler.draggedToken
 		ruler._endMeasurement()
-		ruler.draggedToken = null
 
 		// Deactivate the drag workflow in mouse
 		token.mouseInteractionManager._deactivateDragEvents();
