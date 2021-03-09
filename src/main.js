@@ -13,7 +13,6 @@ Hooks.once("init", () => {
 	hookTokenDragHandlers()
 	hookRulerFunctions()
 	hookKeyboardManagerFunctions()
-	patchRulerHighlightMeasurement()
 
 	window.dragRuler = {
 		getColorForDistance,
@@ -238,11 +237,6 @@ function deleteWaypoint() {
 	}
 }
 
-function strInsertAfter(haystack, needle, strToInsert) {
-	const pos = haystack.indexOf(needle) + needle.length
-	return haystack.slice(0, pos) + strToInsert + haystack.slice(pos)
-}
-
 export function getColorForDistance(startDistance, subDistance=0) {
 	if (!this.isDragRuler)
 		return this.color
@@ -262,23 +256,4 @@ export function getColorForDistance(startDistance, subDistance=0) {
 		return minRange
 	}, {range: Infinity, color: getUnreachableColorFromSpeedProvider()})
 	return currentRange.color
-}
-
-// These patches were written with foundry-0.7.9.js as reference
-function patchRulerHighlightMeasurement() {
-	let code = Ruler.prototype._highlightMeasurement.toString()
-	// Replace CRLF with LF in case foundry.js has CRLF for some reason
-	code = code.replace(/\r\n/g, "\n")
-	// Remove function signature and closing curly bracket (those are on the first and last line)
-	code = code.slice(code.indexOf("\n"), code.lastIndexOf("\n"))
-
-	const calcColorCode = `
-		let subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xg, y: yg})}], {gridSpaces: true})[0]
-		let color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
-	`
-
-	code = strInsertAfter(code, "Position(x1, y1);\n", calcColorCode)
-	code = strInsertAfter(code, "Position(x1h, y1h);\n", calcColorCode.replace("x: xg, y: yg", "x: xgh, y: ygh"))
-	code = code.replace(/color: this\.color\}/g, "color}")
-	Ruler.prototype._highlightMeasurement = new Function("ray", "startDistance=undefined", code)
 }

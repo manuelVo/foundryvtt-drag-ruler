@@ -1,3 +1,7 @@
+## In development
+### Module compatibility
+- Increased compatiblility with other modules (namely Drag Ruler and Terrain Ruler will now work together)
+
 ## 1.3.3
 ### Bugfixes
 - Speed Provider Settings are now being saved for non GM players
