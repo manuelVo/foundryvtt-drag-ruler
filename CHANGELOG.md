@@ -1,6 +1,6 @@
-## In development
+## 1.3.4
 ### Module compatibility
-- Increased compatiblility with other modules (namely Drag Ruler and Terrain Ruler will now work together)
+- Increased compatiblility with other modules (namely Drag Ruler and Terrain Ruler are no longer incompatible)
 
 ## 1.3.3
 ### Bugfixes
