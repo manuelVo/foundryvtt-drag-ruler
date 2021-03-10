@@ -222,7 +222,7 @@ export function highlightMeasurementNative(ray, startDistance) {
 			let {x, y} = ray.project(th);
 			let [x1h, y1h] = canvas.grid.grid.getGridPositionFromPixels(x, y);
 			let [xgh, ygh] = canvas.grid.grid.getPixelsFromGridPosition(x1h, y1h);
-			subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xg, y: yg})}], {gridSpaces: true})[0]
+			subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xgh, y: ygh})}], {gridSpaces: true})[0]
 			color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
 			canvas.grid.highlightPosition(this.name, {x: xgh, y: ygh, color: color});
 		}

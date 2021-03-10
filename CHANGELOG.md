@@ -4,6 +4,12 @@
 - The GM's Drag Ruler can now be hidden from non GM players via a setting.
 - When multiple different colors apply to a single grid space because the path crosses itself the color representing ranges further away will take priortiy over colors representing closer ranges.
 
+
+## 1.3.5
+### Bugfixes
+- Fixed a regression where spaces could suddenly change their color during measurement
+
+
 ## 1.3.4
 ### Module compatibility
 - Increased compatiblility with other modules (namely Drag Ruler and Terrain Ruler are no longer incompatible)
