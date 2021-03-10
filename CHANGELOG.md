@@ -1,3 +1,7 @@
+## In development
+### Bugfixes
+- Fixed a regression where spaces could suddenly change their color during measurement
+
 ## 1.3.4
 ### Module compatibility
 - Increased compatiblility with other modules (namely Drag Ruler and Terrain Ruler are no longer incompatible)
