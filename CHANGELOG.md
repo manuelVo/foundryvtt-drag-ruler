@@ -1,4 +1,4 @@
-## In development
+## 1.3.5
 ### Bugfixes
 - Fixed a regression where spaces could suddenly change their color during measurement
 
