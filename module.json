@@ -35,5 +35,6 @@
 	"manifest": "https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/master/module.json",
 	"readme": "https://github.com/manuelVo/foundryvtt-drag-ruler/blob/master/README.md",
 	"changelog": "https://github.com/manuelVo/foundryvtt-drag-ruler/blob/master/CHANGELOG.md",
-	"bugs": "https://github.com/manuelVo/foundryvtt-drag-ruler/issues"
+	"bugs": "https://github.com/manuelVo/foundryvtt-drag-ruler/issues",
+	"allowBugReporter": true
 }
