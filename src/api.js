@@ -97,6 +97,13 @@ export function getUnreachableColorFromSpeedProvider() {
 	}
 }
 
+export function getCostFromSpeedProvider(token, area) {
+	if (currentSpeedProvider instanceof Function) {
+		return SpeedProvider.prototype.getCostForStep.call(undefined, token, area);
+	}
+	return currentSpeedProvider.getCostForStep(token, area);
+}
+
 export function registerModule(moduleId, speedProvider) {
 	// Check if a module with the given id exists and is currently enabled
 	const module = game.modules.get(moduleId)

@@ -6,6 +6,9 @@
 - The GM's Drag Ruler can now be hidden from non GM players via a setting.
 - When multiple different colors apply to a single grid space because the path crosses itself the color representing ranges further away will take priortiy over colors representing closer ranges.
 
+### API
+- Speed providers can now selectively ignore difficult terrain and even implement their own cost functions, if the default Drag Ruler behavior doesn't fit the game system. This can be achieved by overriding the new, optional `SpeedProvider` function `getCostForStep`.
+
 
 ## 1.3.5
 ### Bugfixes

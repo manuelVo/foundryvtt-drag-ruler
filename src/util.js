@@ -24,9 +24,17 @@ export function getSnapPointForToken(x, y, token) {
 }
 
 export function highlightTokenShape(position, shape, color) {
-	for (const space of shape) {
-		let gridX = position.x + space.x;
-		let gridY = position.y + space.y;
+	const area = getAreaFromPositionAndShape(position, shape);
+	for (const space of area) {
+		const [x, y] = getPixelsFromGridPosition(space.x, space.y);
+		canvas.grid.highlightPosition(this.name, {x, y, color})
+	}
+}
+
+export function getAreaFromPositionAndShape(position, shape) {
+	return shape.map(space => {
+		let x = position.x + space.x;
+		let y = position.y + space.y;
 		if (canvas.grid.isHex) {
 			let shiftedRow;
 			if (canvas.grid.grid.options.even)
@@ -35,18 +43,17 @@ export function highlightTokenShape(position, shape, color) {
 				shiftedRow = 0
 			if (canvas.grid.grid.options.columns) {
 				if (space.x % 2 !== 0 && position.x % 2 !== shiftedRow) {
-					gridY += 1;
+					y += 1;
 				}
 			}
 			else {
 				if (space.y % 2 !== 0 && position.y % 2 !== shiftedRow) {
-					gridX += 1;
+					x += 1;
 				}
 			}
 		}
-		const [x, y] = getPixelsFromGridPosition(gridX, gridY);
-		canvas.grid.highlightPosition(this.name, {x, y, color})
-	}
+		return {x, y}
+	});
 }
 
 export function getTokenShape(token) {

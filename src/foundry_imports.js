@@ -1,7 +1,8 @@
+import { getCostFromSpeedProvider } from "./api.js";
 import {highlightMeasurementTerrainRuler} from "./compatibility.js";
 import {getGridPositionFromPixels} from "./foundry_fixes.js";
 import {getColorForDistance} from "./main.js"
-import {applyTokenSizeOffset, getSnapPointForToken, getTokenShape, getTokenSize, highlightTokenShape, zip} from "./util.js";
+import {applyTokenSizeOffset, getAreaFromPositionAndShape, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
 export async function moveTokens(draggedToken, selectedTokens) {
@@ -132,11 +133,13 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		centeredSegments.push({ray: centeredRay, label})
 	}
 
+	const shape = getTokenShape(this.draggedToken)
+
 	// Compute measured distance
 	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS
 	let distances
 	if (terrainRulerAvailable)
-		distances = game.terrainRuler.measureDistances(centeredSegments)
+		distances = game.terrainRuler.measureDistances(centeredSegments, {costFunction: (x, y) => getCostFromSpeedProvider(this.draggedToken, getAreaFromPositionAndShape({x, y}, shape), {x, y})});
 	else
 		distances = canvas.grid.measureDistances(centeredSegments, { gridSpaces });
 
@@ -161,7 +164,6 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		rulerColor = getColorForDistance.call(this, totalDistance)
 	else
 		rulerColor = this.color
-	const shape = getTokenShape(this.draggedToken)
 	for (const [s, cs] of zip(segments.reverse(), centeredSegments.reverse())) {
 		const { label, text, last } = cs;
 
