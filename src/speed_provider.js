@@ -1,5 +1,5 @@
 import {settingsKey} from "./settings.js"
-import {getDefaultDashMultiplier, getDefaultSpeedAttribute} from "./systems.js"
+import {getDefaultDashMultiplier, getDefaultSpeedAttribute, getDefaultSpeedMultiplier} from "./systems.js"
 
 /**
  * Base class for all speed providers.
@@ -122,9 +122,10 @@ export class GenericSpeedProvider extends SpeedProvider {
 
 	getRanges(token) {
 		const speedAttribute = this.getSetting("speedAttribute")
+		const speedMultiplier = this.getSetting("speedMultiplier")
 		if (!speedAttribute)
 			return []
-		const tokenSpeed = getProperty(token, speedAttribute)
+		const tokenSpeed = (speedMultiplier ? (getProperty(token, speedAttribute) * speedMultiplier) : (getProperty(token, speedAttribute))) 
 		if (tokenSpeed === undefined) {
 			console.warn(`Drag Ruler (Generic Speed Provider) | The configured token speed attribute "${speedAttribute}" didn't return a speed value. To use colors based on drag distance set the setting to the correct value (or clear the box to disable this feature).`)
 			return []
@@ -154,6 +155,15 @@ export class GenericSpeedProvider extends SpeedProvider {
 				config: true,
 				type: Number,
 				default: getDefaultDashMultiplier(),
+			},
+			{
+				id: "speedMultiplier",
+				name: "drag-ruler.genericSpeedProvider.settings.speedMultiplier.name",
+				hint: "drag-ruler.genericSpeedProvider.settings.speedMultiplier.hint",
+				scope: "world",
+				config: true,
+				type: Number,
+				default: getDefaultSpeedMultiplier(),
 			}
 		]
 	}
