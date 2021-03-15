@@ -9,6 +9,10 @@
 				"speedAttribute": {
 					"name": "Speed Attribute",
 					"hint": "The attribute that defines a token's walking speed. This is used during coloring of the measured path."
+				},
+				"speedMultiplier": {
+					"name": "Speed Multiplier",
+					"hint": "A speed multiplier for use in modifying base attribute speed when measuring paths."
 				}
 			},
 			"speeds": {
