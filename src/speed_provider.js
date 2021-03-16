@@ -158,3 +158,50 @@ export class GenericSpeedProvider extends SpeedProvider {
 		]
 	}
 }
+
+export class CyberpunkRedCoreSpeedProvider extends SpeedProvider {
+	get colors() {
+		return [
+			{id: "walk", default: 0x00FF00, name: "drag-ruler.genericSpeedProvider.speeds.walk"},
+			{id: "dash", default: 0xFFFF00, name: "drag-ruler.genericSpeedProvider.speeds.dash"}
+		]
+	}
+
+	getRanges(token) {
+		const speedAttribute = this.getSetting("speedAttribute")
+		if (!speedAttribute)
+			return []
+		const tokenSpeed = getProperty(token, speedAttribute) * 2
+		if (tokenSpeed === undefined) {
+			console.warn(`Drag Ruler (CyberpunkRedCore Speed Provider) | The configured token speed attribute "${speedAttribute}" didn't return a speed value. To use colors based on drag distance set the setting to the correct value (or clear the box to disable this feature).`)
+			return []
+		}
+		const dashMultiplier = this.getSetting("dashMultiplier")
+		if (!dashMultiplier)
+			return [{range: tokenSpeed, color: "walk"}]
+		return [{range: tokenSpeed, color: "walk"}, {range: tokenSpeed * dashMultiplier, color: "dash"}]
+	}
+
+	get settings() {
+		return [
+			{
+				id: "speedAttribute",
+				name: "drag-ruler.genericSpeedProvider.settings.speedAttribute.name",
+				hint: "drag-ruler.genericSpeedProvider.settings.speedAttribute.hint",
+				scope: "world",
+				config: true,
+				type: String,
+				default: getDefaultSpeedAttribute(),
+			},
+			{
+				id: "dashMultiplier",
+				name: "drag-ruler.genericSpeedProvider.settings.dashMultiplier.name",
+				hint: "drag-ruler.genericSpeedProvider.settings.dashMultiplier.hint",
+				scope: "world",
+				config: true,
+				type: Number,
+				default: getDefaultDashMultiplier(),
+			}
+		]
+	}
+}

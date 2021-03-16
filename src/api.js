@@ -1,4 +1,4 @@
-import {GenericSpeedProvider, SpeedProvider} from "./speed_provider.js"
+import {GenericSpeedProvider, SpeedProvider, CyberpunkRedCoreSpeedProvider} from "./speed_provider.js"
 import {settingsKey} from "./settings.js"
 
 export const availableSpeedProviders = {}
@@ -67,6 +67,8 @@ export function updateSpeedProvider() {
 export function initApi() {
 	const genericSpeedProviderInstance = new GenericSpeedProvider("native")
 	setupProvider(genericSpeedProviderInstance)
+	const cprSpeedProviderInstance = new CyberpunkRedCoreSpeedProvider("system.cyberpunk-red-core")
+	setupProvider(cprSpeedProviderInstance)
 }
 
 export function getRangesFromSpeedProvider(token) {
