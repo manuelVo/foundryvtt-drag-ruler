@@ -41,6 +41,7 @@ The game systems that offer Drag Ruler integration are:
 
 ## Translations
 Drag Ruler is available in the follwing languages:
+- Chinese (thanks to zeteticl)
 - English
 - Japanese (thanks to touge)
 
