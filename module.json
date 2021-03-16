@@ -28,6 +28,11 @@
 			"lang": "ja",
 			"name": "日本語",
 			"path": "lang/ja.json"
+		},
+		{
+			"lang": "zh-tw",
+			"name": "正體中文",
+			"path": "lang/zh-tw.json"
 		}
 	],
 	"url": "https://github.com/manuelVo/foundryvtt-drag-ruler",
