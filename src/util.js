@@ -117,21 +117,24 @@ export function applyTokenSizeOffset(waypoints, token) {
 	const tokenSize = getTokenSize(token);
 	const waypointOffset = {x: 0, y: 0};
 	if (canvas.grid.isHex) {
-		const isAltOrientation = CONFIG.hexSizeSupport.getAltOrientationFlag(token);
-		if (canvas.grid.grid.options.columns) {
-			if (tokenSize.w % 2 === 0) {
-				waypointOffset.x = canvas.grid.w / 2;
-				if (!isAltOrientation)
-					waypointOffset.x *= -1;
+		if (game.modules.get("hex-size-support")?.active) {
+			const isAltOrientation = CONFIG.hexSizeSupport.getAltOrientationFlag(token);
+			if (canvas.grid.grid.options.columns) {
+				if (tokenSize.w % 2 === 0) {
+					waypointOffset.x = canvas.grid.w / 2;
+					if (!isAltOrientation)
+						waypointOffset.x *= -1;
+				}
+			}
+			else {
+				if (tokenSize.h % 2 === 0) {
+					waypointOffset.y = canvas.grid.h / 2;
+					if (isAltOrientation)
+						waypointOffset.y *= -1;
+				}
 			}
 		}
-		else {
-			if (tokenSize.h % 2 === 0) {
-				waypointOffset.y = canvas.grid.h / 2;
-				if (isAltOrientation)
-					waypointOffset.y *= -1;
-			}
-		}
+		// If hex size support isn't active leave the waypoints like they are
 	}
 	else {
 		if (tokenSize.w % 2 === 0) {
