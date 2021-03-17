@@ -1,9 +1,10 @@
-## In development
+## 1.4.1
 ### Bugfixes
 - Fixed a bug where Drag Ruler wouldn't work at all on hex grids when the Hex Token Size Support isn't installed
 
 ### Translation
 - Added chinese translation (thanks to zeteticl)
+
 
 ## 1.4.0
 ### New features
