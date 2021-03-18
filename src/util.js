@@ -57,9 +57,10 @@ export function getAreaFromPositionAndShape(position, shape) {
 }
 
 export function getTokenShape(token) {
-	if (token.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS)
-		throw new Error("getTokenShape cannot be called for tokens on gridless maps")
-	if (token.scene.data.gridType === CONST.GRID_TYPES.SQUARE) {
+	if (token.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS) {
+		return [{x: 0, y: 0}]
+	}
+	else if (token.scene.data.gridType === CONST.GRID_TYPES.SQUARE) {
 		const topOffset = -Math.floor(token.data.height / 2)
 		const leftOffset = -Math.floor(token.data.width / 2)
 		const shape = []

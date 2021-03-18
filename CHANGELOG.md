@@ -1,3 +1,7 @@
+## In development
+### Bugfixes
+- Drag Ruler now works again on gridless maps
+
 ## 1.4.1
 ### Bugfixes
 - Fixed a bug where Drag Ruler wouldn't work at all on hex grids when the Hex Token Size Support isn't installed
