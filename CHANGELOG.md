@@ -1,4 +1,4 @@
-## In development
+## 1.4.2
 ### Bugfixes
 - Drag Ruler now works again on gridless maps
 
