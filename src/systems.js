@@ -7,12 +7,16 @@ export function getDefaultSpeedAttribute() {
 			return "actor.data.data.mech.speed"
 		case "pf1":
 			return "actor.data.data.attributes.speed.land.total"
+		case "swade":
+			return "actor.data.data.stats.speed.value"
 	}
 	return ""
 }
 
 export function getDefaultDashMultiplier() {
 	switch (game.system.id) {
+		case "swade":
+			return 0
 		case "dnd5e":
 		case "lancer":
 		case "pf1":
