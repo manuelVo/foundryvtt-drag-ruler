@@ -1,0 +1,66 @@
+{
+    "drag-ruler": {
+        "genericSpeedProvider": {
+            "settings": {
+                "dashMultiplier": {
+                    "name": "快步 倍數",
+                    "hint": "這可用於在對測量路徑進行著色的過程中為棋子賦予第二速度。將其設定為0可禁用第二速度。"
+                },
+                "speedAttribute": {
+                    "name": "速度屬性",
+                    "hint": "定義棋子的行走速度的屬性。在對測量路徑進行著色時使用。"
+                }
+            },
+            "speeds": {
+                "walk": "走路",
+                "dash": "快步"
+            }
+        },
+        "settings": {
+            "alwaysShowSpeedForPCs": {
+                "name": "向所有人顯示PC速度",
+                "hint": "如果啟用, 玩家的角色(actor)的速度將顯示給所有人,即使他們沒有角色表的觀察者（Observer）權限也是如此。"
+            },
+            "showGMRulerToPlayers": {
+                "name": "向玩家顯示GM標尺",
+                "hint": "如果禁用,則不為非GM玩家顯示GM的標尺"
+            },
+            "speedProviderSettings": {
+                "name": "速度提供者設定",
+                "hint": "速度提供者設定 包括 所有遊戲系統特定的設定。",
+                "button": "速度提供者設定",
+                "windowTitle": "速度提供者設定",
+                "headers": {
+                    "speedProvider": "速度提供者設定",
+                    "speedProviderSettings": "特定於速度提供者的設定"
+                },
+                "activeProvider": {
+                    "name": "當前活動的速度提供者",
+                    "hint": "下面顯示的設定 取決於活動的 速度提供者。如果GM選擇其他速度提供者,則可用的設定可能會更改。"
+                },
+                "noSettings": "該速度提供者不提供任何配置選項。",
+                "color": {
+                    "name": "{colorName}的顏色",
+                    "hint": "將用於為{colorName}範圍內的正方形上色的顏色",
+                    "unreachable": {
+                        "name": "無法到達",
+                        "hint": "指定拖動棋子無法到達的範圍的顏色"
+                    }
+                },
+                "speedProvider": {
+                    "name": "速度設定的提供者",
+                    "hint": "選擇在著色期間為棋子提供速度信息的人。DragRuler提供了一個通用速度提供程序, 該提供程序提供了基本功能, 並且如果配置正確,則可以在所有遊戲系統上使用。可以通過遊戲系統和已安裝的Mod來提供更多速度提供程序。選擇與 標準速度提供者 不同的速度提供者可以更好地集成到您所使用的遊戲系統規則中。以下選項取決於此處選擇的速度提供者。",
+                    "choices": {
+                        "module": "Mod {name}",
+                        "native": "一般",
+                        "system": "系統 {name}"
+                    }
+                }
+            },
+            "swapSpacebarRightClick": {
+                "name": "交換空格鍵並鼠標右鍵",
+                "hint": "交換空格鍵和右鍵點擊在拖動過程中的功能。如果啟用,右鍵單擊將放置航點,空格鍵將刪除它們。"
+            }
+        }
+    }
+}

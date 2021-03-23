@@ -6,6 +6,7 @@ import {measure, moveTokens, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
 import {registerSettings, settingsKey} from "./settings.js"
 import {SpeedProvider} from "./speed_provider.js"
+import { getSnapPointForToken } from "./util.js"
 
 Hooks.once("init", () => {
 	registerSettings()
@@ -13,7 +14,6 @@ Hooks.once("init", () => {
 	hookTokenDragHandlers()
 	hookRulerFunctions()
 	hookKeyboardManagerFunctions()
-	patchRulerHighlightMeasurement()
 
 	window.dragRuler = {
 		getColorForDistance,
@@ -85,6 +85,9 @@ function hookRulerFunctions() {
 
 	const originalUpdate = Ruler.prototype.update
 	Ruler.prototype.update = function (data) {
+		// Don't show a GMs drag ruler to non GM players
+		if (data.draggedToken && this.user.isGM && !game.user.isGM && !game.settings.get(settingsKey, "showGMRulerToPlayers"))
+			return
 		if (data.draggedToken) {
 			this.draggedToken = canvas.tokens.get(data.draggedToken)
 		}
@@ -99,6 +102,12 @@ function hookRulerFunctions() {
 		else {
 			return originalMeasure.call(this, destination, options)
 		}
+	}
+
+	const originalEndMeasurement = Ruler.prototype._endMeasurement
+	Ruler.prototype._endMeasurement = function () {
+		originalEndMeasurement.call(this)
+		this.draggedToken = null
 	}
 }
 
@@ -150,7 +159,7 @@ function onTokenLeftDragStart(event) {
 	if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
 		tokenCenter = getHexSizeSupportTokenGridCenter(this)
 	else
-		tokenCenter = {x: this.x + canvas.grid.grid.w / 2, y: this.y + canvas.grid.grid.h / 2}
+		tokenCenter = this.center
 	ruler.clear();
 	ruler._state = Ruler.STATES.STARTING;
 	ruler.rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
@@ -168,15 +177,15 @@ function onTokenDragLeftDrop(event) {
 	if (!ruler.isDragRuler)
 		return false
 	const selectedTokens = canvas.tokens.controlled
+	ruler._state = Ruler.STATES.MOVING
 	moveTokens.call(ruler, ruler.draggedToken, selectedTokens)
-	ruler.draggedToken = null
 	return true
 }
 
 function onTokenDragLeftCancel(event) {
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
-	if (!ruler.isDragRuler)
+	if (!ruler.isDragRuler || ruler._state === Ruler.STATES.MOVING)
 		return false
 	if (ruler._state === Ruler.STATES.MEASURING) {
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
@@ -208,10 +217,8 @@ function onRulerMoveToken(event) {
 
 function addWaypoint(point, snap=true) {
 	if (snap)
-		point = canvas.grid.getCenter(point.x, point.y);
-	else
-		point = [point.x, point.y]
-	this.waypoints.push(new PIXI.Point(point[0], point[1]));
+		point = getSnapPointForToken(point.x, point.y, this.draggedToken)
+	this.waypoints.push(new PIXI.Point(point.x, point.y));
 	this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
 }
 
@@ -226,7 +233,6 @@ function deleteWaypoint() {
 	else {
 		const token = ruler.draggedToken
 		ruler._endMeasurement()
-		ruler.draggedToken = null
 
 		// Deactivate the drag workflow in mouse
 		token.mouseInteractionManager._deactivateDragEvents();
@@ -236,11 +242,6 @@ function deleteWaypoint() {
 		// Pass in a fake event that hopefully is enough to allow other modules to function
 		token._onDragLeftCancel({preventDefault: () => {return}})
 	}
-}
-
-function strInsertAfter(haystack, needle, strToInsert) {
-	const pos = haystack.indexOf(needle) + needle.length
-	return haystack.slice(0, pos) + strToInsert + haystack.slice(pos)
 }
 
 export function getColorForDistance(startDistance, subDistance=0) {
@@ -262,23 +263,4 @@ export function getColorForDistance(startDistance, subDistance=0) {
 		return minRange
 	}, {range: Infinity, color: getUnreachableColorFromSpeedProvider()})
 	return currentRange.color
-}
-
-// These patches were written with foundry-0.7.9.js as reference
-function patchRulerHighlightMeasurement() {
-	let code = Ruler.prototype._highlightMeasurement.toString()
-	// Replace CRLF with LF in case foundry.js has CRLF for some reason
-	code = code.replace(/\r\n/g, "\n")
-	// Remove function signature and closing curly bracket (those are on the first and last line)
-	code = code.slice(code.indexOf("\n"), code.lastIndexOf("\n"))
-
-	const calcColorCode = `
-		let subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xg, y: yg})}], {gridSpaces: true})[0]
-		let color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
-	`
-
-	code = strInsertAfter(code, "Position(x1, y1);\n", calcColorCode)
-	code = strInsertAfter(code, "Position(x1h, y1h);\n", calcColorCode.replace("x: xg, y: yg", "x: xgh, y: ygh"))
-	code = code.replace(/color: this\.color\}/g, "color}")
-	Ruler.prototype._highlightMeasurement = new Function("ray", "startDistance=undefined", code)
 }

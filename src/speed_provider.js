@@ -57,6 +57,22 @@ export class SpeedProvider {
 	}
 
 	/**
+	 * Returns the cost for a token to step into the specificed area.
+	 * The area indicates the whole area that the token will occupy (for tokens larger than 1x1) the array will more than one entry.
+	 * The return value should be an integer indicating a multiplicator by that the cost of that step should be increased.
+	 * (1 is regular cost, 2 costs double, 3 costs triple, ...)
+	 * This function is only called if the TerrainLayer and TerrainRuler modules are enabled.
+	 *
+	 * Implementing this method is optional and only needs to be done if you want to provide a custom cost function (for example to allow tokens to ignore difficult terrain)
+	 */
+	getCostForStep(token, area) {
+		// Lookup the cost for each square occupied by the token
+		const costs = area.map(space => canvas.terrain.costGrid[space.y]?.[space.x]?.multiple ?? 1)
+		// Return the maximum of the costs
+		return costs.reduce((max, current) => Math.max(max, current))
+	}
+
+	/**
 	 * Returns a boolean indicating whether this token will use a Ruler or not.
 	 * If this is returns `false` for a token Drag Ruler will be disabled for that token. Dragging a token for which this function
 	 * returns false will behave as if Drag Ruler wasn't installed.

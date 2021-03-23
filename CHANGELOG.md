@@ -1,3 +1,46 @@
+## 1.4.2
+### Bugfixes
+- Drag Ruler now works again on gridless maps
+
+## 1.4.1
+### Bugfixes
+- Fixed a bug where Drag Ruler wouldn't work at all on hex grids when the Hex Token Size Support isn't installed
+
+### Translation
+- Added chinese translation (thanks to zeteticl)
+
+
+## 1.4.0
+### New features
+- If the [Terrain Ruler module](https://foundryvtt.com/packages/terrain-ruler/) is installed and activated, Drag Ruler will now take difficult terrain that was placed with the [TerrainLayer module](https://foundryvtt.com/packages/TerrainLayer/) into account.
+- The ruler will now always be drawn from the tokens center (even for tokens larger than 1x1) on all grid types (on Hex Grids this requires the Hex Token Size Support module).
+- For tokens larger than 1x1 the highlighted path will now reflect the tokens size (on Hex Grids this requires the Hex Token Size Support module)
+- The GM's Drag Ruler can now be hidden from non GM players via a setting.
+- When multiple different colors apply to a single grid space because the path crosses itself the color representing ranges further away will take priortiy over colors representing closer ranges.
+
+### API
+- Speed providers can now selectively ignore difficult terrain and even implement their own cost functions, if the default Drag Ruler behavior doesn't fit the game system. This can be achieved by overriding the new, optional `SpeedProvider` function `getCostForStep`.
+
+
+## 1.3.5
+### Bugfixes
+- Fixed a regression where spaces could suddenly change their color during measurement
+
+
+## 1.3.4
+### Module compatibility
+- Increased compatiblility with other modules (namely Drag Ruler and Terrain Ruler are no longer incompatible)
+
+## 1.3.3
+### Bugfixes
+- Speed Provider Settings are now being saved for non GM players
+
+
+## 1.3.2
+### Translation
+- Updated japanese translation (thanks to togue)
+
+
 ## 1.3.1
 ### Bugfixes
 - Fixed a bug where the coloring of ranges wouldn't work with the generic speed provider if the Dash Multiplier was set to 0
