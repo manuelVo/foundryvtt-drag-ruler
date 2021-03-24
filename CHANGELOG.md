@@ -1,4 +1,4 @@
-## In development
+## 1.4.3
 ### System compatibility
 - Drag Ruler's Generic SpeedProvider is now aware of good default values for the Savage Worlds Adventure Edition game system
 
