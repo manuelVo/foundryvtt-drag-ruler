@@ -3,6 +3,7 @@
 - Drag Ruler's Generic SpeedProvider is now aware of good default values for the Savage Worlds Adventure Edition game system
 
 ### Translation
+- Added german translation
 - Updated japanese translation (thanks to touge)
 
 

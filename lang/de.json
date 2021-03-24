@@ -1,0 +1,66 @@
+{
+	"drag-ruler": {
+		"genericSpeedProvider": {
+			"settings": {
+				"dashMultiplier": {
+					"name": "Sprint Multiplikator",
+					"hint": "Diese Einstellung kann genutzt werden, um eine zweite Geschwindigkeitsfarbe im gemessenen Pfad zu erhalten. Die zweite Farbe wird deaktiviert, wenn diese Einstellung auf 0 gesetzt ist."
+				},
+				"speedAttribute": {
+					"name": "Geschwindigkeitsattribut",
+					"hint": "Das Attribut, das die Gehgeschwindigkeit einer Spielfigur definiert. Diese Attribut wird während der Färbung des hervorgehobenen Pfads verwendet."
+				}
+			},
+			"speeds": {
+				"walk": "gehen",
+				"dash": "sprinten"
+			}
+		},
+		"settings": {
+			"alwaysShowSpeedForPCs": {
+				"name": "Geschwindigkeit von Spielercharakteren für jeden anzeigen",
+				"hint": "Wenn diese Einstellung aktiviert ist wird die Färbung der hervorgehobenen Felder bei Spielercharakteren allen Spielern angezeigt, selbst wenn diese keinen Zugriff auf den Charakterbogen haben."
+			},
+			"showGMRulerToPlayers": {
+				"name": "Lineal des Sipelleiters bei Spielern anzeigen",
+				"hint": "Wenn diese Option deaktiviert ist wird das Lineal des Spielleiters bei den anderen Spielern nicht angezeigt."
+			},
+			"speedProviderSettings": {
+				"name": "Einstellungen zur Spielsystemintegration",
+				"hint": "In diesem Menü befinden sich alle spielsystemspezifischen Einstellungen.",
+				"button": "Einstellungen zur Spielsystemintegration",
+				"windowTitle": "Einstellungen zur Spielsystemintegration",
+				"headers": {
+					"speedProvider": "Spielsystemintegration",
+					"speedProviderSettings": "Integrationsspezifische Einstellungen"
+				},
+				"activeProvider": {
+					"name": "Verwendete Spielsystemintegration",
+					"hint": "Die unten angezeigten Einstellungen hängen von der verwendeten Spielsystemintegration ab. Wenn der Spielleiter eine andere Spielsystemintegration auswählt können sich die zur Verfügung stehnden Einstellungen ändern."
+				},
+				"noSettings": "Diese Spielsystemintegration hat keine Einstellmöglichkeiten",
+				"color": {
+					"name": "Farbe für {colorName}",
+					"hint": "Die Farbe mit der Felder in {colorName} Reichweite hervorgehoben werden",
+					"unreachable": {
+						"name": "unerreichbar",
+						"hint": "Die Farbe für Felder, die von der bewegten Spielfigur nicht erreicht werden können"
+					}
+				},
+				"speedProvider": {
+					"name": "Verwendete Spielsystemintegration",
+					"hint": "Wähle aus, welche Spielsystemintegration für die farbliche Hervorhebung der Felder zuständig sein soll. Drag Ruler stellt eine generische Spielsystemintegration zur Verfügung, die grundlegende Funktionalität bietet und bei korrekter konfiguration mit allen Spielsystemen funktionieren sollte. Weitere Spielsystemintegrationen können durch Module und Spielsysteme angeboten werden. Eine andere Spielsystemintegration als die generische auszuwählen kann eine bessere Inegration in das verwendete Spielsystem bieten. Die Optionen unterhalb sind davon abhäng, welche Spielsystemintegration hier ausgewählt wurde.",
+					"choices": {
+						"module": "Modul {name}",
+						"native": "Generisch",
+						"system": "System {name}"
+					}
+				}
+			},
+			"swapSpacebarRightClick": {
+				"name": "Leertaste und Rechtsklick tauschen",
+				"hint": "Die Funktionen der Leertaste und des Rechtsklicks sind während eine Spielfigur bewegt wird vertauscht. Wenn diese Option aktiviert wrid können mit Rechtsklick Wegpunkte gesetzt werden und mit der Leertaste werden sie wieder gelöscht."
+			}
+		}
+	}
+}
