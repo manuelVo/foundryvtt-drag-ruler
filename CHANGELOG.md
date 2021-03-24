@@ -2,6 +2,9 @@
 ### System compatibility
 - Drag Ruler's Generic SpeedProvider is now aware of good default values for the Savage Worlds Adventure Edition game system
 
+### Translation
+- Updated japanese translation (thanks to touge)
+
 
 ## 1.4.2
 ### Bugfixes
@@ -43,7 +46,7 @@
 
 ## 1.3.2
 ### Translation
-- Updated japanese translation (thanks to togue)
+- Updated japanese translation (thanks to touge)
 
 
 ## 1.3.1
