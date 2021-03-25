@@ -16,7 +16,7 @@ export function getSnapPointForToken(x, y, token) {
 			return new PIXI.Point(...canvas.grid.getCenter(x, y))
 		}
 	}
-	if (canvas.grid.isHex || token.data.width % 2 === 1) {
+	if (canvas.grid.isHex || Math.round(token.data.width) % 2 === 1 || token.data.width < 1) {
 		return new PIXI.Point(...canvas.grid.getCenter(x, y))
 	}
 	const [snappedX, snappedY] = canvas.grid.getCenter(x - canvas.grid.w / 2, y - canvas.grid.h / 2)

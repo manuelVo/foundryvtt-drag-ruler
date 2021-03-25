@@ -1,3 +1,9 @@
+## 1.4.4
+### Bugfixes
+- Fix snapping for tokens that are smaller than 1x1
+
+
+
 ## 1.4.3
 ### System compatibility
 - Drag Ruler's Generic SpeedProvider is now aware of good default values for the Savage Worlds Adventure Edition game system
