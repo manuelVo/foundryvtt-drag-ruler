@@ -1,3 +1,9 @@
+## In development
+### Bugfixes
+- Fixed a bug that could cause a meausred distance to be wrong when disabling token snapping using the shift key
+- Fixed a bug where the highlighted path could have gaps when disabbling token snapping using the shift key
+
+
 ## 1.4.4
 ### Bugfixes
 - Fix snapping for tokens that are smaller than 1x1
