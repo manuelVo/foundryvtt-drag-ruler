@@ -2,18 +2,19 @@
 
 import {currentSpeedProvider, getRangesFromSpeedProvider, getUnreachableColorFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js"
 import {getHexSizeSupportTokenGridCenter} from "./compatibility.js"
-import {measure, moveTokens, onMouseMove} from "./foundry_imports.js"
+import {moveTokens, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
+import {DragRulerRuler} from "./ruler.js";
 import {registerSettings, settingsKey} from "./settings.js"
 import {SpeedProvider} from "./speed_provider.js"
-import { getSnapPointForToken } from "./util.js"
 
 Hooks.once("init", () => {
 	registerSettings()
 	initApi()
 	hookTokenDragHandlers()
-	hookRulerFunctions()
 	hookKeyboardManagerFunctions()
+
+	Ruler = DragRulerRuler;
 
 	window.dragRuler = {
 		getColorForDistance,
@@ -66,51 +67,6 @@ function hookTokenDragHandlers() {
 	}
 }
 
-function hookRulerFunctions() {
-	const originalMoveTokenHandler = Ruler.prototype.moveToken
-	Ruler.prototype.moveToken = function (event) {
-		const eventHandled = onRulerMoveToken.call(this, event)
-		if (!eventHandled)
-			return originalMoveTokenHandler.call(this, event)
-		return true
-	}
-
-	const originalToJSON = Ruler.prototype.toJSON
-	Ruler.prototype.toJSON = function () {
-		const json = originalToJSON.call(this)
-		if (this.draggedToken)
-			json["draggedToken"] = this.draggedToken.data._id
-		return json
-	}
-
-	const originalUpdate = Ruler.prototype.update
-	Ruler.prototype.update = function (data) {
-		// Don't show a GMs drag ruler to non GM players
-		if (data.draggedToken && this.user.isGM && !game.user.isGM && !game.settings.get(settingsKey, "showGMRulerToPlayers"))
-			return
-		if (data.draggedToken) {
-			this.draggedToken = canvas.tokens.get(data.draggedToken)
-		}
-		originalUpdate.call(this, data)
-	}
-
-	const originalMeasure = Ruler.prototype.measure
-	Ruler.prototype.measure = function (destination, options={}) {
-		if (this.isDragRuler) {
-			return measure.call(this, destination, options)
-		}
-		else {
-			return originalMeasure.call(this, destination, options)
-		}
-	}
-
-	const originalEndMeasurement = Ruler.prototype._endMeasurement
-	Ruler.prototype._endMeasurement = function () {
-		originalEndMeasurement.call(this)
-		this.draggedToken = null
-	}
-}
-
 function hookKeyboardManagerFunctions() {
 	const originalHandleKeys = KeyboardManager.prototype._handleKeys
 	KeyboardManager.prototype._handleKeys = function (event, key, up) {
@@ -132,10 +88,11 @@ function handleKeys(event, key, up) {
 function onKeyX(up) {
 	if (up)
 		return false
-	if (!canvas.controls.ruler.isDragRuler)
+	const ruler = canvas.controls.ruler;
+	if (!ruler.isDragRuler)
 		return false
 
-	deleteWaypoint()
+	ruler.dragRulerDeleteWaypoint();
 	return true
 }
 
@@ -163,7 +120,7 @@ function onTokenLeftDragStart(event) {
 	ruler.clear();
 	ruler._state = Ruler.STATES.STARTING;
 	ruler.rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
-	addWaypoint.call(ruler, tokenCenter, false)
+	ruler.dragRulerAddWaypoint(tokenCenter, false);
 }
 
 function onTokenLeftDragMove(event) {
@@ -191,57 +148,15 @@ function onTokenDragLeftCancel(event) {
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
 			if (ruler.waypoints.length > 1)
 				event.preventDefault()
-			deleteWaypoint()
+			ruler.dragRulerDeleteWaypoint();
 		}
 		else {
 			event.preventDefault()
 			const snap = !event.shiftKey
-			addWaypoint.call(ruler, ruler.destination, snap)
+			ruler.dragRulerAddWaypoint(ruler.destination, snap);
 		}
 	}
 	return true
-}
-
-function onRulerMoveToken(event) {
-	// This function is invoked by left clicking
-	if (!this.isDragRuler)
-		return false
-	if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
-		const snap = !event.shiftKey
-		addWaypoint.call(this, this.destination, snap)
-	}
-	else
-		deleteWaypoint()
-	return true
-}
-
-function addWaypoint(point, snap=true) {
-	if (snap)
-		point = getSnapPointForToken(point.x, point.y, this.draggedToken)
-	this.waypoints.push(new PIXI.Point(point.x, point.y));
-	this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
-}
-
-function deleteWaypoint() {
-	const ruler = canvas.controls.ruler
-	if (ruler.waypoints.length > 1) {
-		const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens)
-		const rulerOffset = ruler.rulerOffset
-		ruler._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y})
-		game.user.broadcastActivity({ruler: ruler})
-	}
-	else {
-		const token = ruler.draggedToken
-		ruler._endMeasurement()
-
-		// Deactivate the drag workflow in mouse
-		token.mouseInteractionManager._deactivateDragEvents();
-		token.mouseInteractionManager.state = token.mouseInteractionManager.states.HOVER;
-
-		// This will cancel the current drag operation
-		// Pass in a fake event that hopefully is enough to allow other modules to function
-		token._onDragLeftCancel({preventDefault: () => {return}})
-	}
 }
 
 export function getColorForDistance(startDistance, subDistance=0) {
