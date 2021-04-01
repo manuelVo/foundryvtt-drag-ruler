@@ -7,6 +7,9 @@ export function* zip(it1, it2) {
 }
 
 export function getSnapPointForToken(x, y, token) {
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+		return new PIXI.Point(x, y);
+	}
 	if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(token)) {
 		if (token.getFlag("hex-size-support", "borderSize") % 2 === 0) {
 			const snapPoint = CONFIG.hexSizeSupport.findVertexSnapPoint(x, y, token, canvas.grid.grid)
@@ -16,9 +19,22 @@ export function getSnapPointForToken(x, y, token) {
 			return new PIXI.Point(...canvas.grid.getCenter(x, y))
 		}
 	}
+	// Tiny tokens can snap to the cells corners
+	if (!canvas.grid.isHex && token.data.width <= 0.5) {
+		const [topLeftX, topLeftY] = canvas.grid.getTopLeft(x, y);
+		const offsetX = x - topLeftX;
+		const offsetY = y - topLeftY;
+		const subGridWidth = Math.floor(canvas.grid.w / 2);
+		const subGridHeight = Math.floor(canvas.grid.h / 2);
+		const subGridPosX = Math.floor(offsetX / subGridWidth);
+		const subGridPosY = Math.floor(offsetY / subGridHeight);
+		return new PIXI.Point(topLeftX + (subGridPosX + 0.5) * subGridWidth, topLeftY + (subGridPosY + 0.5) * subGridHeight);
+	}
+	// Hex tokens, tokens with odd multipliers (1x1, 3x3, ...) and tokens smaller than 1x1 but bigger than 0.5x0.5 snap to the center of the grid cell
 	if (canvas.grid.isHex || Math.round(token.data.width) % 2 === 1 || token.data.width < 1) {
 		return new PIXI.Point(...canvas.grid.getCenter(x, y))
 	}
+	// All remaining tokens (those with even or fractional multipliers on square grids) snap to the intersection points of the grid
 	const [snappedX, snappedY] = canvas.grid.getCenter(x - canvas.grid.w / 2, y - canvas.grid.h / 2)
 	return new PIXI.Point(snappedX + canvas.grid.w / 2, snappedY + canvas.grid.h / 2)
 }
