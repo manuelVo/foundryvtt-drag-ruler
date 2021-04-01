@@ -108,9 +108,14 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	if (snap)
 		destination = getSnapPointForToken(destination.x, destination.y, this.draggedToken)
 
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS;
+
 	const waypoints = this.waypoints.concat([destination]);
 	// Move the waypoints to the center of the grid if a size is used that measures from edge to edge
 	const centeredWaypoints = applyTokenSizeOffset(waypoints, this.draggedToken)
+	// Foundries native ruler requires the waypoints to sit in the dead center of the square to work properly
+	if (!terrainRulerAvailable)
+		centeredWaypoints.forEach(w => [w.x, w.y] = canvas.grid.getCenter(w.x, w.y));
 
 	const r = this.ruler;
 	this.destination = destination;
@@ -133,10 +138,10 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		centeredSegments.push({ray: centeredRay, label})
 	}
 
+
 	const shape = getTokenShape(this.draggedToken)
 
 	// Compute measured distance
-	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS
 	let distances
 	if (terrainRulerAvailable)
 		distances = game.terrainRuler.measureDistances(centeredSegments, {costFunction: (x, y) => getCostFromSpeedProvider(this.draggedToken, getAreaFromPositionAndShape({x, y}, shape), {x, y})});
