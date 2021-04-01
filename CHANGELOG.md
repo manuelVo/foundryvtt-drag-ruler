@@ -1,4 +1,4 @@
-## In development
+## 1.4.5
 ### Bugfixes
 - Tiny tokens (0.5x0.5 or smaller) now snap to the coners of a square like they do in vanilla foundry ([#49](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/49))
 - Fixed a bug that could cause a meausred distance to be wrong when disabling token snapping using the shift key
