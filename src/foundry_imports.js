@@ -2,6 +2,7 @@ import { getCostFromSpeedProvider } from "./api.js";
 import {highlightMeasurementTerrainRuler} from "./compatibility.js";
 import {getGridPositionFromPixels} from "./foundry_fixes.js";
 import {getColorForDistance} from "./main.js"
+import {trackRays} from "./movement_tracking.js"
 import {applyTokenSizeOffset, getAreaFromPositionAndShape, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
@@ -16,7 +17,7 @@ export async function moveTokens(draggedToken, selectedTokens) {
 
 	// Get the movement rays and check collision along each Ray
 	// These rays are center-to-center for the purposes of collision checking
-	const rays = this._getRaysFromWaypoints(this.waypoints, this.destination);
+	const rays = this.dragRulerGetRaysFromWaypoints(this.waypoints, this.destination);
 	if (!game.user.isGM) {
 		const hasCollision = selectedTokens.some(token => {
 			const offset = calculateTokenOffset(token, draggedToken)
@@ -45,11 +46,13 @@ export async function moveTokens(draggedToken, selectedTokens) {
 
 // This is a modified version code extracted from Ruler.moveToken from foundry 0.7.9
 async function animateToken(token, rays, tokenOffset, wasPaused) {
-	const offsetRays = rays.map(ray => applyOffsetToRay(ray, tokenOffset))
+	const offsetRays = rays.filter(r => !r.isPrevious).map(ray => applyOffsetToRay(ray, tokenOffset));
+	trackRays(token, offsetRays);
 
 	// Determine offset relative to the Token top-left.
 	// This is important so we can position the token relative to the ruler origin for non-1x1 tokens.
-	const origin = [this.waypoints[0].x + tokenOffset.x, this.waypoints[0].y + tokenOffset.y]
+	const firstWaypoint = this.waypoints.find(w => !w.isPrevious);
+	const origin = [firstWaypoint.x + tokenOffset.x, firstWaypoint.y + tokenOffset.y];
 	let dx, dy
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		dx = token.data.x - origin[0]
@@ -76,7 +79,9 @@ function calculateTokenOffset(tokenA, tokenB) {
 }
 
 function applyOffsetToRay(ray, offset) {
-	return new Ray({x: ray.A.x + offset.x, y: ray.A.y + offset.y}, {x: ray.B.x + offset.x, y: ray.B.y + offset.y})
+	const newRay = new Ray({x: ray.A.x + offset.x, y: ray.A.y + offset.y}, {x: ray.B.x + offset.x, y: ray.B.y + offset.y});
+	newRay.isPrevious = ray.isPrevious;
+	return newRay;
 }
 
 // This is a modified version of Ruler._onMouseMove from foundry 0.7.9
@@ -130,6 +135,8 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		const label = this.labels.children[i];
 		const ray = new Ray(origin, dest);
 		const centeredRay = new Ray(centeredOrigin, centeredDest)
+		ray.isPrevious = Boolean(origin.isPrevious);
+		centeredRay.isPrevious = ray.isPrevious;
 		if (ray.distance < 10) {
 			if (label) label.visible = false;
 			continue;
@@ -173,8 +180,9 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		const { label, text, last } = cs;
 
 		// Draw line segment
-		r.lineStyle(6, 0x000000, 0.5).moveTo(s.ray.A.x, s.ray.A.y).lineTo(s.ray.B.x, s.ray.B.y)
-			.lineStyle(4, rulerColor, 0.25).moveTo(s.ray.A.x, s.ray.A.y).lineTo(s.ray.B.x, s.ray.B.y);
+		const opacityMultiplier = s.ray.isPrevious ? 0.33 : 1;
+		r.lineStyle(6, 0x000000, 0.5 * opacityMultiplier).moveTo(s.ray.A.x, s.ray.A.y).lineTo(s.ray.B.x, s.ray.B.y)
+			.lineStyle(4, rulerColor, 0.25 * opacityMultiplier).moveTo(s.ray.A.x, s.ray.A.y).lineTo(s.ray.B.x, s.ray.B.y);
 
 		// Draw the distance label just after the endpoint of the segment
 		if (label) {
@@ -187,9 +195,9 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 
 		// Highlight grid positions
 		if (terrainRulerAvailable)
-			highlightMeasurementTerrainRuler.call(this, cs.ray, cs.startDistance, shape)
+			highlightMeasurementTerrainRuler.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier)
 		else
-			highlightMeasurementNative.call(this, cs.ray, cs.startDistance, shape);
+			highlightMeasurementNative.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier);
 	}
 
 	// Draw endpoints
@@ -201,7 +209,7 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	return segments;
 }
 
-export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0, y: 0}]) {
+export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0, y: 0}], alpha=1) {
 	const spacer = canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ? 1.41 : 1;
 	const nMax = Math.max(Math.floor(ray.distance / (spacer * Math.min(canvas.grid.w, canvas.grid.h))), 1);
 	const tMax = Array.fromRange(nMax+1).map(t => t / nMax);
@@ -237,9 +245,9 @@ export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0
 			const color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
 			const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedToken);
 			const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);
-			highlightTokenShape.call(this, {x: snapX, y: snapY}, tokenShape, color);
+			highlightTokenShape.call(this, {x: snapX, y: snapY}, tokenShape, color, alpha);
 		}
 
-		highlightTokenShape.call(this, {x: snapX, y: snapY}, tokenShape, color);
+		highlightTokenShape.call(this, {x: snapX, y: snapY}, tokenShape, color, alpha);
 	}
 }

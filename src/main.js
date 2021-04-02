@@ -5,6 +5,7 @@ import {getHexSizeSupportTokenGridCenter} from "./compatibility.js"
 import {moveTokens, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
 import {DragRulerRuler} from "./ruler.js";
+import {getMovementHistory} from "./movement_tracking.js";
 import {registerSettings, settingsKey} from "./settings.js"
 import {SpeedProvider} from "./speed_provider.js"
 
@@ -120,6 +121,7 @@ function onTokenLeftDragStart(event) {
 	ruler.clear();
 	ruler._state = Ruler.STATES.STARTING;
 	ruler.rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
+	ruler.dragRulerAddWaypointHistory(getMovementHistory(this));
 	ruler.dragRulerAddWaypoint(tokenCenter, false);
 }
 
@@ -146,9 +148,7 @@ function onTokenDragLeftCancel(event) {
 		return false
 	if (ruler._state === Ruler.STATES.MEASURING) {
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
-			if (ruler.waypoints.length > 1)
-				event.preventDefault()
-			ruler.dragRulerDeleteWaypoint();
+			ruler.dragRulerDeleteWaypoint(event);
 		}
 		else {
 			event.preventDefault()

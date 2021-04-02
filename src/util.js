@@ -39,11 +39,14 @@ export function getSnapPointForToken(x, y, token) {
 	return new PIXI.Point(snappedX + canvas.grid.w / 2, snappedY + canvas.grid.h / 2)
 }
 
-export function highlightTokenShape(position, shape, color) {
+export function highlightTokenShape(position, shape, color, alpha) {
+	const layer = canvas.grid.highlightLayers[this.name];
+    if ( !layer )
+		return false;
 	const area = getAreaFromPositionAndShape(position, shape);
 	for (const space of area) {
 		const [x, y] = getPixelsFromGridPosition(space.x, space.y);
-		canvas.grid.highlightPosition(this.name, {x, y, color})
+		canvas.grid.grid.highlightGridPosition(layer, {x, y, color, alpha: 0.25 * alpha});
 	}
 }
 
