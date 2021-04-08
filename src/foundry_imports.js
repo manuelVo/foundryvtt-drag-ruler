@@ -1,9 +1,8 @@
-import { getCostFromSpeedProvider } from "./api.js";
-import {highlightMeasurementTerrainRuler} from "./compatibility.js";
+import {highlightMeasurementTerrainRuler, measureDistances} from "./compatibility.js";
 import {getGridPositionFromPixels} from "./foundry_fixes.js";
 import {getColorForDistance} from "./main.js"
 import {trackRays} from "./movement_tracking.js"
-import {applyTokenSizeOffset, getAreaFromPositionAndShape, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
+import {applyTokenSizeOffset, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
 export async function moveTokens(draggedToken, selectedTokens) {
@@ -17,7 +16,7 @@ export async function moveTokens(draggedToken, selectedTokens) {
 
 	// Get the movement rays and check collision along each Ray
 	// These rays are center-to-center for the purposes of collision checking
-	const rays = this.dragRulerGetRaysFromWaypoints(this.waypoints, this.destination);
+	const rays = this.constructor.dragRulerGetRaysFromWaypoints(this.waypoints, this.destination);
 	if (!game.user.isGM) {
 		const hasCollision = selectedTokens.some(token => {
 			const offset = calculateTokenOffset(token, draggedToken)
@@ -149,11 +148,7 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	const shape = getTokenShape(this.draggedToken)
 
 	// Compute measured distance
-	let distances
-	if (terrainRulerAvailable)
-		distances = game.terrainRuler.measureDistances(centeredSegments, {costFunction: (x, y) => getCostFromSpeedProvider(this.draggedToken, getAreaFromPositionAndShape({x, y}, shape), {x, y})});
-	else
-		distances = canvas.grid.measureDistances(centeredSegments, { gridSpaces });
+	const distances = measureDistances(centeredSegments, this.draggedToken, shape, gridSpaces);
 
 	let totalDistance = 0;
 	for (let [i, d] of distances.entries()) {

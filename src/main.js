@@ -1,6 +1,6 @@
 "use strict"
 
-import {currentSpeedProvider, getRangesFromSpeedProvider, getUnreachableColorFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js"
+import {currentSpeedProvider, getMovedDistanceFromToken, getRangesFromSpeedProvider, getUnreachableColorFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js"
 import {getHexSizeSupportTokenGridCenter} from "./compatibility.js"
 import {moveTokens, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
@@ -19,6 +19,7 @@ Hooks.once("init", () => {
 
 	window.dragRuler = {
 		getColorForDistance,
+		getMovedDistanceFromToken,
 		registerModule,
 		registerSystem,
 	}

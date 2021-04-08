@@ -99,7 +99,7 @@ export class DragRulerRuler extends Ruler {
 		}
 	}
 
-	dragRulerGetRaysFromWaypoints(waypoints, destination) {
+	static dragRulerGetRaysFromWaypoints(waypoints, destination) {
 		if ( destination )
 			waypoints = waypoints.concat([destination]);
 		return waypoints.slice(1).map((wp, i) => {

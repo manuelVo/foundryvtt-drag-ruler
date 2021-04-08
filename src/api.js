@@ -1,5 +1,8 @@
+import {measureDistances} from "./compatibility.js";
+import {getMovementHistory} from "./movement_tracking.js";
 import {GenericSpeedProvider, SpeedProvider} from "./speed_provider.js"
 import {settingsKey} from "./settings.js"
+import {getTokenShape} from "./util.js";
 
 export const availableSpeedProviders = {}
 export let currentSpeedProvider = undefined
@@ -102,6 +105,15 @@ export function getCostFromSpeedProvider(token, area) {
 		return SpeedProvider.prototype.getCostForStep.call(undefined, token, area);
 	}
 	return currentSpeedProvider.getCostForStep(token, area);
+}
+
+export function getMovedDistanceFromToken(token) {
+	const history = getMovementHistory(token);
+	const segments = Ruler.dragRulerGetRaysFromWaypoints(history, {x: token.x, y: token.y}).map(ray => {return {ray}});
+	const shape = getTokenShape(token);
+	const distances = measureDistances(segments, token, shape);
+	// Sum up the distances
+	return distances.reduce((acc, val) => acc + val, 0);
 }
 
 export function registerModule(moduleId, speedProvider) {
