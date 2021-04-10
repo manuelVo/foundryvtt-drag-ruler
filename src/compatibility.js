@@ -17,7 +17,7 @@ export function highlightMeasurementTerrainRuler(ray, startDistance, tokenShape=
 export function measureDistances(segments, token, shape, gridSpaces=true) {
 	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS;
 	if (terrainRulerAvailable)
-		return game.terrainRuler.measureDistances(segments, {costFunction: (x, y) => getCostFromSpeedProvider(token, getAreaFromPositionAndShape({x, y}, shape), {x, y})});
+		return terrainRuler.measureDistances(segments, {costFunction: (x, y) => getCostFromSpeedProvider(token, getAreaFromPositionAndShape({x, y}, shape), {x, y})});
 	else
 		return canvas.grid.measureDistances(segments, { gridSpaces });
 }
