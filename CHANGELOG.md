@@ -2,6 +2,9 @@
 ### New features
 - In combat Drag Ruler will now remember the path that was taken by a token during the turn. Picking the token up during the same turn will continue the previous measurement, taking steps that are already taken into account.
 
+### Module compatibility
+- Drag Ruler is now fully compatible with the `Enhanced Terrain Layer` module. ([#50](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/50))
+
 
 ## 1.4.5
 ### Bugfixes

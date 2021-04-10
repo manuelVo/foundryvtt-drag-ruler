@@ -67,7 +67,7 @@ export class SpeedProvider {
 	 */
 	getCostForStep(token, area) {
 		// Lookup the cost for each square occupied by the token
-		const costs = area.map(space => canvas.terrain.costGrid[space.y]?.[space.x]?.multiple ?? 1)
+		const costs = area.map(space => terrainRuler.getCost(space.x, space.y, {token}));
 		// Return the maximum of the costs
 		return costs.reduce((max, current) => Math.max(max, current))
 	}
