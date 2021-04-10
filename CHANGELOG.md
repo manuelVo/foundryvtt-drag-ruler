@@ -1,3 +1,8 @@
+## In development
+### New features
+- In combat Drag Ruler will now remember the path that was taken by a token during the turn. Picking the token up during the same turn will continue the previous measurement, taking steps that are already taken into account.
+
+
 ## 1.4.5
 ### Bugfixes
 - Tiny tokens (0.5x0.5 or smaller) now snap to the coners of a square like they do in vanilla foundry ([#49](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/49))
