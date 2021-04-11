@@ -136,6 +136,7 @@ function onTokenDragLeftDrop(event) {
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler)
 		return false
+	onMouseMove.call(ruler, event);
 	const selectedTokens = canvas.tokens.controlled
 	ruler._state = Ruler.STATES.MOVING
 	moveTokens.call(ruler, ruler.draggedToken, selectedTokens)
