@@ -1,4 +1,4 @@
-## In development
+## 1.4.6
 ### Bugfixes
 - Fixed a bug where a token would move to the incorrect location if it is was dragged and released very quickly ([#51](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/51)) - thanks to Silver Raven for helping me track down this bug!
 
