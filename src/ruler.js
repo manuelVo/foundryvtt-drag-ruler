@@ -70,7 +70,7 @@ export class DragRulerRuler extends Ruler {
 	}
 
 	dragRulerAddWaypointHistory(waypoints) {
-		waypoints = waypoints.map(waypoint => {return {x: waypoint.x, y: waypoint.y, isPrevious: true}});
+		waypoints.forEach(waypoint => waypoint.isPrevious = true);
 		this.waypoints = this.waypoints.concat(waypoints);
 		for (const waypoint of waypoints) {
 			this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));

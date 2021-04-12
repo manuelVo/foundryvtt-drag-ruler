@@ -136,6 +136,8 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		const centeredRay = new Ray(centeredOrigin, centeredDest)
 		ray.isPrevious = Boolean(origin.isPrevious);
 		centeredRay.isPrevious = ray.isPrevious;
+		ray.dragRulerVisitedSpaces = origin.dragRulerVisitedSpaces;
+		centeredRay.dragRulerVisitedSpaces = ray.dragRulerVisitedSpaces;
 		if (ray.distance < 10) {
 			if (label) label.visible = false;
 			continue;

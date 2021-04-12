@@ -1,3 +1,6 @@
+import {measureDistances} from "./compatibility.js";
+import {getTokenShape} from "./util.js";
+
 function initTrackingFlag(combatant) {
 	const initialFlag = {passedWaypoints: [], trackedRound: 0};
 	let dragRulerFlag = combatant.flags?.dragRuler;
@@ -37,11 +40,19 @@ export async function trackRays(token, rays) {
 	}
 
 	// Add the passed waypoints to the combatant
-	const waypoints = combatant.flags.dragRuler.passedWaypoints;
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS;
+	const dragRulerFlags = combatant.flags.dragRuler;
+	const waypoints = dragRulerFlags.passedWaypoints;
 	for (const ray of rays) {
 		// Ignore rays that have the same start and end coordinates
-		if (ray.A.x !== ray.B.x || ray.A.y !== ray.B.y)
+		if (ray.A.x !== ray.B.x || ray.A.y !== ray.B.y) {
+			if (terrainRulerAvailable) {
+				measureDistances([{ray}], token, getTokenShape(token), true, {terrainRulerInitialState: dragRulerFlags.rulerState});
+				ray.A.dragRulerVisitedSpaces = ray.terrainRulerVisitedSpaces;
+				dragRulerFlags.rulerState = ray.terrainRulerFinalState;
+			}
 			waypoints.push(ray.A);
+		}
 	}
 	await combat.updateEmbeddedEntity("Combatant", {_id: combatant._id, flags: combatant.flags}, {diff: false});
 }
