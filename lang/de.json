@@ -21,6 +21,10 @@
 				"name": "Geschwindigkeit von Spielercharakteren für jeden anzeigen",
 				"hint": "Wenn diese Einstellung aktiviert ist wird die Färbung der hervorgehobenen Felder bei Spielercharakteren allen Spielern angezeigt, selbst wenn diese keinen Zugriff auf den Charakterbogen haben."
 			},
+			"enableMovementHistory": {
+				"name": "Bewegungsverlauf während des Kampfes aktivieren",
+				"hint": "Wenn diesen Option aktiviert ist merkt sich Drag Ruler die Bewegungen, die während einer Runde eines Kampfes gemacht wurden und zeigt diese an, wenn das Token weiterbewegt wird."
+			},
 			"showGMRulerToPlayers": {
 				"name": "Lineal des Sipelleiters bei Spielern anzeigen",
 				"hint": "Wenn diese Option deaktiviert ist wird das Lineal des Spielleiters bei den anderen Spielern nicht angezeigt."

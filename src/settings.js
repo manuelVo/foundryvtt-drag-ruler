@@ -38,6 +38,15 @@ export function registerSettings() {
 		default: true,
 	})
 
+	game.settings.register(settingsKey, "enableMovementHistory", {
+		name: "drag-ruler.settings.enableMovementHistory.name",
+		hint: "drag-ruler.settings.enableMovementHistory.hint",
+		scope: "world",
+		config: true,
+		type: Boolean,
+		default: true,
+	});
+
 	// This setting will be modified by the api if modules register to it
 	game.settings.register(settingsKey, "speedProvider", {
 		scope: "world",

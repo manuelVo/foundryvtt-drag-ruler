@@ -122,7 +122,8 @@ function onTokenLeftDragStart(event) {
 	ruler.clear();
 	ruler._state = Ruler.STATES.STARTING;
 	ruler.rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
-	ruler.dragRulerAddWaypointHistory(getMovementHistory(this));
+	if (game.settings.get(settingsKey, "enableMovementHistory"))
+		ruler.dragRulerAddWaypointHistory(getMovementHistory(this));
 	ruler.dragRulerAddWaypoint(tokenCenter, false);
 }
 
