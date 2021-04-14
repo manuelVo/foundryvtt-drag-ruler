@@ -52,7 +52,7 @@ export class DragRulerRuler extends Ruler {
 			return measure.call(this, destination, options);
 		}
 		else {
-			return super.measure(mestination, options);
+			return super.measure(destination, options);
 		}
 	}
 
