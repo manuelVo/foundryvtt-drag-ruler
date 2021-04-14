@@ -13,7 +13,8 @@
 		}
 	],
 	"esmodules": [
-		"src/main.js"
+		"src/main.js",
+		"src/socket.js"
 	],
 	"templates": [
 		"speed_provider_settings.html"
@@ -40,6 +41,13 @@
 			"path": "lang/zh-tw.json"
 		}
 	],
+	"dependencies": [
+		{
+			"name": "socketlib",
+			"manifest": "https://raw.githubusercontent.com/manuelVo/foundryvtt-socketlib/master/module.json"
+		}
+	],
+	"socket": true,
 	"url": "https://github.com/manuelVo/foundryvtt-drag-ruler",
 	"download": "https://github.com/manuelVo/foundryvtt-drag-ruler/archive/v1.4.6.zip",
 	"manifest": "https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/master/module.json",

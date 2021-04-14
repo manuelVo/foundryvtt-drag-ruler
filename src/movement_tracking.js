@@ -1,4 +1,5 @@
 import {measureDistances} from "./compatibility.js";
+import {updateCombatantDragRulerFlags} from "./socket.js";
 import {getTokenShape} from "./util.js";
 
 function initTrackingFlag(combatant) {
@@ -54,7 +55,7 @@ export async function trackRays(token, rays) {
 			waypoints.push(ray.A);
 		}
 	}
-	await combat.updateEmbeddedEntity("Combatant", {_id: combatant._id, flags: combatant.flags}, {diff: false});
+	await updateCombatantDragRulerFlags(combat, combatant, dragRulerFlags);
 }
 
 export function getMovementHistory(token) {
