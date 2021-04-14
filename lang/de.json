@@ -1,5 +1,12 @@
 {
 	"drag-ruler": {
+		"dependencies": {
+			"ok": "OK",
+			"socketlib": {
+				"title": "Socketlib Modul fehlt",
+				"text": "Drag Ruler benötigt das socketlib-Modul, um korrekt zu funktionieren. Bitte aktiviere das socketlib-Modul in dieser Welt."
+			}
+		},
 		"genericSpeedProvider": {
 			"settings": {
 				"dashMultiplier": {

@@ -1,7 +1,7 @@
 "use strict"
 
 import {currentSpeedProvider, getMovedDistanceFromToken, getRangesFromSpeedProvider, getUnreachableColorFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js"
-import {getHexSizeSupportTokenGridCenter} from "./compatibility.js"
+import {checkDependencies, getHexSizeSupportTokenGridCenter} from "./compatibility.js";
 import {moveTokens, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
 import {DragRulerRuler} from "./ruler.js";
@@ -27,6 +27,7 @@ Hooks.once("init", () => {
 
 Hooks.once("ready", () => {
 	performMigrations()
+	checkDependencies();
 	Hooks.callAll("dragRuler.ready", SpeedProvider)
 })
 
