@@ -13,5 +13,5 @@ export async function updateCombatantDragRulerFlags(combat, combatant, flags) {
 
 async function _socketUpdateCombatantDragRulerFlags(combatId, combatantId, flags) {
 	const combat = game.combats.get(combatId);
-	return combat.updateEmbeddedEntity("Combatant", {_id: combatantId, flags: {dragRuler: flags}}, {diff: false});
+	await combat.updateEmbeddedEntity("Combatant", {_id: combatantId, flags: {dragRuler: flags}}, {diff: false});
 }
