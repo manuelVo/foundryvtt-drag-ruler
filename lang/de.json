@@ -2,6 +2,11 @@
 	"drag-ruler": {
 		"dependencies": {
 			"ok": "OK",
+			"terrain-ruler": {
+				"title": "Wie man schwieriges Gelände mit Drag Ruler misst",
+				"text": "Du hast das {moduleName} Modul installiert. Drag Ruler kann schwieriges Gelände, das mit diesem Modul platziert wurde in seinen Messungen berücksichtigen. Hierzu greift Drag Ruler auf die Funktionalität von Terrain Ruler zurück. Wenn Terrain Ruler installiert und aktiviert ist wird Drag Ruler automatisch anfangen schwiriges Gelände in den Messungen zu berücksichtigen.",
+				"neverShowAgain": "Zeige dies nie wieder an"
+			},
 			"socketlib": {
 				"title": "Socketlib Modul fehlt",
 				"text": "Drag Ruler benötigt das socketlib-Modul, um korrekt zu funktionieren. Bitte aktiviere das socketlib-Modul in dieser Welt."

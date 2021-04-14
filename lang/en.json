@@ -2,6 +2,11 @@
 	"drag-ruler": {
 		"dependencies": {
 			"ok": "OK",
+			"terrain-ruler": {
+				"title": "How to measure difficult terrain with Drag Ruler",
+				"text": "You have the {moduleName} module enabled. Drag Ruler is able to measure difficult terrain that was placed down using that module. To make this possible Drag Ruler utilizes the Terrain Ruler module. If Terrain Ruler is installed and activated Drag Ruler will automatically start to respect difficult terrain in it's measurements.",
+				"neverShowAgain": "Never show this again"
+			},
 			"socketlib": {
 				"title": "Socketlib Module Missing",
 				"text": "Drag Ruler requires the socketlib module to work properly. Please activate the socketlib module in this world."

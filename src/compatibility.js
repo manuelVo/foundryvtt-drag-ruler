@@ -1,5 +1,6 @@
 import {getCostFromSpeedProvider} from "./api.js";
 import {getColorForDistance} from "./main.js"
+import {settingsKey} from "./settings.js";
 import {getAreaFromPositionAndShape, highlightTokenShape} from "./util.js";
 
 export function getHexSizeSupportTokenGridCenter(token) {
@@ -50,4 +51,34 @@ export function checkDependencies() {
 			}).render(true);
 		}
 	}
+	else if (!game.modules.get("terrain-ruler")?.active && game.user.isGM && !game.settings.get(settingsKey, "neverShowTerrainRulerHint")) {
+		const lastHint = game.settings.get(settingsKey, "lastTerrainRulerHintTime");
+		if (Date.now() - lastHint > 604800000) { // One week
+			let enabledTerrainModule;
+			if (game.modules.get("enhanced-terrain-layer")?.active) {
+				enabledTerrainModule = game.modules.get("enhanced-terrain-layer").data.title;
+			}
+			else if (game.modules.get("TerrainLayer")?.active) {
+				enabledTerrainModule = game.modules.get("TerrainLayer").data.title;
+			}
+			new Dialog({
+				title: game.i18n.localize("drag-ruler.dependencies.terrain-ruler.title"),
+				content: `<h2>${game.i18n.localize("drag-ruler.dependencies.terrain-ruler.title")}</h2><p>${game.i18n.format("drag-ruler.dependencies.terrain-ruler.text", {moduleName: enabledTerrainModule})}</p>`,
+				buttons: {
+					ok: {
+						icon: '<i class="fas fa-check"></i>',
+						label: game.i18n.localize("drag-ruler.dependencies.ok"),
+						callback: () => game.settings.set(settingsKey, "lastTerrainRulerHintTime", Date.now()),
+					},
+					neverShowAgain: {
+						icon: '<i class="fas fa-times"></i>',
+						label: game.i18n.localize("drag-ruler.dependencies.terrain-ruler.neverShowAgain"),
+						callback: () => game.settings.set(settingsKey, "neverShowTerrainRulerHint", true),
+					}
+				},
+				close: () => game.settings.set(settingsKey, "lastTerrainRulerHintTime", Date.now())
+			}).render(true);
+		}
+	}
 }
+

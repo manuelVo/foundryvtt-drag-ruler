@@ -47,6 +47,18 @@ export function registerSettings() {
 		default: true,
 	});
 
+	game.settings.register(settingsKey, "lastTerrainRulerHintTime", {
+		config: false,
+		type: Number,
+		default: 0,
+	});
+
+	game.settings.register(settingsKey, "neverShowTerrainRulerHint", {
+		config: false,
+		type: Boolean,
+		default: false,
+	});
+
 	// This setting will be modified by the api if modules register to it
 	game.settings.register(settingsKey, "speedProvider", {
 		scope: "world",
