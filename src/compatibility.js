@@ -30,7 +30,7 @@ export function measureDistances(segments, token, shape, gridSpaces=true, option
 		return distances.concat(terrainRuler.measureDistances(newSegments, opts));
 	}
 	else {
-		return canvas.grid.measureDistances(segments, options);
+		return canvas.grid.measureDistances(segments, opts);
 	}
 }
 
