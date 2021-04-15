@@ -1,3 +1,8 @@
+## In development
+### Bugfixes
+- The hint that tells users how to enable difficult terrain measurement in Drag Ruler is no longer shown if no terrain layer module is installed.
+
+
 ## 1.5.0
 ### New features
 - In combat Drag Ruler will now remember the path that was taken by a token during the turn. Picking the token up during the same turn will continue the previous measurement, taking steps that are already taken into account.

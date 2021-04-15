@@ -61,23 +61,25 @@ export function checkDependencies() {
 			else if (game.modules.get("TerrainLayer")?.active) {
 				enabledTerrainModule = game.modules.get("TerrainLayer").data.title;
 			}
-			new Dialog({
-				title: game.i18n.localize("drag-ruler.dependencies.terrain-ruler.title"),
-				content: `<h2>${game.i18n.localize("drag-ruler.dependencies.terrain-ruler.title")}</h2><p>${game.i18n.format("drag-ruler.dependencies.terrain-ruler.text", {moduleName: enabledTerrainModule})}</p>`,
-				buttons: {
-					ok: {
-						icon: '<i class="fas fa-check"></i>',
-						label: game.i18n.localize("drag-ruler.dependencies.ok"),
-						callback: () => game.settings.set(settingsKey, "lastTerrainRulerHintTime", Date.now()),
+			if (enabledTerrainModule) {
+				new Dialog({
+					title: game.i18n.localize("drag-ruler.dependencies.terrain-ruler.title"),
+					content: `<h2>${game.i18n.localize("drag-ruler.dependencies.terrain-ruler.title")}</h2><p>${game.i18n.format("drag-ruler.dependencies.terrain-ruler.text", {moduleName: enabledTerrainModule})}</p>`,
+					buttons: {
+						ok: {
+							icon: '<i class="fas fa-check"></i>',
+							label: game.i18n.localize("drag-ruler.dependencies.ok"),
+							callback: () => game.settings.set(settingsKey, "lastTerrainRulerHintTime", Date.now()),
+						},
+						neverShowAgain: {
+							icon: '<i class="fas fa-times"></i>',
+							label: game.i18n.localize("drag-ruler.dependencies.terrain-ruler.neverShowAgain"),
+							callback: () => game.settings.set(settingsKey, "neverShowTerrainRulerHint", true),
+						}
 					},
-					neverShowAgain: {
-						icon: '<i class="fas fa-times"></i>',
-						label: game.i18n.localize("drag-ruler.dependencies.terrain-ruler.neverShowAgain"),
-						callback: () => game.settings.set(settingsKey, "neverShowTerrainRulerHint", true),
-					}
-				},
-				close: () => game.settings.set(settingsKey, "lastTerrainRulerHintTime", Date.now())
-			}).render(true);
+					close: () => game.settings.set(settingsKey, "lastTerrainRulerHintTime", Date.now())
+				}).render(true);
+			}
 		}
 	}
 }
