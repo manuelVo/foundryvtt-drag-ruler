@@ -1,4 +1,4 @@
-## In development
+## 1.5.1
 ### Bugfixes
 - The hint that tells users how to enable difficult terrain measurement in Drag Ruler is no longer shown if no terrain layer module is installed.
 
