@@ -1,4 +1,4 @@
-## In development
+## 1.5.2
 ### Bugfixes
 - Drag Ruler no longer prevents tokens that don't have an actor from being moved. ([#58](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/58))
 - Grid highlighting now also works for tokens that don't have an actor.
