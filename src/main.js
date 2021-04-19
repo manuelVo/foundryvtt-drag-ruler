@@ -166,6 +166,9 @@ function onTokenDragLeftCancel(event) {
 export function getColorForDistance(startDistance, subDistance=0) {
 	if (!this.isDragRuler)
 		return this.color
+	if (!this.draggedToken.actor) {
+		return this.color;
+	}
 	// Don't apply colors if the current user doesn't have at least observer permissions
 	if (this.draggedToken.actor.permission < 2) {
 		// If this is a pc and alwaysShowSpeedForPCs is enabled we show the color anyway

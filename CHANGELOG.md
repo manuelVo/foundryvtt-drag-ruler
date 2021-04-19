@@ -1,3 +1,9 @@
+## In development
+### Bugfixes
+- Drag Ruler no longer prevents tokens that don't have an actor from being moved. ([#58](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/58))
+- Grid highlighting now also works for tokens that don't have an actor.
+
+
 ## 1.5.1
 ### Bugfixes
 - The hint that tells users how to enable difficult terrain measurement in Drag Ruler is no longer shown if no terrain layer module is installed.
