@@ -1,6 +1,8 @@
 
 export function getDefaultSpeedAttribute() {
 	switch (game.system.id) {
+		case "dcc":
+			return "actor.data.data.attributes.speed.value";
 		case "dnd5e":
 			return "actor.data.data.attributes.movement.walk"
 		case "lancer":
@@ -17,6 +19,7 @@ export function getDefaultDashMultiplier() {
 	switch (game.system.id) {
 		case "swade":
 			return 0
+		case "dcc":
 		case "dnd5e":
 		case "lancer":
 		case "pf1":
