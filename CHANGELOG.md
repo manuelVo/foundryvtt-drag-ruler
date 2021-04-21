@@ -1,3 +1,8 @@
+## In development
+### Bugfixes
+- Fixed a bug that prevented tokens from being moved when their movement history collides with a wall. ([#61](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/61))
+
+
 ## 1.5.3
 ### Compatiblilty
 - Drag Ruler's Generic Speed Provider is now able to work with game systems that put non-number characters behind the tokens movement speed (like `30ft.`). One example for such a game system is Dungeon Crawl Classics. ([#60](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/60))

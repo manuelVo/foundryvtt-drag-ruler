@@ -20,7 +20,7 @@ export async function moveTokens(draggedToken, selectedTokens) {
 	if (!game.user.isGM) {
 		const hasCollision = selectedTokens.some(token => {
 			const offset = calculateTokenOffset(token, draggedToken)
-			const offsetRays = rays.map(ray => applyOffsetToRay(ray, offset))
+			const offsetRays = rays.filter(ray => !ray.isPrevious).map(ray => applyOffsetToRay(ray, offset))
 			return offsetRays.some(r => canvas.walls.checkCollision(r));
 		})
 		if (hasCollision) {
