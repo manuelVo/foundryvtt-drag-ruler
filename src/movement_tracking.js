@@ -72,3 +72,14 @@ export function getMovementHistory(token) {
 		return [];
 	return dragRulerFlags.passedWaypoints ?? [];
 }
+
+export async function resetMovementHistory(combat, combatantId) {
+	const combatant = combat.getCombatant(combatantId);
+	const dragRulerFlags = combatant.flags.dragRuler;
+	if (!dragRulerFlags)
+		return;
+	dragRulerFlags.passedWaypoints = undefined;
+	dragRulerFlags.trackedRound = undefined;
+	dragRulerFlags.rulerState = undefined;
+	await updateCombatantDragRulerFlags(combat, combatant, dragRulerFlags);
+}

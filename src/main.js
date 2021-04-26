@@ -5,7 +5,7 @@ import {checkDependencies, getHexSizeSupportTokenGridCenter} from "./compatibili
 import {moveTokens, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
 import {DragRulerRuler} from "./ruler.js";
-import {getMovementHistory} from "./movement_tracking.js";
+import {getMovementHistory, resetMovementHistory} from "./movement_tracking.js";
 import {registerSettings, settingsKey} from "./settings.js"
 import {SpeedProvider} from "./speed_provider.js"
 
@@ -41,6 +41,15 @@ Hooks.on("canvasReady", () => {
 		})
 	})
 })
+
+Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
+	const entry = {
+		name: "drag-ruler.resetMovementHistory",
+		icon: '<i class="fas fa-undo-alt"></i>',
+		callback: li => resetMovementHistory(ui.combat.combat, li.data('combatant-id')),
+	};
+	menu.splice(1, 0, entry);
+});
 
 function hookTokenDragHandlers() {
 	const originalDragLeftStartHandler = Token.prototype._onDragLeftStart

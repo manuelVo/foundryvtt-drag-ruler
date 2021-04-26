@@ -5,7 +5,7 @@ Hooks.once("socketlib.ready", () => {
 	socket.register("updateCombatantDragRulerFlags", _socketUpdateCombatantDragRulerFlags);
 });
 
-export async function updateCombatantDragRulerFlags(combat, combatant, flags) {
+export function updateCombatantDragRulerFlags(combat, combatant, flags) {
 	const combatId = combat.id;
 	const combatantId = combatant._id;
 	return socket.executeAsGM(_socketUpdateCombatantDragRulerFlags, combatId, combatantId, flags);

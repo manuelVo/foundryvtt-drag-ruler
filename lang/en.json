@@ -12,6 +12,7 @@
 				"text": "Drag Ruler requires the socketlib module to work properly. Please activate the socketlib module in this world."
 			}
 		},
+		"resetMovementHistory": "Reset Movement History",
 		"genericSpeedProvider": {
 			"settings": {
 				"dashMultiplier": {
