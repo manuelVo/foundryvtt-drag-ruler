@@ -1,6 +1,7 @@
 ## In development
 ### Bugfixes
 - Greatly increased the performance when playing on huge maps and when moving many tokens at once.
+- When starting to drag a new token while the previous one is still moving the ruler won't dissappear anymore when the previous token arrives at it's destination.
 
 
 ## 1.5.4

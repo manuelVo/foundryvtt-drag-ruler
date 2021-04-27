@@ -37,7 +37,8 @@ export async function moveTokens(draggedToken, selectedTokens) {
 	await animateTokens.call(this, selectedTokens, draggedToken, rays, wasPaused);
 
 	// Once all animations are complete we can clear the ruler
-	this._endMeasurement();
+	if (this.draggedToken.id === draggedToken.id)
+		this._endMeasurement();
 }
 
 // This is a modified version code extracted from Ruler.moveToken from foundry 0.7.9
