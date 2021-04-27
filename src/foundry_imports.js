@@ -33,44 +33,59 @@ export async function moveTokens(draggedToken, selectedTokens) {
 	// Execute the movement path.
 	// Transform each center-to-center ray into a top-left to top-left ray using the prior token offsets.
 	this._state = Ruler.STATES.MOVING;
-	await Promise.all(selectedTokens.map(token => {
-		// Return the promise so we can wait for it outside the loop
-		const offset = calculateTokenOffset(token, draggedToken)
-		return animateToken.call(this, token, rays, offset, wasPaused)
-	}))
+	const tokenAnimationData = selectedTokens.map(token => {return {token, offset: calculateTokenOffset(token, draggedToken)};});
+	await animateTokens.call(this, selectedTokens, draggedToken, rays, wasPaused);
 
 	// Once all animations are complete we can clear the ruler
 	this._endMeasurement();
 }
 
 // This is a modified version code extracted from Ruler.moveToken from foundry 0.7.9
-async function animateToken(token, rays, tokenOffset, wasPaused) {
-	const offsetRays = rays.filter(r => !r.isPrevious).map(ray => applyOffsetToRay(ray, tokenOffset));
-	trackRays(token, offsetRays);
+async function animateTokens(tokens, draggedToken, draggedRays, wasPaused) {
 
-	// Determine offset relative to the Token top-left.
-	// This is important so we can position the token relative to the ruler origin for non-1x1 tokens.
-	const firstWaypoint = this.waypoints.find(w => !w.isPrevious);
-	const origin = [firstWaypoint.x + tokenOffset.x, firstWaypoint.y + tokenOffset.y];
-	let dx, dy
-	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
-		dx = token.data.x - origin[0]
-		dy = token.data.y - origin[1]
-	}
-	else {
-		dx = token.data.x - origin[0]
-		dy = token.data.y - origin[1]
-	}
+	const newRays = draggedRays.filter(r => !r.isPrevious);
+	const tokenAnimationData = tokens.map(token => {
+		const tokenOffset = calculateTokenOffset(token, draggedToken);
+		const offsetRays = newRays.map(ray => applyOffsetToRay(ray, tokenOffset));
 
-	token._noAnimate = true;
-	for (let r of offsetRays) {
+		// Determine offset relative to the Token top-left.
+		// This is important so we can position the token relative to the ruler origin for non-1x1 tokens.
+		const firstWaypoint = this.waypoints.find(w => !w.isPrevious);
+		const origin = [firstWaypoint.x + tokenOffset.x, firstWaypoint.y + tokenOffset.y];
+		let dx, dy;
+		if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+			dx = token.data.x - origin[0];
+			dy = token.data.y - origin[1];
+		}
+		else {
+			dx = token.data.x - origin[0];
+			dy = token.data.y - origin[1];
+		}
+
+		return {token, rays: offsetRays, dx, dy};
+	});
+
+	for (const {token, rays} of tokenAnimationData) {
+		trackRays(token, rays);
+		token._noAnimate = true;
+	}
+	for (let i = 0;i < tokenAnimationData[0].rays.length; i++) {
 		if (!wasPaused && game.paused) break;
-		const dest = [r.B.x, r.B.y];
-		const path = new Ray({ x: token.x, y: token.y }, { x: dest[0] + dx, y: dest[1] + dy });
-		await token.update(path.B);
-		await token.animateMovement(path);
+		const tokenPaths = tokenAnimationData.map(({token, rays, dx, dy}) => {
+			const ray = rays[i];
+			const dest = [ray.B.x, ray.B.y];
+			const path = new Ray({x: token.x, y: token.y}, {x: dest[0] + dx, y: dest[1] + dy});
+			return {token, path};
+		});
+		const updates = tokenPaths.map(({token, path}) => {
+			return {x: path.B.x, y: path.B.y, _id: token.id};
+		});
+		await draggedToken.scene.updateEmbeddedEntity(draggedToken.constructor.embeddedName, updates);
+		await Promise.all(tokenPaths.map(({token, path}) => token.animateMovement(path)));
 	}
-	token._noAnimate = false;
+	for (const {token} of tokenAnimationData) {
+		token._noAnimate = false;
+	}
 }
 
 function calculateTokenOffset(tokenA, tokenB) {

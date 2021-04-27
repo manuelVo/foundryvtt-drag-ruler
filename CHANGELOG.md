@@ -1,3 +1,8 @@
+## In development
+### Bugfixes
+- Greatly increased the performance when playing on huge maps and when moving many tokens at once.
+
+
 ## 1.5.4
 ### Bugfixes
 - Fixed a bug that prevented tokens from being moved when their movement history collides with a wall. ([#61](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/61))
