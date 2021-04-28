@@ -1,6 +1,6 @@
 import {measureDistances} from "./compatibility.js";
 import {updateCombatantDragRulerFlags} from "./socket.js";
-import {getTokenShape} from "./util.js";
+import {getTokenShape, zip} from "./util.js";
 
 function initTrackingFlag(combatant) {
 	const initialFlag = {passedWaypoints: [], trackedRound: 0};
@@ -23,13 +23,21 @@ function getInitializedCombatant(token, combat) {
 	return combatant;
 }
 
-export async function trackRays(token, rays) {
-	// Only track movement if the current token is participating in the active combat
+export async function trackRays(tokens, tokenRays) {
 	const combat = game.combat;
 	if (!combat)
 		return;
 	if (!combat.started)
 		return;
+	if (!(tokens instanceof Array)) {
+		tokens = [tokens];
+		tokenRays = [tokenRays];
+	}
+	const updates = Array.from(zip(tokens, tokenRays)).map(([token, rays]) => calculateUpdate(combat, token, rays)).filter(Boolean);
+	await updateCombatantDragRulerFlags(combat, updates);
+}
+
+function calculateUpdate(combat, token, rays) {
 	const combatant = getInitializedCombatant(token, combat);
 	if (!combatant)
 		return;
@@ -55,7 +63,7 @@ export async function trackRays(token, rays) {
 			waypoints.push(ray.A);
 		}
 	}
-	await updateCombatantDragRulerFlags(combat, combatant, dragRulerFlags);
+	return {_id: combatant._id, dragRulerFlags};
 }
 
 export function getMovementHistory(token) {
@@ -81,5 +89,5 @@ export async function resetMovementHistory(combat, combatantId) {
 	dragRulerFlags.passedWaypoints = undefined;
 	dragRulerFlags.trackedRound = undefined;
 	dragRulerFlags.rulerState = undefined;
-	await updateCombatantDragRulerFlags(combat, combatant, dragRulerFlags);
+	await updateCombatantDragRulerFlags(combat, [{_id: combatantId, dragRulerFlags}]);
 }

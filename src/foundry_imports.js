@@ -64,8 +64,8 @@ async function animateTokens(tokens, draggedToken, draggedRays, wasPaused) {
 		return {token, rays: offsetRays, dx, dy};
 	});
 
+	trackRays(tokenAnimationData.map(({token}) => token), tokenAnimationData.map(({rays}) => rays));
 	for (const {token, rays} of tokenAnimationData) {
-		trackRays(token, rays);
 		token._noAnimate = true;
 	}
 	for (let i = 0;i < tokenAnimationData[0].rays.length; i++) {

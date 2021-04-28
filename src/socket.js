@@ -5,13 +5,15 @@ Hooks.once("socketlib.ready", () => {
 	socket.register("updateCombatantDragRulerFlags", _socketUpdateCombatantDragRulerFlags);
 });
 
-export function updateCombatantDragRulerFlags(combat, combatant, flags) {
+export function updateCombatantDragRulerFlags(combat, updates) {
 	const combatId = combat.id;
-	const combatantId = combatant._id;
-	return socket.executeAsGM(_socketUpdateCombatantDragRulerFlags, combatId, combatantId, flags);
+	return socket.executeAsGM(_socketUpdateCombatantDragRulerFlags, combatId, updates);
 }
 
-async function _socketUpdateCombatantDragRulerFlags(combatId, combatantId, flags) {
+async function _socketUpdateCombatantDragRulerFlags(combatId, updates) {
 	const combat = game.combats.get(combatId);
-	await combat.updateEmbeddedEntity("Combatant", {_id: combatantId, flags: {dragRuler: flags}}, {diff: false});
+	updates = updates.map(update => {
+		return {_id: update._id, flags: {dragRuler: update.dragRulerFlags}};
+	});
+	await combat.updateEmbeddedEntity("Combatant", updates, {diff: false});
 }
