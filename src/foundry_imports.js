@@ -33,7 +33,6 @@ export async function moveTokens(draggedToken, selectedTokens) {
 	// Execute the movement path.
 	// Transform each center-to-center ray into a top-left to top-left ray using the prior token offsets.
 	this._state = Ruler.STATES.MOVING;
-	const tokenAnimationData = selectedTokens.map(token => {return {token, offset: calculateTokenOffset(token, draggedToken)};});
 	await animateTokens.call(this, selectedTokens, draggedToken, rays, wasPaused);
 
 	// Once all animations are complete we can clear the ruler
@@ -43,7 +42,6 @@ export async function moveTokens(draggedToken, selectedTokens) {
 
 // This is a modified version code extracted from Ruler.moveToken from foundry 0.7.9
 async function animateTokens(tokens, draggedToken, draggedRays, wasPaused) {
-
 	const newRays = draggedRays.filter(r => !r.isPrevious);
 	const tokenAnimationData = tokens.map(token => {
 		const tokenOffset = calculateTokenOffset(token, draggedToken);
