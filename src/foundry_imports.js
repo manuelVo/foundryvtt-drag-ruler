@@ -36,7 +36,7 @@ export async function moveTokens(draggedToken, selectedTokens) {
 	await animateTokens.call(this, selectedTokens, draggedToken, rays, wasPaused);
 
 	// Once all animations are complete we can clear the ruler
-	if (this.draggedToken.id === draggedToken.id)
+	if (this.draggedToken?.id === draggedToken.id)
 		this._endMeasurement();
 }
 
