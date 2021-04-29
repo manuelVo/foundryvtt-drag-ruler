@@ -5,6 +5,7 @@
 
 ### New features
 - GMs now have an option to reset the movement history for individual tokens in the right click menu of the combat tracker
+- When releasing a dragged token while pressing Alt the token will be moved to the target location without an animation
 
 ### Bugfixes
 - When starting to drag a new token while the previous one is still moving the ruler won't dissappear anymore when the previous token arrives at it's destination.
