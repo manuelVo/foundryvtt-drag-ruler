@@ -14,6 +14,7 @@ export class DragRulerRuler extends Ruler {
 		super.clear();
 		this.previousWaypoints = [];
 		this.previousLabels.removeChildren().forEach(c => c.destroy());
+		this.dragRulerRanges = undefined;
 	}
 
 	async moveToken(event) {

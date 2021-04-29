@@ -185,7 +185,9 @@ export function getColorForDistance(startDistance, subDistance=0) {
 			return this.color
 	}
 	const distance = startDistance + subDistance
-	const ranges = getRangesFromSpeedProvider(this.draggedToken)
+	if (!this.dragRulerRanges)
+		this.dragRulerRanges = getRangesFromSpeedProvider(this.draggedToken)
+	const ranges = this.dragRulerRanges;
 	if (ranges.length === 0)
 		return this.color
 	const currentRange = ranges.reduce((minRange, currentRange) => {
