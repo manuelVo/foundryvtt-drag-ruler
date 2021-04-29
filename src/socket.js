@@ -1,3 +1,5 @@
+import {currentSpeedProvider} from "./api.js";
+
 let socket;
 
 Hooks.once("socketlib.ready", () => {
@@ -7,7 +9,8 @@ Hooks.once("socketlib.ready", () => {
 
 export function updateCombatantDragRulerFlags(combat, updates) {
 	const combatId = combat.id;
-	return socket.executeAsGM(_socketUpdateCombatantDragRulerFlags, combatId, updates);
+	return socket.executeAsGM(_socketUpdateCombatantDragRulerFlags, combatId, updates)
+	             .then(() => currentSpeedProvider.onMovementHistoryUpdate(updates.map(update => combat.getCombatant(update._id).token)));
 }
 
 async function _socketUpdateCombatantDragRulerFlags(combatId, updates) {

@@ -85,6 +85,12 @@ export class SpeedProvider {
 	}
 
 	/**
+	 * This hook is being called after Drag Ruler has updated the movement history for one or more tokens.
+	 * It'll receive an array of tokens that have been updated
+	 */
+	async onMovementHistoryUpdate(tokens) {}
+
+	/**
 	 * Returns the value that is currently set for the setting registered with the provided settingId.
 	 *
 	 * This function shouldn't be overridden by speed provider implementations. It can be called to fetch speed provider specific settings.
