@@ -3,6 +3,9 @@
 - Greatly increased the performance when playing on huge maps and when moving many tokens at once.
 - Huge performance improvements for speed providers. (Technical details: `getRanges` is now being called way less frequently)
 
+### New features
+- GMs now have an option to reset the movement history for individual tokens in the right click menu of the combat tracker
+
 ### Bugfixes
 - When starting to drag a new token while the previous one is still moving the ruler won't dissappear anymore when the previous token arrives at it's destination.
 
