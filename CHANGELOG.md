@@ -1,4 +1,4 @@
-## In development
+## 1.6.0
 ### Performance
 - Greatly increased the performance when playing on huge maps and when moving many tokens at once.
 - Huge performance improvements for speed providers. (Technical details: `getRanges` is now being called way less frequently)
