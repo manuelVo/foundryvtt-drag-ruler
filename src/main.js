@@ -22,6 +22,7 @@ Hooks.once("init", () => {
 		getMovedDistanceFromToken,
 		registerModule,
 		registerSystem,
+		resetMovementHistory,
 	}
 })
 
