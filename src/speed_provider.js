@@ -86,7 +86,9 @@ export class SpeedProvider {
 
 	/**
 	 * This hook is being called after Drag Ruler has updated the movement history for one or more tokens.
-	 * It'll receive an array of tokens that have been updated
+	 * It'll receive an array of tokens that have been updated.
+	 * If your speed provider is storing any additional values that are relevant for the movement history, this function should
+	 * await until those updates have completed inside foundry.
 	 */
 	async onMovementHistoryUpdate(tokens) {}
 
