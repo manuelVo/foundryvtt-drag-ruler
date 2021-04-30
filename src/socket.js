@@ -9,8 +9,9 @@ Hooks.once("socketlib.ready", () => {
 
 export function updateCombatantDragRulerFlags(combat, updates) {
 	const combatId = combat.id;
+	// TODO Check if canvas.tokens.get is still neccessary in future foundry versions
 	return socket.executeAsGM(_socketUpdateCombatantDragRulerFlags, combatId, updates)
-	             .then(() => currentSpeedProvider.onMovementHistoryUpdate(updates.map(update => combat.getCombatant(update._id).token)));
+	             .then(() => currentSpeedProvider.onMovementHistoryUpdate(updates.map(update => canvas.tokens.get(combat.getCombatant(update._id).token._id))));
 }
 
 async function _socketUpdateCombatantDragRulerFlags(combatId, updates) {
