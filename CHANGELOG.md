@@ -1,3 +1,9 @@
+## 1.6.1
+### API
+- Added `onMovementHistoryUpdate` callback to Speed Providers, that allows them to perform game systems specific improvements to the movement history
+- Added `dragRuler.resetMovementHistory` that clears the stored movement history for a token.
+
+
 ## 1.6.0
 ### Performance
 - Greatly increased the performance when playing on huge maps and when moving many tokens at once.
