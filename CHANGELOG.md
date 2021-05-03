@@ -1,4 +1,4 @@
-## In development
+## 1.6.2
 ### Bugfixes
 - The reset movement history button now resets the movement history for all players, not just for the GM
 
