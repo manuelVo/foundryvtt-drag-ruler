@@ -1,3 +1,8 @@
+## In development
+### Compatibility
+- Drag Ruler's Generic SpeedProvider is now aware of good default values for the Savage Worlds Adventure Edition game system
+
+
 ## 1.6.2
 ### Bugfixes
 - The reset movement history button now resets the movement history for all players, not just for the GM
