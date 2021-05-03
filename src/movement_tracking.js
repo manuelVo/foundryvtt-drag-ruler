@@ -86,8 +86,8 @@ export async function resetMovementHistory(combat, combatantId) {
 	const dragRulerFlags = combatant.flags.dragRuler;
 	if (!dragRulerFlags)
 		return;
-	dragRulerFlags.passedWaypoints = undefined;
-	dragRulerFlags.trackedRound = undefined;
-	dragRulerFlags.rulerState = undefined;
+	dragRulerFlags.passedWaypoints = null;
+	dragRulerFlags.trackedRound = null;
+	dragRulerFlags.rulerState = null;
 	await updateCombatantDragRulerFlags(combat, [{_id: combatantId, dragRulerFlags}]);
 }

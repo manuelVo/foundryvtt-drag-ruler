@@ -1,3 +1,8 @@
+## In development
+### Bugfixes
+- The reset movement history button now resets the movement history for all players, not just for the GM
+
+
 ## 1.6.1
 ### API
 - Added `onMovementHistoryUpdate` callback to Speed Providers, that allows them to perform game systems specific improvements to the movement history
