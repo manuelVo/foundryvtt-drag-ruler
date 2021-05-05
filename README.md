@@ -39,6 +39,7 @@ The game systems that offer Drag Ruler integration are:
 - Tagmar RPG (starting with version 1.1.4)
 - Tormenta20 (starting with version 1.1.37)
 - Shadow of the Demon Lord  (starting with version 1.7.15)
+- WWII:OWB (starting with version 1.0.4)
 
 
 ## Translations
