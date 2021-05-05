@@ -1,4 +1,5 @@
 import {measure} from "./foundry_imports.js"
+import {getMovementHistory} from "./movement_tracking.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForToken} from "./util.js";
 
@@ -78,6 +79,11 @@ export class DragRulerRuler extends Ruler {
 		}
 	}
 
+	dragRulerClearWaypoints() {
+		this.waypoints = [];
+		this.labels.removeChildren().forEach(c => c.destroy());
+	}
+
 	dragRulerDeleteWaypoint(event={preventDefault: () => {return}}) {
 		if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 			event.preventDefault();
@@ -98,6 +104,22 @@ export class DragRulerRuler extends Ruler {
 			// Pass in a fake event that hopefully is enough to allow other modules to function
 			token._onDragLeftCancel(event);
 		}
+	}
+
+	async dragRulerRecalculate(tokenIds) {
+		if (this._state !== Ruler.STATES.MEASURING)
+			return;
+		if (tokenIds && !tokenIds.includes(this.draggedToken.id))
+			return;
+		const waypoints = this.waypoints.filter(waypoint => !waypoint.isPrevious);
+		this.dragRulerClearWaypoints();
+		if (game.settings.get(settingsKey, "enableMovementHistory"))
+			this.dragRulerAddWaypointHistory(getMovementHistory(this.draggedToken));
+		for (const waypoint of waypoints) {
+			this.dragRulerAddWaypoint(waypoint, false);
+		}
+		this.measure(this.destination);
+		game.user.broadcastActivity({ruler: this});
 	}
 
 	static dragRulerGetRaysFromWaypoints(waypoints, destination) {

@@ -2,6 +2,7 @@ import {highlightMeasurementTerrainRuler, measureDistances} from "./compatibilit
 import {getGridPositionFromPixels} from "./foundry_fixes.js";
 import {getColorForDistance} from "./main.js"
 import {trackRays} from "./movement_tracking.js"
+import {recalculate} from "./socket.js";
 import {applyTokenSizeOffset, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
@@ -87,7 +88,7 @@ async function animateTokens(tokens, draggedToken, draggedRays, wasPaused) {
 	for (const {token} of tokenAnimationData) {
 		token._noAnimate = false;
 	}
-	trackRays(tokenAnimationData.map(({token}) => token), tokenAnimationData.map(({rays}) => rays));
+	trackRays(tokens, tokenAnimationData.map(({rays}) => rays)).then(() => recalculate(tokens));
 }
 
 function calculateTokenOffset(tokenA, tokenB) {

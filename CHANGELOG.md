@@ -1,4 +1,7 @@
 ## In development
+### Bugfixes
+- If the movement history for a token is being updated (for example by a history reset by the gm) while a player is currently measuring a distance for that token the history change is now being reflected in the active measurement.
+
 ### Compatibility
 - Drag Ruler's Generic SpeedProvider is now aware of good default values for the Savage Worlds Adventure Edition game system
 

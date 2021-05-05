@@ -5,6 +5,7 @@ let socket;
 Hooks.once("socketlib.ready", () => {
 	socket = socketlib.registerModule("drag-ruler");
 	socket.register("updateCombatantDragRulerFlags", _socketUpdateCombatantDragRulerFlags);
+	socket.register("recalculate", _socketRecalculate);
 });
 
 export function updateCombatantDragRulerFlags(combat, updates) {
@@ -31,4 +32,12 @@ async function _socketUpdateCombatantDragRulerFlags(combatId, updates) {
 		return {_id: update._id, flags: {dragRuler: update.dragRulerFlags}};
 	});
 	await combat.updateEmbeddedEntity("Combatant", updates, {diff: false});
+}
+
+export function recalculate(tokens) {
+	socket.executeForEveryone(_socketRecalculate, tokens ? tokens.map(token => token.id) : undefined);
+}
+
+function _socketRecalculate(tokenIds) {
+	return canvas.controls.ruler.dragRulerRecalculate(tokenIds);
 }

@@ -1,5 +1,5 @@
 import {measureDistances} from "./compatibility.js";
-import {updateCombatantDragRulerFlags} from "./socket.js";
+import {recalculate, updateCombatantDragRulerFlags} from "./socket.js";
 import {getTokenShape, zip} from "./util.js";
 
 function initTrackingFlag(combatant) {
@@ -90,4 +90,5 @@ export async function resetMovementHistory(combat, combatantId) {
 	dragRulerFlags.trackedRound = null;
 	dragRulerFlags.rulerState = null;
 	await updateCombatantDragRulerFlags(combat, [{_id: combatantId, dragRulerFlags}]);
+	recalculate();
 }

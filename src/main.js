@@ -7,6 +7,7 @@ import {performMigrations} from "./migration.js"
 import {DragRulerRuler} from "./ruler.js";
 import {getMovementHistory, resetMovementHistory} from "./movement_tracking.js";
 import {registerSettings, settingsKey} from "./settings.js"
+import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
 
 Hooks.once("init", () => {
@@ -22,6 +23,7 @@ Hooks.once("init", () => {
 		getMovedDistanceFromToken,
 		registerModule,
 		registerSystem,
+		recalculate,
 		resetMovementHistory,
 	}
 })
