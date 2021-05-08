@@ -4,7 +4,7 @@
 			"ok": "OK",
 			"terrain-ruler": {
 				"title": "Wie man schwieriges Gelände mit Drag Ruler misst",
-				"text": "Du hast das {moduleName} Modul installiert. Drag Ruler kann schwieriges Gelände, das mit diesem Modul platziert wurde in seinen Messungen berücksichtigen. Hierzu greift Drag Ruler auf die Funktionalität von Terrain Ruler zurück. Wenn Terrain Ruler installiert und aktiviert ist wird Drag Ruler automatisch anfangen schwiriges Gelände in den Messungen zu berücksichtigen.",
+				"text": "Du hast das {moduleName} Modul installiert. Drag Ruler kann schwieriges Gelände, das mit diesem Modul platziert wurde in seinen Messungen berücksichtigen. Hierzu greift Drag Ruler auf die Funktionalität von Terrain Ruler zurück. Wenn Terrain Ruler installiert und aktiviert ist wird Drag Ruler automatisch anfangen schwieriges Gelände in den Messungen zu berücksichtigen.",
 				"neverShowAgain": "Zeige dies nie wieder an"
 			},
 			"socketlib": {
@@ -39,7 +39,7 @@
 				"hint": "Wenn diesen Option aktiviert ist merkt sich Drag Ruler die Bewegungen, die während einer Runde eines Kampfes gemacht wurden und zeigt diese an, wenn das Token weiterbewegt wird."
 			},
 			"showGMRulerToPlayers": {
-				"name": "Lineal des Sipelleiters bei Spielern anzeigen",
+				"name": "Lineal des Spielleiters bei Spielern anzeigen",
 				"hint": "Wenn diese Option deaktiviert ist wird das Lineal des Spielleiters bei den anderen Spielern nicht angezeigt."
 			},
 			"speedProviderSettings": {
@@ -53,7 +53,7 @@
 				},
 				"activeProvider": {
 					"name": "Verwendete Spielsystemintegration",
-					"hint": "Die unten angezeigten Einstellungen hängen von der verwendeten Spielsystemintegration ab. Wenn der Spielleiter eine andere Spielsystemintegration auswählt können sich die zur Verfügung stehnden Einstellungen ändern."
+					"hint": "Die unten angezeigten Einstellungen hängen von der verwendeten Spielsystemintegration ab. Wenn der Spielleiter eine andere Spielsystemintegration auswählt können sich die zur Verfügung stehenden Einstellungen ändern."
 				},
 				"noSettings": "Diese Spielsystemintegration hat keine Einstellmöglichkeiten",
 				"color": {
@@ -66,7 +66,7 @@
 				},
 				"speedProvider": {
 					"name": "Verwendete Spielsystemintegration",
-					"hint": "Wähle aus, welche Spielsystemintegration für die farbliche Hervorhebung der Felder zuständig sein soll. Drag Ruler stellt eine generische Spielsystemintegration zur Verfügung, die grundlegende Funktionalität bietet und bei korrekter konfiguration mit allen Spielsystemen funktionieren sollte. Weitere Spielsystemintegrationen können durch Module und Spielsysteme angeboten werden. Eine andere Spielsystemintegration als die generische auszuwählen kann eine bessere Inegration in das verwendete Spielsystem bieten. Die Optionen unterhalb sind davon abhäng, welche Spielsystemintegration hier ausgewählt wurde.",
+					"hint": "Wähle aus, welche Spielsystemintegration für die farbliche Hervorhebung der Felder zuständig sein soll. Drag Ruler stellt eine generische Spielsystemintegration zur Verfügung, die grundlegende Funktionalität bietet und bei korrekter konfiguration mit allen Spielsystemen funktionieren sollte. Weitere Spielsystemintegrationen können durch Module und Spielsysteme angeboten werden. Eine andere Spielsystemintegration als die generische auszuwählen kann eine bessere Inegration in das verwendete Spielsystem bieten. Die Optionen unterhalb sind davon abhängig, welche Spielsystemintegration hier ausgewählt wurde.",
 					"choices": {
 						"module": "Modul {name}",
 						"native": "Generisch",
@@ -76,7 +76,7 @@
 			},
 			"swapSpacebarRightClick": {
 				"name": "Leertaste und Rechtsklick tauschen",
-				"hint": "Die Funktionen der Leertaste und des Rechtsklicks sind während eine Spielfigur bewegt wird vertauscht. Wenn diese Option aktiviert wrid können mit Rechtsklick Wegpunkte gesetzt werden und mit der Leertaste werden sie wieder gelöscht."
+				"hint": "Die Funktionen der Leertaste und des Rechtsklicks sind, während eine Spielfigur bewegt wird, vertauscht. Wenn diese Option aktiviert wird können mit Rechtsklick Wegpunkte gesetzt werden und mit der Leertaste werden sie wieder gelöscht."
 			}
 		}
 	}
