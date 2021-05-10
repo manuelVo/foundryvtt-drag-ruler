@@ -101,10 +101,16 @@ export function getUnreachableColorFromSpeedProvider() {
 }
 
 export function getCostFromSpeedProvider(token, area) {
-	if (currentSpeedProvider instanceof Function) {
-		return SpeedProvider.prototype.getCostForStep.call(undefined, token, area);
+	try {
+		if (currentSpeedProvider instanceof Function) {
+			return SpeedProvider.prototype.getCostForStep.call(undefined, token, area);
+		}
+		return currentSpeedProvider.getCostForStep(token, area);
 	}
-	return currentSpeedProvider.getCostForStep(token, area);
+	catch (e) {
+		console.error(e);
+		return 1;
+	}
 }
 
 export function getMovedDistanceFromToken(token) {

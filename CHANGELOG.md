@@ -1,3 +1,8 @@
+## In development
+### Bugfixes
+- Fixed a bug where a bug in a Speed Provider could lead to the ruler getting stuck, leaving the token immovable
+
+
 ## 1.6.3
 ### Bugfixes
 - If the movement history for a token is being updated (for example by a history reset by the gm) while a player is currently measuring a distance for that token the history change is now being reflected in the active measurement.
