@@ -1,3 +1,8 @@
+## In development
+### Translation
+- Corrected typos in the german translation (thanks to CarnVanBeck!)
+
+
 ## 1.6.4
 ### Bugfixes
 - Fixed a bug where a bug in a Speed Provider could lead to the ruler getting stuck, leaving the token immovable
