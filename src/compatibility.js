@@ -18,7 +18,7 @@ export function highlightMeasurementTerrainRuler(ray, startDistance, tokenShape=
 export function measureDistances(segments, token, shape, gridSpaces=true, options={}) {
 	const opts = duplicate(options)
 	opts.gridSpaces = gridSpaces;
-	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS;
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
 	if (terrainRulerAvailable) {
 		const firstNewSegmentIndex = segments.findIndex(segment => !segment.ray.dragRulerVisitedSpaces);
 		const previousSegments = segments.slice(0, firstNewSegmentIndex);

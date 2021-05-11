@@ -1,4 +1,9 @@
 ## In development
+**BREAKING** This update is incompatible with previous Terrain Ruler versions. If you're using Terrain Ruler, make sure you update Terrain Ruler to at least version 1.3.0.
+
+### New features
+- Drag Ruler can now measure difficult terrain on gridless maps (if the Terrain Ruler module is installed and enabled)
+
 ### Translation
 - Corrected typos in the german translation (thanks to CarnVanBeck!)
 

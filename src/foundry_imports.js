@@ -130,7 +130,7 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	if (snap)
 		destination = getSnapPointForToken(destination.x, destination.y, this.draggedToken)
 
-	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS;
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
 
 	const waypoints = this.waypoints.concat([destination]);
 	// Move the waypoints to the center of the grid if a size is used that measures from edge to edge
@@ -209,10 +209,12 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		}
 
 		// Highlight grid positions
-		if (terrainRulerAvailable)
-			highlightMeasurementTerrainRuler.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier)
-		else
-			highlightMeasurementNative.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier);
+		if (canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS) {
+			if (terrainRulerAvailable)
+				highlightMeasurementTerrainRuler.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier)
+			else
+				highlightMeasurementNative.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier);
+		}
 	}
 
 	// Draw endpoints
