@@ -36,10 +36,10 @@ Hooks.once("ready", () => {
 
 Hooks.on("canvasReady", () => {
 	canvas.controls.rulers.children.forEach(ruler => {
-		ruler.draggedToken = null
+		ruler.draggedEntity = null;
 		Object.defineProperty(ruler, "isDragRuler", {
 			get: function isDragRuler() {
-				return Boolean(this.draggedToken) // If draggedToken is set this is a drag ruler
+				return Boolean(this.draggedEntity); // If draggedEntity is set this is a drag ruler
 			}
 		})
 	})
@@ -128,7 +128,7 @@ function onTokenLeftDragStart(event) {
 	if (!currentSpeedProvider.usesRuler(this))
 		return
 	const ruler = canvas.controls.ruler
-	ruler.draggedToken = this
+	ruler.draggedEntity = this;
 	let tokenCenter
 	if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
 		tokenCenter = getHexSizeSupportTokenGridCenter(this)
@@ -156,9 +156,9 @@ function onTokenDragLeftDrop(event) {
 	const selectedTokens = canvas.tokens.controlled
 	// This can happen if the user presses ESC during drag (maybe there are other ways too)
 	if (selectedTokens.length === 0)
-		selectedTokens.push(ruler.draggedToken);
+		selectedTokens.push(ruler.draggedEntity);
 	ruler._state = Ruler.STATES.MOVING
-	moveTokens.call(ruler, ruler.draggedToken, selectedTokens)
+	moveTokens.call(ruler, ruler.draggedEntity, selectedTokens);
 	return true
 }
 
@@ -183,18 +183,18 @@ function onTokenDragLeftCancel(event) {
 export function getColorForDistance(startDistance, subDistance=0) {
 	if (!this.isDragRuler)
 		return this.color
-	if (!this.draggedToken.actor) {
+	if (!this.draggedEntity.actor) {
 		return this.color;
 	}
 	// Don't apply colors if the current user doesn't have at least observer permissions
-	if (this.draggedToken.actor.permission < 2) {
+	if (this.draggedEntity.actor.permission < 2) {
 		// If this is a pc and alwaysShowSpeedForPCs is enabled we show the color anyway
-		if (!(this.draggedToken.actor.data.type === "character" && game.settings.get(settingsKey, "alwaysShowSpeedForPCs")))
+		if (!(this.draggedEntity.actor.data.type === "character" && game.settings.get(settingsKey, "alwaysShowSpeedForPCs")))
 			return this.color
 	}
 	const distance = startDistance + subDistance
 	if (!this.dragRulerRanges)
-		this.dragRulerRanges = getRangesFromSpeedProvider(this.draggedToken)
+		this.dragRulerRanges = getRangesFromSpeedProvider(this.draggedEntity);
 	const ranges = this.dragRulerRanges;
 	if (ranges.length === 0)
 		return this.color

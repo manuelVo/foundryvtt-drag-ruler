@@ -33,18 +33,18 @@ export class DragRulerRuler extends Ruler {
 
 	toJSON() {
 		const json = super.toJSON();
-		if (this.draggedToken)
-			json["draggedToken"] = this.draggedToken.data._id;
+		if (this.draggedEntity)
+			json["draggedEntity"] = this.draggedEntity.data._id;
 		return json;
 	}
 
 	update(data) {
 		// Don't show a GMs drag ruler to non GM players
-		if (data.draggedToken && this.user.isGM && !game.user.isGM && !game.settings.get(settingsKey, "showGMRulerToPlayers"))
+		if (data.draggedEntity && this.user.isGM && !game.user.isGM && !game.settings.get(settingsKey, "showGMRulerToPlayers"))
 			return;
 
-		if (data.draggedToken) {
-			this.draggedToken = canvas.tokens.get(data.draggedToken);
+		if (data.draggedEntity) {
+			this.draggedEntity = canvas.tokens.get(data.draggedEntity);
 		}
 		super.update(data);
 	}
@@ -60,13 +60,13 @@ export class DragRulerRuler extends Ruler {
 
 	_endMeasurement() {
 		super._endMeasurement();
-		this.draggedToken = null;
+		this.draggedEntity = null;
 	}
 
 	// The functions below aren't present in the orignal Ruler class and are added by Drag Ruler
 	dragRulerAddWaypoint(point, snap=true) {
 		if (snap)
-			point = getSnapPointForToken(point.x, point.y, this.draggedToken);
+			point = getSnapPointForToken(point.x, point.y, this.draggedEntity);
 		this.waypoints.push(new PIXI.Point(point.x, point.y));
 		this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
 	}
@@ -93,7 +93,7 @@ export class DragRulerRuler extends Ruler {
 			game.user.broadcastActivity({ruler: this});
 		}
 		else {
-			const token = this.draggedToken;
+			const token = this.draggedEntity;
 			this._endMeasurement();
 
 			// Deactivate the drag workflow in mouse
@@ -109,12 +109,12 @@ export class DragRulerRuler extends Ruler {
 	async dragRulerRecalculate(tokenIds) {
 		if (this._state !== Ruler.STATES.MEASURING)
 			return;
-		if (tokenIds && !tokenIds.includes(this.draggedToken.id))
+		if (tokenIds && !tokenIds.includes(this.draggedEntity.id))
 			return;
 		const waypoints = this.waypoints.filter(waypoint => !waypoint.isPrevious);
 		this.dragRulerClearWaypoints();
 		if (game.settings.get(settingsKey, "enableMovementHistory"))
-			this.dragRulerAddWaypointHistory(getMovementHistory(this.draggedToken));
+			this.dragRulerAddWaypointHistory(getMovementHistory(this.draggedEntity));
 		for (const waypoint of waypoints) {
 			this.dragRulerAddWaypoint(waypoint, false);
 		}

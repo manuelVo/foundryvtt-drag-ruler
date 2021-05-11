@@ -7,21 +7,21 @@ import {recalculate} from "./socket.js";
 import {applyTokenSizeOffset, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
-export async function moveTokens(draggedToken, selectedTokens) {
+export async function moveTokens(draggedEntity, selectedTokens) {
 	let wasPaused = game.paused;
 	if (wasPaused && !game.user.isGM) {
 		ui.notifications.warn(game.i18n.localize("GAME.PausedWarning"));
 		return false;
 	}
 	if (!this.visible || !this.destination) return false;
-	if (!draggedToken) return;
+	if (!draggedEntity) return;
 
 	// Get the movement rays and check collision along each Ray
 	// These rays are center-to-center for the purposes of collision checking
 	const rays = this.constructor.dragRulerGetRaysFromWaypoints(this.waypoints, this.destination);
 	if (!game.user.isGM) {
 		const hasCollision = selectedTokens.some(token => {
-			const offset = calculateTokenOffset(token, draggedToken)
+			const offset = calculateTokenOffset(token, draggedEntity);
 			const offsetRays = rays.filter(ray => !ray.isPrevious).map(ray => applyOffsetToRay(ray, offset))
 			return offsetRays.some(r => canvas.walls.checkCollision(r));
 		})
@@ -35,18 +35,18 @@ export async function moveTokens(draggedToken, selectedTokens) {
 	// Execute the movement path.
 	// Transform each center-to-center ray into a top-left to top-left ray using the prior token offsets.
 	this._state = Ruler.STATES.MOVING;
-	await animateTokens.call(this, selectedTokens, draggedToken, rays, wasPaused);
+	await animateTokens.call(this, selectedTokens, draggedEntity, rays, wasPaused);
 
 	// Once all animations are complete we can clear the ruler
-	if (this.draggedToken?.id === draggedToken.id)
+	if (this.draggedEntity?.id === draggedEntity.id)
 		this._endMeasurement();
 }
 
 // This is a modified version code extracted from Ruler.moveToken from foundry 0.7.9
-async function animateTokens(tokens, draggedToken, draggedRays, wasPaused) {
+async function animateTokens(tokens, draggedEntity, draggedRays, wasPaused) {
 	const newRays = draggedRays.filter(r => !r.isPrevious);
 	const tokenAnimationData = tokens.map(token => {
-		const tokenOffset = calculateTokenOffset(token, draggedToken);
+		const tokenOffset = calculateTokenOffset(token, draggedEntity);
 		const offsetRays = newRays.map(ray => applyOffsetToRay(ray, tokenOffset));
 
 		// Determine offset relative to the Token top-left.
@@ -79,7 +79,7 @@ async function animateTokens(tokens, draggedToken, draggedRays, wasPaused) {
 		const updates = tokenPaths.map(({token, path}) => {
 			return {x: path.B.x, y: path.B.y, _id: token.id};
 		});
-		await draggedToken.scene.updateEmbeddedEntity(draggedToken.constructor.embeddedName, updates, {animate});
+		await draggedEntity.scene.updateEmbeddedEntity(draggedEntity.constructor.embeddedName, updates, {animate});
 		if (animate)
 			await Promise.all(tokenPaths.map(({token, path}) => token.animateMovement(path)));
 	}
@@ -119,17 +119,17 @@ export function onMouseMove(event) {
 
 // This is a modified version of Ruler.measure form foundry 0.7.9
 export function measure(destination, {gridSpaces=true, snap=false} = {}) {
-	if (this.isDragRuler && !this.draggedToken.isVisible)
+	if (this.isDragRuler && !this.draggedEntity.isVisible)
 		return []
 
 	if (snap)
-		destination = getSnapPointForToken(destination.x, destination.y, this.draggedToken)
+		destination = getSnapPointForToken(destination.x, destination.y, this.draggedEntity);
 
 	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
 
 	const waypoints = this.waypoints.concat([destination]);
 	// Move the waypoints to the center of the grid if a size is used that measures from edge to edge
-	const centeredWaypoints = applyTokenSizeOffset(waypoints, this.draggedToken)
+	const centeredWaypoints = applyTokenSizeOffset(waypoints, this.draggedEntity);
 	// Foundries native ruler requires the waypoints to sit in the dead center of the square to work properly
 	if (!terrainRulerAvailable)
 		centeredWaypoints.forEach(w => [w.x, w.y] = canvas.grid.getCenter(w.x, w.y));
@@ -162,10 +162,10 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	}
 
 
-	const shape = getTokenShape(this.draggedToken)
+	const shape = getTokenShape(this.draggedEntity)
 
 	// Compute measured distance
-	const distances = measureDistances(centeredSegments, this.draggedToken, shape, {gridSpaces});
+	const distances = measureDistances(centeredSegments, this.draggedEntity, shape, {gridSpaces});
 
 	let totalDistance = 0;
 	for (let [i, d] of distances.entries()) {
@@ -258,7 +258,7 @@ export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0
 		let [xg, yg] = canvas.grid.grid.getPixelsFromGridPosition(x1, y1);
 		const subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xg, y: yg})}], {gridSpaces: true})[0]
 		const color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
-		const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedToken);
+		const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedEntity);
 		const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);
 
 		prior = [x1, y1];
@@ -271,7 +271,7 @@ export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0
 			let [xgh, ygh] = canvas.grid.grid.getPixelsFromGridPosition(x1h, y1h);
 			const subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xgh, y: ygh})}], {gridSpaces: true})[0]
 			const color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
-			const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedToken);
+			const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedEntity);
 			const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);
 			highlightTokenShape.call(this, {x: snapX, y: snapY}, tokenShape, color, alpha);
 		}
