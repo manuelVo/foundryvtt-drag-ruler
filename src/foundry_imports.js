@@ -156,6 +156,8 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		centeredRay.isPrevious = ray.isPrevious;
 		ray.dragRulerVisitedSpaces = origin.dragRulerVisitedSpaces;
 		centeredRay.dragRulerVisitedSpaces = ray.dragRulerVisitedSpaces;
+		ray.dragRulerFinalState = origin.dragRulerFinalState;
+		centeredRay.dragRulerFinalState = ray.dragRulerFinalState;
 		if (ray.distance < 10) {
 			if (label) label.visible = false;
 			continue;
@@ -168,7 +170,7 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	const shape = getTokenShape(this.draggedToken)
 
 	// Compute measured distance
-	const distances = measureDistances(centeredSegments, this.draggedToken, shape, gridSpaces);
+	const distances = measureDistances(centeredSegments, this.draggedToken, shape, {gridSpaces});
 
 	let totalDistance = 0;
 	for (let [i, d] of distances.entries()) {

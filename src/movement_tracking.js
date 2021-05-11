@@ -56,9 +56,9 @@ function calculateUpdate(combat, token, rays) {
 		// Ignore rays that have the same start and end coordinates
 		if (ray.A.x !== ray.B.x || ray.A.y !== ray.B.y) {
 			if (terrainRulerAvailable) {
-				measureDistances([{ray}], token, getTokenShape(token), true, {terrainRulerInitialState: dragRulerFlags.rulerState});
+				measureDistances([{ray}], token, getTokenShape(token), {terrainRulerInitialState: waypoints[waypoints.length - 1]?.dragRulerFinalState});
 				ray.A.dragRulerVisitedSpaces = ray.terrainRulerVisitedSpaces;
-				dragRulerFlags.rulerState = ray.terrainRulerFinalState;
+				ray.A.dragRulerFinalState = ray.terrainRulerFinalState;
 			}
 			waypoints.push(ray.A);
 		}

@@ -4,6 +4,9 @@
 ### New features
 - Drag Ruler can now measure difficult terrain on gridless maps (if the Terrain Ruler module is installed and enabled)
 
+### Bugfixes
+- Fixed a bug that sometimes measured diagonals incorrectly with the 5/10/5 grid rule
+
 ### Translation
 - Corrected typos in the german translation (thanks to CarnVanBeck!)
 

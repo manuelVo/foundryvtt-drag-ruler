@@ -15,10 +15,12 @@ export function highlightMeasurementTerrainRuler(ray, startDistance, tokenShape=
 	}
 }
 
-export function measureDistances(segments, token, shape, gridSpaces=true, options={}) {
+export function measureDistances(segments, token, shape, options={}) {
 	const opts = duplicate(options)
-	opts.gridSpaces = gridSpaces;
+	if (!opts.gridSpaces)
+		opts.gridSpaces = true;
 	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+
 	if (terrainRulerAvailable) {
 		const firstNewSegmentIndex = segments.findIndex(segment => !segment.ray.dragRulerVisitedSpaces);
 		const previousSegments = segments.slice(0, firstNewSegmentIndex);
@@ -27,7 +29,7 @@ export function measureDistances(segments, token, shape, gridSpaces=true, option
 		previousSegments.forEach(segment => segment.ray.terrainRulerVisitedSpaces = duplicate(segment.ray.dragRulerVisitedSpaces));
 		opts.costFunction = (x, y) => getCostFromSpeedProvider(token, getAreaFromPositionAndShape({x, y}, shape), {x, y});
 		if (previousSegments.length > 0)
-			opts.terrainRulerInitialState = previousSegments[previousSegments.length - 1];
+			opts.terrainRulerInitialState = previousSegments[previousSegments.length - 1].ray.dragRulerFinalState;
 		return distances.concat(terrainRuler.measureDistances(newSegments, opts));
 	}
 	else {
@@ -83,4 +85,3 @@ export function checkDependencies() {
 		}
 	}
 }
-
