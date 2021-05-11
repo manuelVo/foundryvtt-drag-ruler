@@ -34,6 +34,7 @@ Drag Ruler will work with all Foundry VTT game systems. However some game system
 
 The game systems that offer Drag Ruler integration are:
 - Cypher System (starting with version 1.13.0)
+- Ironclaw Second Edition (starting with version 0.2.2)
 - Pathfinder 1 (starting with version 0.77.3)
 - Pathfinder 2e (via the module [PF2E Drag Ruler Integration](https://foundryvtt.com/packages/pf2e-dragruler/))
 - Tagmar RPG (starting with version 1.1.4)
