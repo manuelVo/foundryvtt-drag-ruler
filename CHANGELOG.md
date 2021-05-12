@@ -7,6 +7,9 @@
 ### Bugfixes
 - Fixed a bug that sometimes measured diagonals incorrectly with the 5/10/5 grid rule
 
+### Compatibility
+- Drag Ruler's Generic Speed Provider is now aware of good default values for the Starfinder game system
+
 ### Translation
 - Corrected typos in the german translation (thanks to CarnVanBeck!)
 
