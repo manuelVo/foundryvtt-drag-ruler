@@ -14,6 +14,11 @@
 - Corrected typos in the german translation (thanks to CarnVanBeck!)
 
 
+## 1.6.5
+### Bugfixes
+- Drag Ruler no longer get's stuck if the user presses ESC during drag ([#70](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/70))
+
+
 ## 1.6.4
 ### Bugfixes
 - Fixed a bug where a bug in a Speed Provider could lead to the ruler getting stuck, leaving the token immovable

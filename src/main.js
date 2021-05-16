@@ -152,6 +152,9 @@ function onTokenDragLeftDrop(event) {
 		return false
 	onMouseMove.call(ruler, event);
 	const selectedTokens = canvas.tokens.controlled
+	// This can happen if the user presses ESC during drag (maybe there are other ways too)
+	if (selectedTokens.length === 0)
+		selectedTokens.push(ruler.draggedToken);
 	ruler._state = Ruler.STATES.MOVING
 	moveTokens.call(ruler, ruler.draggedToken, selectedTokens)
 	return true
