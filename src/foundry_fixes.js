@@ -16,3 +16,21 @@ export function getGridPositionFromPixels(xPixel, yPixel) {
 		return [y, x]
 	return [x, y]
 }
+
+export function getGridPositionFromPixelsObj(o) {
+	const r = {};
+	[r.x, r.y] = getGridPositionFromPixels(o.x, o.y);
+	return r;
+}
+
+export function getPixelsFromGridPositionObj(o) {
+	const r = {};
+	[r.x, r.y] = getPixelsFromGridPosition(o.x, o.y);
+	return r;
+}
+
+export function getCenterFromGridPositionObj(o) {
+	const r = getPixelsFromGridPositionObj(o);
+	[r.x, r.y] = canvas.grid.getCenter(r.x, r.y);
+	return r;
+}
