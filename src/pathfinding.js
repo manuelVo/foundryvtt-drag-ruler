@@ -53,7 +53,10 @@ function calculate_path(from, to) {
 			if (previousNodes.has(neighborNode))
 				continue;
 			// TODO We currently assume a cost of one for all transitions. Change this for 5/10/5 or difficult terrain support
-			const neighbor = {node: neighborNode, cost: currentNode.cost + 1, estimated: currentNode.cost + 1 + estimate_cost(neighborNode, from), previous: currentNode};
+			// We charge an extra 0.0001 for diagonals
+			const isDiagonal = currentNode.node.x !== neighborNode.x && currentNode.node.y !== neighborNode.y;
+			const edgeCost = isDiagonal ? 1.0001 : 1;
+			const neighbor = {node: neighborNode, cost: currentNode.cost + edgeCost, estimated: currentNode.cost + edgeCost + estimate_cost(neighborNode, from), previous: currentNode};
 			const neighborIndex = nextNodes.findIndex(node => node.node === neighbor.node);
 			if (neighborIndex >= 0) {
 				// If the neighbor is cheaper to reach via the current route than through previously discovered routes, replace it
@@ -80,7 +83,7 @@ export function find_path(from, to) {
 	let currentNode = lastNode;
 	while (currentNode) {
 		// TODO Check if the distance doesn't change
-		if (path.length > 2 && !canvas.walls.checkCollision(new Ray(getCenterFromGridPositionObj(currentNode.node), getCenterFromGridPositionObj(path[path.length - 2]))))
+		if (path.length >= 2 && !canvas.walls.checkCollision(new Ray(getCenterFromGridPositionObj(currentNode.node), getCenterFromGridPositionObj(path[path.length - 2]))))
 			// Replace last waypoint if the current waypoint leads to a valid path
 			path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
 		else
