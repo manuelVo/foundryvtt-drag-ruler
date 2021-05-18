@@ -21,7 +21,7 @@ export async function moveEntities(draggedEntity, selectedEntities) {
 	const rays = this.constructor.dragRulerGetRaysFromWaypoints(this.waypoints, this.destination);
 	if (!game.user.isGM && draggedEntity instanceof Token) {
 		const hasCollision = selectedEntities.some(token => {
-			const offset = calculateTokenOffset(token, draggedEntity);
+			const offset = calculateEntityOffset(token, draggedEntity);
 			const offsetRays = rays.filter(ray => !ray.isPrevious).map(ray => applyOffsetToRay(ray, offset))
 			return offsetRays.some(r => canvas.walls.checkCollision(r));
 		})
