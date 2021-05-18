@@ -1,5 +1,6 @@
 import {highlightMeasurementTerrainRuler, measureDistances} from "./compatibility.js";
 import {getGridPositionFromPixels} from "./foundry_fixes.js";
+import {Line} from "./geometry.js";
 import {getColorForDistance} from "./main.js"
 import {trackRays} from "./movement_tracking.js"
 import {recalculate} from "./socket.js";
@@ -200,7 +201,21 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 			label.text = text;
 			label.alpha = last ? 1.0 : 0.5;
 			label.visible = true;
-			let labelPosition = cs.ray.project((cs.ray.distance + 50) / cs.ray.distance);
+			let labelPosition = {x: s.ray.x0, y: s.ray.y0};
+			labelPosition.x -= label.width / 2;
+			labelPosition.y -= label.height / 2;
+			const rayLine = Line.fromPoints(s.ray.A, s.ray.B);
+			const rayLabelXHitY = rayLine.calcY(labelPosition.x);
+			let innerDistance;
+			// If ray hits top or bottom side of label
+			if (rayLine.isVertical || rayLabelXHitY < labelPosition.y || rayLabelXHitY > labelPosition.y + label.height)
+				innerDistance = Math.abs((label.height / 2) / Math.sin(s.ray.angle));
+			// If ray hits left or right side of label
+			else
+				innerDistance = Math.abs((label.width / 2) / Math.cos(s.ray.angle));
+			labelPosition = s.ray.project((s.ray.distance + 50 + innerDistance) / s.ray.distance);
+			labelPosition.x -= label.width / 2;
+			labelPosition.y -= label.height / 2;
 			label.position.set(labelPosition.x, labelPosition.y);
 		}
 
