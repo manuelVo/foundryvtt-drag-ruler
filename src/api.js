@@ -14,6 +14,9 @@ function register(module, type, speedProvider) {
 		providerInstance = new speedProvider(id)
 	}
 	else {
+		console.warn(`Drag Ruler | The ${type} '${module.id}' uses the old, deprecated version of the Drag Ruler API. ` +
+		             "That old API will be removed in a future Drag Ruler version. " +
+		             `Please update the ${type} ${module.id} to stay compatible with future Drag Ruler versions.`);
 		speedProvider.id = id
 		speedProvider.usesRuler = () => true
 		providerInstance = speedProvider

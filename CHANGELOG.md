@@ -14,6 +14,9 @@
 ### Translation
 - Corrected typos in the german translation (thanks to CarnVanBeck!)
 
+### API
+- The old API that Drag Ruler offered prior to version 1.3.0 is now deprecated. Speed Providers that still use this API will continue to work for now, but will generate a warning in the console about the deprecation. All modules and game systems offered on the FoundryVTT website have already updated to the new API. If you see the deprecation warning, please consider updating to the current version of the respective system/module you're using.
+
 
 ## 1.6.5
 ### Bugfixes
