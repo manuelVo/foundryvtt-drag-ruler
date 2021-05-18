@@ -65,9 +65,6 @@ async function animateTokens(tokens, draggedToken, draggedRays, wasPaused) {
 		return {token, rays: offsetRays, dx, dy};
 	});
 
-	for (const {token, rays} of tokenAnimationData) {
-		token._noAnimate = true;
-	}
 	const animate = !game.keyboard.isDown("Alt");
 	const startWaypoint = animate ? 0 : tokenAnimationData[0].rays.length - 1;
 	for (let i = startWaypoint;i < tokenAnimationData[0].rays.length; i++) {
@@ -84,9 +81,6 @@ async function animateTokens(tokens, draggedToken, draggedRays, wasPaused) {
 		await draggedToken.scene.updateEmbeddedEntity(draggedToken.constructor.embeddedName, updates, {animate});
 		if (animate)
 			await Promise.all(tokenPaths.map(({token, path}) => token.animateMovement(path)));
-	}
-	for (const {token} of tokenAnimationData) {
-		token._noAnimate = false;
 	}
 	trackRays(tokens, tokenAnimationData.map(({rays}) => rays)).then(() => recalculate(tokens));
 }
