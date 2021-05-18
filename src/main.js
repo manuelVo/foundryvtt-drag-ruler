@@ -115,6 +115,8 @@ function onKeyShift(up) {
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler)
 		return false
+	if (ruler._state !== Ruler.STATES.MEASURING)
+		return false;
 
 	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens)
 	const rulerOffset = ruler.rulerOffset

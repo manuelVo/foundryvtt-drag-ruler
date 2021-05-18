@@ -7,6 +7,7 @@
 
 ### Bugfixes
 - Fixed a bug that sometimes measured diagonals incorrectly with the 5/10/5 grid rule
+- Fixed a bug that would cause the ruler to re-measure when the shift key is being pressed or released while a token is moving
 
 ### Compatibility
 - Drag Ruler's Generic Speed Provider is now aware of good default values for the Starfinder game system
