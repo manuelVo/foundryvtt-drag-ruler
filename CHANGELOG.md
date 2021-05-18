@@ -22,7 +22,7 @@
 
 ## 1.6.5
 ### Bugfixes
-- Drag Ruler no longer get's stuck if the user presses ESC during drag ([#70](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/70))
+- Drag Ruler no longer gets stuck if the user presses ESC during drag ([#70](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/70))
 
 
 ## 1.6.4
