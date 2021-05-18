@@ -39,6 +39,29 @@ export function getSnapPointForToken(x, y, token) {
 	return new PIXI.Point(snappedX + canvas.grid.w / 2, snappedY + canvas.grid.h / 2)
 }
 
+export function getSnapPointForMeasuredTemplate(x, y) {
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+		return new PIXI.Point(x, y);
+	}
+	let subgridWidth, subgridHeight;
+	if (canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
+		subgridWidth = subgridHeight = canvas.dimensions.size / 2;
+	}
+	else {
+		if (canvas.grid.grid.columns) {
+			subgridWidth = canvas.grid.w / 4;
+			subgridHeight = canvas.grid.h / 2;
+		}
+		else {
+			subgridWidth = canvas.grid.w / 2;
+			subgridHeight = canvas.grid.h / 4;
+		}
+	}
+	const snappedX = Math.round(x / subgridWidth) * subgridWidth;
+	const snappedY = Math.round(y / subgridHeight) * subgridHeight;
+	return new PIXI.Point(snappedX, snappedY);
+}
+
 export function highlightTokenShape(position, shape, color, alpha) {
 	const layer = canvas.grid.highlightLayers[this.name];
     if ( !layer )

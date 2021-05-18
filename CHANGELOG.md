@@ -2,6 +2,7 @@
 **BREAKING** This update is incompatible with previous Terrain Ruler versions. If you're using Terrain Ruler, make sure you update Terrain Ruler to at least version 1.3.0.
 
 ### New features
+- A ruler will now be shown when dragging measurement templates over the map ([#13](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/13))
 - Drag Ruler can now measure difficult terrain on gridless maps (if the Terrain Ruler module is installed and enabled)
 - Improved the positioning of the labels around the ruler. The labels should now never overlap with the waypoint.
 

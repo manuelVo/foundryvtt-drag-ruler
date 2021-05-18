@@ -15,11 +15,12 @@ export function highlightMeasurementTerrainRuler(ray, startDistance, tokenShape=
 	}
 }
 
-export function measureDistances(segments, token, shape, options={}) {
+export function measureDistances(segments, entity, shape, options={}) {
+	const isToken = entity instanceof Token;
 	const opts = duplicate(options)
 	if (!opts.gridSpaces)
 		opts.gridSpaces = true;
-	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+	const terrainRulerAvailable = isToken && game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
 
 	if (terrainRulerAvailable) {
 		const firstNewSegmentIndex = segments.findIndex(segment => !segment.ray.dragRulerVisitedSpaces);
@@ -27,7 +28,7 @@ export function measureDistances(segments, token, shape, options={}) {
 		const newSegments = segments.slice(firstNewSegmentIndex);
 		const distances = previousSegments.map(segment => segment.ray.dragRulerVisitedSpaces[segment.ray.dragRulerVisitedSpaces.length - 1].distance);
 		previousSegments.forEach(segment => segment.ray.terrainRulerVisitedSpaces = duplicate(segment.ray.dragRulerVisitedSpaces));
-		opts.costFunction = (x, y) => getCostFromSpeedProvider(token, getAreaFromPositionAndShape({x, y}, shape), {x, y});
+		opts.costFunction = (x, y) => getCostFromSpeedProvider(entity, getAreaFromPositionAndShape({x, y}, shape), {x, y});
 		if (previousSegments.length > 0)
 			opts.terrainRulerInitialState = previousSegments[previousSegments.length - 1].ray.dragRulerFinalState;
 		return distances.concat(terrainRuler.measureDistances(newSegments, opts));

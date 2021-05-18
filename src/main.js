@@ -2,7 +2,7 @@
 
 import {currentSpeedProvider, getMovedDistanceFromToken, getRangesFromSpeedProvider, getUnreachableColorFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js"
 import {checkDependencies, getHexSizeSupportTokenGridCenter} from "./compatibility.js";
-import {moveTokens, onMouseMove} from "./foundry_imports.js"
+import {moveEntities, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
 import {DragRulerRuler} from "./ruler.js";
 import {getMovementHistory, resetMovementHistory} from "./movement_tracking.js";
@@ -13,7 +13,8 @@ import {SpeedProvider} from "./speed_provider.js"
 Hooks.once("init", () => {
 	registerSettings()
 	initApi()
-	hookTokenDragHandlers()
+	hookDragHandlers(Token);
+	hookDragHandlers(MeasuredTemplate);
 	hookKeyboardManagerFunctions()
 
 	Ruler = DragRulerRuler;
@@ -54,29 +55,29 @@ Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
 	menu.splice(1, 0, entry);
 });
 
-function hookTokenDragHandlers() {
-	const originalDragLeftStartHandler = Token.prototype._onDragLeftStart
-	Token.prototype._onDragLeftStart = function(event) {
+function hookDragHandlers(entityType) {
+	const originalDragLeftStartHandler = entityType.prototype._onDragLeftStart
+	entityType.prototype._onDragLeftStart = function(event) {
 		originalDragLeftStartHandler.call(this, event)
-		onTokenLeftDragStart.call(this, event)
+		onEntityLeftDragStart.call(this, event)
 	}
 
-	const originalDragLeftMoveHandler = Token.prototype._onDragLeftMove
-	Token.prototype._onDragLeftMove = function (event) {
+	const originalDragLeftMoveHandler = entityType.prototype._onDragLeftMove
+	entityType.prototype._onDragLeftMove = function (event) {
 		originalDragLeftMoveHandler.call(this, event)
-		onTokenLeftDragMove.call(this, event)
+		onEntityLeftDragMove.call(this, event)
 	}
 
-	const originalDragLeftDropHandler = Token.prototype._onDragLeftDrop
-	Token.prototype._onDragLeftDrop = function (event) {
-		const eventHandled = onTokenDragLeftDrop.call(this, event)
+	const originalDragLeftDropHandler = entityType.prototype._onDragLeftDrop
+	entityType.prototype._onDragLeftDrop = function (event) {
+		const eventHandled = onEntityDragLeftDrop.call(this, event)
 		if (!eventHandled)
 			originalDragLeftDropHandler.call(this, event)
 	}
 
-	const originalDragLeftCancelHandler = Token.prototype._onDragLeftCancel
-	Token.prototype._onDragLeftCancel = function (event) {
-		const eventHandled = onTokenDragLeftCancel.call(this, event)
+	const originalDragLeftCancelHandler = entityType.prototype._onDragLeftCancel
+	entityType.prototype._onDragLeftCancel = function (event) {
+		const eventHandled = onEntityDragLeftCancel.call(this, event)
 		if (!eventHandled)
 			originalDragLeftCancelHandler.call(this, event)
 	}
@@ -124,45 +125,48 @@ function onKeyShift(up) {
 	ruler.measure(measurePosition, {snap: up})
 }
 
-function onTokenLeftDragStart(event) {
-	if (!currentSpeedProvider.usesRuler(this))
+function onEntityLeftDragStart(event) {
+	const isToken = this instanceof Token;
+	if (isToken && !currentSpeedProvider.usesRuler(this))
 		return
 	const ruler = canvas.controls.ruler
 	ruler.draggedEntity = this;
-	let tokenCenter
-	if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
-		tokenCenter = getHexSizeSupportTokenGridCenter(this)
+	let entityCenter;
+	if (isToken && canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
+		entityCenter = getHexSizeSupportTokenGridCenter(this);
 	else
-		tokenCenter = this.center
+		entityCenter = this.center;
 	ruler.clear();
 	ruler._state = Ruler.STATES.STARTING;
-	ruler.rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
-	if (game.settings.get(settingsKey, "enableMovementHistory"))
+	ruler.rulerOffset = {x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y};
+	if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
 		ruler.dragRulerAddWaypointHistory(getMovementHistory(this));
-	ruler.dragRulerAddWaypoint(tokenCenter, false);
+	ruler.dragRulerAddWaypoint(entityCenter, false);
 }
 
-function onTokenLeftDragMove(event) {
+function onEntityLeftDragMove(event) {
 	const ruler = canvas.controls.ruler
 	if (ruler.isDragRuler)
 		onMouseMove.call(ruler, event)
 }
 
-function onTokenDragLeftDrop(event) {
+function onEntityDragLeftDrop(event) {
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler)
 		return false
 	onMouseMove.call(ruler, event);
+	// When we're dragging a measured template no token will ever be selected,
+	// resulting in only the dragged template to be moved as would be expected
 	const selectedTokens = canvas.tokens.controlled
 	// This can happen if the user presses ESC during drag (maybe there are other ways too)
 	if (selectedTokens.length === 0)
 		selectedTokens.push(ruler.draggedEntity);
 	ruler._state = Ruler.STATES.MOVING
-	moveTokens.call(ruler, ruler.draggedEntity, selectedTokens);
+	moveEntities.call(ruler, ruler.draggedEntity, selectedTokens);
 	return true
 }
 
-function onTokenDragLeftCancel(event) {
+function onEntityDragLeftCancel(event) {
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler || ruler._state === Ruler.STATES.MOVING)
