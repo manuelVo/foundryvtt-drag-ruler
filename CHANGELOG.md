@@ -1,4 +1,4 @@
-## In development
+## 1.7.0
 **BREAKING** This update is incompatible with previous Terrain Ruler versions. If you're using Terrain Ruler, make sure you update Terrain Ruler to at least version 1.3.0.
 
 ### New features
