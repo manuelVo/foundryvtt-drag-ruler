@@ -92,3 +92,7 @@ export function find_path(from, to) {
 	}
 	return path;
 }
+
+export function wipe_cache() {
+	cached_nodes = undefined;
+}
