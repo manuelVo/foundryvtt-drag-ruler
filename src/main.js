@@ -9,6 +9,7 @@ import {getMovementHistory, resetMovementHistory} from "./movement_tracking.js";
 import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
+import { wipe_cache } from "./pathfinding.js";
 
 Hooks.once("init", () => {
 	registerSettings()
@@ -137,6 +138,7 @@ function onEntityLeftDragStart(event) {
 	else
 		entityCenter = this.center;
 	ruler.clear();
+	wipe_cache();
 	ruler._state = Ruler.STATES.STARTING;
 	ruler.rulerOffset = {x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y};
 	if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
