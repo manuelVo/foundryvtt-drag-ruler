@@ -16,6 +16,9 @@ export async function moveEntities(draggedEntity, selectedEntities) {
 	if (!this.visible || !this.destination) return false;
 	if (!draggedEntity) return;
 
+	// Wait until all scheduled measurements are done
+	await this.deferredMeasurementPromise;
+
 	// Get the movement rays and check collision along each Ray
 	// These rays are center-to-center for the purposes of collision checking
 	const rays = this.constructor.dragRulerGetRaysFromWaypoints(this.waypoints, this.destination);
@@ -103,8 +106,6 @@ export function onMouseMove(event) {
 	if (this._state === Ruler.STATES.MOVING) return;
 
 	// Extract event data
-	const mt = event._measureTime || 0;
-	const originalEvent = event.data.originalEvent;
 	const destination = {x: event.data.destination.x + this.rulerOffset.x, y: event.data.destination.y + this.rulerOffset.y}
 
 	// Hide any existing Token HUD
@@ -112,10 +113,27 @@ export function onMouseMove(event) {
 	delete event.data.hudState;
 
 	// Draw measurement updates
-	if (Date.now() - mt > 50) {
+	scheduleMeasurement.call(this, destination, event);
+}
+
+function scheduleMeasurement(destination, event) {
+	const measurementInterval = 50;
+	const mt = event._measureTime || 0;
+	const originalEvent = event.data.originalEvent;
+	if (Date.now() - mt > measurementInterval) {
 		this.measure(destination, {snap: !originalEvent.shiftKey});
 		event._measureTime = Date.now();
 		this._state = Ruler.STATES.MEASURING;
+		window.clearTimeout(this.deferredMeasurementTimeout);
+		this.deferredMeasurementTimeout = undefined;
+		this.deferredMeasurementResolve?.();
+	}
+	else {
+		this.deferredMeasurementData = {destination, event};
+		if (!this.deferredMeasurementTimeout) {
+			this.deferredMeasurementPromise = new Promise((resolve, reject) => this.deferredMeasurementResolve = resolve);
+			this.deferredMeasurementTimeout = window.setTimeout(() => scheduleMeasurement.call(this, this.deferredMeasurementData.destination, this.deferredMeasurementData.event), measurementInterval);
+		}
 	}
 }
 

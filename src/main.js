@@ -154,7 +154,6 @@ function onEntityDragLeftDrop(event) {
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler)
 		return false
-	onMouseMove.call(ruler, event);
 	// When we're dragging a measured template no token will ever be selected,
 	// resulting in only the dragged template to be moved as would be expected
 	const selectedTokens = canvas.tokens.controlled

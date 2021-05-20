@@ -1,3 +1,8 @@
+## In development
+### Bugfixes
+- Fixed a bug that could cause the ruler to not end up at the token's center (especially if the token is being moved very quickly and then stopped abruptly)
+
+
 ## 1.7.1
 ### Bugfixes
 - Fixed a bug that prevented players from moving their tokens ([#74](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/74))
