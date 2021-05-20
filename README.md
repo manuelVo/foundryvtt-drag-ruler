@@ -16,7 +16,7 @@ Terrain ruler has excellent support for tokens of all sizes. The Ruler will alwa
 
 
 ## Difficult Terrain support
-**To use support for difficult terrain you must install the [Terrain Ruler](https://foundryvtt.com/packages/terrain-ruler)**
+**To use support for difficult terrain you must install the [Terrain Ruler](https://foundryvtt.com/packages/terrain-ruler) module**
 
 With the Terrain Ruler module installed, Drag Ruler is able to take difficult terrain that was placed down using the [Enhanced Terrain Layer](https://foundryvtt.com/packages/enhanced-terrain-layer) or [TerrainLayer](https://foundryvtt.com/packages/TerrainLayer) module into account.
 
