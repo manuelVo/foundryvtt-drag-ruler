@@ -1,4 +1,4 @@
-## In development
+## 1.7.2
 ### Bugfixes
 - Fixed a bug that prevented waypoints for measurement templates from snapping to any other point than a grid cell corner (or grid cell center on hex)
 - Fixed a bug that could cause the ruler to not end up at the token's center (especially if the token is being moved very quickly and then stopped abruptly)
