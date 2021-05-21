@@ -4,7 +4,7 @@ import {Line} from "./geometry.js";
 import {getColorForDistance} from "./main.js"
 import {trackRays} from "./movement_tracking.js"
 import {recalculate} from "./socket.js";
-import {applyTokenSizeOffset, getSnapPointForMeasuredTemplate, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
+import {applyTokenSizeOffset, getSnapPointForEntity, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
 export async function moveEntities(draggedEntity, selectedEntities) {
@@ -144,10 +144,7 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		return []
 
 	if (snap) {
-		if (isToken)
-			destination = getSnapPointForToken(destination.x, destination.y, this.draggedEntity);
-		else
-			destination = getSnapPointForMeasuredTemplate(destination.x, destination.y);
+		destination = getSnapPointForEntity(destination.x, destination.y, this.draggedEntity);
 	}
 
 	const terrainRulerAvailable = isToken && game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);

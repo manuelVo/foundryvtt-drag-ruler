@@ -62,6 +62,14 @@ export function getSnapPointForMeasuredTemplate(x, y) {
 	return new PIXI.Point(snappedX, snappedY);
 }
 
+export function getSnapPointForEntity(x, y, entity) {
+	const isToken = entity instanceof Token;
+	if (isToken)
+		return getSnapPointForToken(x, y, entity);
+	else
+		return getSnapPointForMeasuredTemplate(x, y);
+}
+
 export function highlightTokenShape(position, shape, color, alpha) {
 	const layer = canvas.grid.highlightLayers[this.name];
     if ( !layer )

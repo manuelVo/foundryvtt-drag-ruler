@@ -1,7 +1,7 @@
 import {measure} from "./foundry_imports.js"
 import {getMovementHistory} from "./movement_tracking.js";
 import {settingsKey} from "./settings.js";
-import {getSnapPointForToken} from "./util.js";
+import {getSnapPointForEntity} from "./util.js";
 
 export class DragRulerRuler extends Ruler {
 	// Functions below are overridden versions of functions in Ruler
@@ -65,8 +65,9 @@ export class DragRulerRuler extends Ruler {
 
 	// The functions below aren't present in the orignal Ruler class and are added by Drag Ruler
 	dragRulerAddWaypoint(point, snap=true) {
-		if (snap)
-			point = getSnapPointForToken(point.x, point.y, this.draggedEntity);
+		if (snap) {
+			point = getSnapPointForEntity(point.x, point.y, this.draggedEntity);
+		}
 		this.waypoints.push(new PIXI.Point(point.x, point.y));
 		this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
 	}
