@@ -1,4 +1,4 @@
-## In development
+## 1.7.3
 ### Compatibility
 - Drag Ruler is now compatible with Foundry 0.8.5
 
