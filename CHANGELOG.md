@@ -1,3 +1,8 @@
+## In development
+### Compatibility
+- Drag Ruler is now compatible with Foundry 0.8.5
+
+
 ## 1.7.2
 ### Bugfixes
 - Fixed a bug that prevented waypoints for measurement templates from snapping to any other point than a grid cell corner (or grid cell center on hex)

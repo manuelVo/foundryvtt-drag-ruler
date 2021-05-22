@@ -50,7 +50,7 @@ Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
 	const entry = {
 		name: "drag-ruler.resetMovementHistory",
 		icon: '<i class="fas fa-undo-alt"></i>',
-		callback: li => resetMovementHistory(ui.combat.combat, li.data('combatant-id')),
+		callback: li => resetMovementHistory(ui.combat.viewed, li.data('combatant-id')),
 	};
 	menu.splice(1, 0, entry);
 });

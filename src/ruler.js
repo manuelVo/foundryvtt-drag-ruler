@@ -34,7 +34,7 @@ export class DragRulerRuler extends Ruler {
 	toJSON() {
 		const json = super.toJSON();
 		if (this.draggedEntity)
-			json["draggedEntity"] = this.draggedEntity.data._id;
+			json["draggedEntity"] = this.draggedEntity.id;
 		return json;
 	}
 

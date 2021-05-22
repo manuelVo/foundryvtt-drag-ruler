@@ -83,7 +83,7 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 		const updates = entityPaths.map(({entity, path}) => {
 			return {x: path.B.x, y: path.B.y, _id: entity.id};
 		});
-		await draggedEntity.scene.updateEmbeddedEntity(draggedEntity.constructor.embeddedName, updates, {animate});
+		await draggedEntity.scene.updateEmbeddedDocuments(draggedEntity.constructor.embeddedName, updates, {animate});
 		if (animate)
 			await Promise.all(entityPaths.map(({entity, path}) => entity.animateMovement(path)));
 	}
