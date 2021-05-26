@@ -33,8 +33,11 @@ export class DragRulerRuler extends Ruler {
 
 	toJSON() {
 		const json = super.toJSON();
-		if (this.draggedEntity)
+		if (this.draggedEntity) {
+			const isToken = this.draggedEntity instanceof Token;
+			json["draggedEntityIsToken"] = isToken;
 			json["draggedEntity"] = this.draggedEntity.id;
+		}
 		return json;
 	}
 
@@ -44,7 +47,10 @@ export class DragRulerRuler extends Ruler {
 			return;
 
 		if (data.draggedEntity) {
-			this.draggedEntity = canvas.tokens.get(data.draggedEntity);
+			if (data.draggedEntityIsToken)
+				this.draggedEntity = canvas.tokens.get(data.draggedEntity);
+			else
+				this.draggedEntity = canvas.templates.get(data.draggedEntity);
 		}
 		super.update(data);
 	}
