@@ -35,8 +35,13 @@ export class DragRulerRuler extends Ruler {
 		const json = super.toJSON();
 		if (this.draggedEntity) {
 			const isToken = this.draggedEntity instanceof Token;
-			json["draggedEntityIsToken"] = isToken;
-			json["draggedEntity"] = this.draggedEntity.id;
+			json.draggedEntityIsToken = isToken;
+			json.draggedEntity = this.draggedEntity.id;
+			json.waypoints = json.waypoints.map(old => {
+				let w = duplicate(old);
+				w.isPathfinding = undefined;
+				return w;
+			});
 		}
 		return json;
 	}
