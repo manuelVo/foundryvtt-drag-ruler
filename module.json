@@ -4,7 +4,7 @@
 	"description": "When dragging a token displays a ruler showing how far you've moved that token.",
 	"version": "1.7.3",
 	"minimumCoreVersion" : "0.8.5",
-	"compatibleCoreVersion" : "0.8.5",
+	"compatibleCoreVersion" : "0.8.7",
 	"authors": [
 		{
 			"name": "Manuel Vögele",
