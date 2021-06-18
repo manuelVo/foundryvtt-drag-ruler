@@ -1,3 +1,12 @@
+## 1.7.4
+### Bugfixes
+- Fixed a bug where the ruler would wrongly snap to the grid center for other players when dragging a measurement template
+
+### Compatibility
+- Drag Ruler is now compatiblie with the "Monk's Active Tile Triggers" module
+- Drag Ruler's Generic Speed Provider is now aware of good default values for the D&D 3.5 game system
+- Drag Ruler is now compatible with Foundry 0.8.7
+
 ## 1.7.3
 ### Compatibility
 - Drag Ruler is now compatible with Foundry 0.8.5
