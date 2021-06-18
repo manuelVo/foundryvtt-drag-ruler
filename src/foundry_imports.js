@@ -72,6 +72,10 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 	const isToken = draggedEntity instanceof Token;
 	const animate = isToken && !game.keyboard.isDown("Alt");
 	const startWaypoint = animate ? 0 : entityAnimationData[0].rays.length - 1;
+
+	// This is a flag of the "Monk's Active Tile Triggers" module that signals that the movement should be cancelled early
+	this.cancelMovement = false;
+
 	for (let i = startWaypoint;i < entityAnimationData[0].rays.length; i++) {
 		if (!wasPaused && game.paused) break;
 		const entityPaths = entityAnimationData.map(({entity, rays, dx, dy}) => {
@@ -86,6 +90,12 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 		await draggedEntity.scene.updateEmbeddedDocuments(draggedEntity.constructor.embeddedName, updates, {animate});
 		if (animate)
 			await Promise.all(entityPaths.map(({entity, path}) => entity.animateMovement(path)));
+
+		// This is a flag of the "Monk's Active Tile Triggers" module that signals that the movement should be cancelled early
+		if (this.cancelMovement) {
+			entityAnimationData.forEach(ead => ead.rays = ead.rays.slice(0, i + 1));
+			break;
+		}
 	}
 	if (isToken)
 		trackRays(entities, entityAnimationData.map(({rays}) => rays)).then(() => recalculate(entities));
