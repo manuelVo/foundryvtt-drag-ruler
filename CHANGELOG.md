@@ -1,3 +1,8 @@
+## 1.7.5
+### Bugfixes
+- Decimal speeds (as often used in metric game systems) are no longer being rounded down (thanks to DarKDinDoN for diagnosing this bug)
+
+
 ## 1.7.4
 ### Bugfixes
 - Fixed a bug where the ruler would wrongly snap to the grid center for other players when dragging a measurement template
