@@ -1,3 +1,12 @@
+## 1.7.6
+### Translation
+- Added Korean translation (thanks to KLO#1490)
+- Added Spanish translation (thanks to Viriato139ac#342)
+
+### Compatibility
+- Drag Ruler's Generic Speed Provider is now awar of good default values for the "Call of Cthulhu 7th edition (Unofficial)" game system
+- Drag Ruler is now compatible with Foundry 0.8.8
+
 ## 1.7.5
 ### Bugfixes
 - Decimal speeds (as often used in metric game systems) are no longer being rounded down (thanks to DarKDinDoN for diagnosing this bug)
