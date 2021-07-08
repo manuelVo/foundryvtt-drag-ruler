@@ -15,7 +15,9 @@ export function getDefaultSpeedAttribute() {
 		case "shadowrun5e":
 			return "actor.data.data.movement.walk.value";
 		case "swade":
-			return "actor.data.data.stats.speed.value"
+			return "actor.data.data.stats.speed.value";
+		case "CoC7":
+			return "actor.data.data.attribs.mov.value";
 	}
 	return ""
 }
@@ -31,7 +33,9 @@ export function getDefaultDashMultiplier() {
 		case "D35E":
 		case "sfrpg":
 		case "shadowrun5e":
-			return 2
+			return 2;
+		case "CoC7":
+			return 5;
 	}
 	return 0
 }
