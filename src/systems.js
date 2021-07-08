@@ -19,7 +19,7 @@ export function getDefaultSpeedAttribute() {
 		case "swade":
 			return "actor.data.data.stats.speed.value";
 	}
-	return ""
+	return "";
 }
 
 export function getDefaultDashMultiplier() {
@@ -37,5 +37,5 @@ export function getDefaultDashMultiplier() {
 		case "swade":
 			return 0;
 	}
-	return 0
+	return 0;
 }
