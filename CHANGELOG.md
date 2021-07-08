@@ -1,3 +1,8 @@
+## 1.7.7
+### Compatibility
+- Updated the default settings for the swade game system. The new default speed attribute points to a speed value that gets adjusted for wounds.
+
+
 ## 1.7.6
 ### Translation
 - Added Korean translation (thanks to KLO#1490)
