@@ -1,0 +1,87 @@
+{
+	"drag-ruler": {
+		"I18N": {
+			"LANGUAGE": "Español",
+			"MAINTAINERS": "@Viriato139ac#0342"
+		},
+		"dependencies": {
+			"ok": "OK",
+			"terrain-ruler": {
+				"title": "Cómo medir a través de terreno difícil con Drag Ruler",
+				"text": "You have the {moduleName} module enabled. Drag Ruler is able to measure difficult terrain that was placed down using that module. To make this possible Drag Ruler utilizes the Terrain Ruler module. If Terrain Ruler is installed and activated Drag Ruler will automatically start to respect difficult terrain in it's measurements.",
+				"neverShowAgain": "No volver a mostrar"
+			},
+			"socketlib": {
+				"title": "El módulo Socketlib no está instalado",
+				"text": "Drag Ruler necesita para su funcionamiento correcto que instale socketlib. Por favor, active socketlib en este mundo"
+			}
+		},
+		"resetMovementHistory": "Reiniciar historial de movimiento",
+		"genericSpeedProvider": {
+			"settings": {
+				"dashMultiplier": {
+					"name": "Multiplicador por correr",
+					"hint": "Se puede usar para aplicar a los iconos una velocidad secundaria que use un color distinto en la medición de la ruta a seguir. Establece el valor a 0 para deshabilitar esta velocidad secundaria"
+				},
+				"speedAttribute": {
+					"name": "Attributo de velocidad",
+					"hint": "El atributo que define la velocidad de movimiento andando del icono. Se usa para los códigos de colores al medir la ruta a seguir"
+				}
+			},
+			"speeds": {
+				"walk": "caminar",
+				"dash": "correr"
+			}
+		},
+		"settings": {
+			"alwaysShowSpeedForPCs": {
+				"name": "Mostrar velocidad de los PJs a todo el mundo",
+				"hint": "Si se habilita, se mostrará a todo el mundo los códigos de colores de las rutas de los PJs, incluso si no tienen permisos de observador para ese personaje"
+			},
+			"enableMovementHistory": {
+				"name": "Habilitar historial de movimiento durante el combate",
+				"hint": "Si se habilita, Drag Ruler recordará la ruta que ha seguido un icono en su turno y la mostrará al seleccionarlo de nuevo"
+			},
+			"showGMRulerToPlayers": {
+				"name": "Mostrar regla del GM a los jugadores",
+				"hint": "Si se deshabilita, no se mostrará la regla de medición de los GMs al resto de usuarios"
+			},
+			"speedProviderSettings": {
+				"name": "Proveedor de configuración de velocidad",
+				"hint": "El proveedor de ajustes de velocidad contiene todos los ajustes específicos de cada sistema",
+				"button": "Proveedor de configuración de velocidad",
+				"windowTitle": "Proveedor de configuración de velocidad",
+				"headers": {
+					"speedProvider": "Proveedor de velocidad",
+					"speedProviderSettings": "Configuraciones específicas del proveedor de velocidad"
+				},
+				"activeProvider": {
+					"name": "Proveedor de velocidad actualmente activo",
+					"hint": "La configuración que se muestra más abajo depende del proveedor de velocidad activo. Si el GM selecciona un proveedor distinto, los ajustes disponibles puede que cambien"
+				},
+				"noSettings": "Este proveedor de velocidad no dispone de ninguna opción de configuración",
+				"color": {
+					"name": "Color para {colorName}",
+					"hint": "Color que se usará para establecer el tono de las cuadrículas que se encuentran dentro del rango {colorName}",
+					"unreachable": {
+						"name": "inalcanzable",
+						"hint": "Color que se usará para las cuadrículas más allá de la distancia máxima de movimiento del icono"
+					}
+				},
+				"speedProvider": {
+					"name": "Proveedor de configuración de velocidad",
+					"hint": "Seleccione quien suministra la información de la velocidad de los iconos a la hora de colorear la ruta a seguir. Drag Ruler incluye un proveedor genérico que ofrece una funcionalidad básica y que probablemente funcione para casi todos los sistemas si se usa de forma correcta. Se pueden añadir otros proveedores de velocidad al instalar sistemas o módulos. Seleccionar un proveedor distinto al genérico asegurará una mejor integración con las reglas del sistema que está usando. Las opciones siguientes dependerán del proveedor que seleccione",
+					"choices": {
+						"module": "Módulo {name}",
+						"native": "Genérico",
+						"system": "Sistema {name}"
+					}
+				}
+			},
+			"swapSpacebarRightClick": {
+				"name": "Intercambiar barra espaciadora y clic-derecho",
+				"hint": "Cambia el funcionamiento de la barra espaciadora y el clic-derecho del ratón mientras se arrastra un icono. Si está habilitado, clic-derecho establecerá puntos en la ruta y la barra espaciadora los borrará"
+			}
+		}
+	}
+}
