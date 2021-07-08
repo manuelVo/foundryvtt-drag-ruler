@@ -1,6 +1,8 @@
 
 export function getDefaultSpeedAttribute() {
 	switch (game.system.id) {
+		case "CoC7":
+			return "actor.data.data.attribs.mov.value";
 		case "dcc":
 			return "actor.data.data.attributes.speed.value";
 		case "dnd5e":
@@ -32,6 +34,8 @@ export function getDefaultDashMultiplier() {
 		case "sfrpg":
 		case "shadowrun5e":
 			return 2
+		case "CoC7":
+			return 5;
 	}
 	return 0
 }
