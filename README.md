@@ -54,6 +54,7 @@ Drag Ruler is available in the follwing languages:
 - German
 - Japanese (thanks to touge)
 - Korean (thanks to KLO#1490)
+- Spanish (thanks to Viriato139ac#342)
 
 ## API
 *Audience: This paragraph is intended for module and system devleopers that want to add more complex behavior to Drag Ruler. If you just want to use this plugins features skip this paragraph.*
