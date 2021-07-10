@@ -1,0 +1,94 @@
+import {measureDistances} from "./compatibility.js";
+import {recalculate, updateCombatantDragRulerFlags} from "./socket.js";
+import {getTokenShape, zip} from "./util.js";
+
+function initTrackingFlag(combatant) {
+	const initialFlag = {passedWaypoints: [], trackedRound: 0};
+	let dragRulerFlag = combatant.data.flags.dragRuler;
+	if (dragRulerFlag) {
+		if (isNaN(dragRulerFlag.trackedRound)) {
+			mergeObject(dragRulerFlag, initialFlag);
+		}
+	}
+	else {
+		combatant.data.flags.dragRuler = initialFlag;
+	}
+}
+
+function getInitializedCombatant(token, combat) {
+	const combatant = combat.getCombatantByToken(token.id);
+	if (!combatant)
+		return undefined;
+	initTrackingFlag(combatant);
+	return combatant;
+}
+
+export async function trackRays(tokens, tokenRays) {
+	const combat = game.combat;
+	if (!combat)
+		return;
+	if (!combat.started)
+		return;
+	if (!(tokens instanceof Array)) {
+		tokens = [tokens];
+		tokenRays = [tokenRays];
+	}
+	const updates = Array.from(zip(tokens, tokenRays)).map(([token, rays]) => calculateUpdate(combat, token, rays)).filter(Boolean);
+	await updateCombatantDragRulerFlags(combat, updates);
+}
+
+function calculateUpdate(combat, token, rays) {
+	const combatant = getInitializedCombatant(token, combat);
+	if (!combatant)
+		return;
+
+	// Check if we have entered a new round. If so, remove the currently stored path
+	if (combat.data.round > combatant.data.flags.dragRuler.trackedRound) {
+		combatant.data.flags.dragRuler.passedWaypoints = [];
+		combatant.data.flags.dragRuler.trackedRound = combat.data.round;
+	}
+
+	// Add the passed waypoints to the combatant
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+	const dragRulerFlags = combatant.data.flags.dragRuler;
+	const waypoints = dragRulerFlags.passedWaypoints;
+	for (const ray of rays) {
+		// Ignore rays that have the same start and end coordinates
+		if (ray.A.x !== ray.B.x || ray.A.y !== ray.B.y) {
+			if (terrainRulerAvailable) {
+				measureDistances([{ray}], token, getTokenShape(token), {terrainRulerInitialState: waypoints[waypoints.length - 1]?.dragRulerFinalState});
+				ray.A.dragRulerVisitedSpaces = ray.terrainRulerVisitedSpaces;
+				ray.A.dragRulerFinalState = ray.terrainRulerFinalState;
+			}
+			waypoints.push(ray.A);
+		}
+	}
+	return {_id: combatant.id, dragRulerFlags};
+}
+
+export function getMovementHistory(token) {
+	const combat = game.combat;
+	if (!combat)
+		return [];
+	const combatant = combat.getCombatantByToken(token.id);
+	if (!combatant)
+		return [];
+	const dragRulerFlags = combatant.data.flags.dragRuler;
+	if (!dragRulerFlags)
+		return [];
+	if (combat.data.round > dragRulerFlags.trackedRound)
+		return [];
+	return dragRulerFlags.passedWaypoints ?? [];
+}
+
+export async function resetMovementHistory(combat, combatantId) {
+	const combatant = combat.combatants.get(combatantId);
+	const dragRulerFlags = combatant.data.flags.dragRuler;
+	if (!dragRulerFlags)
+		return;
+	dragRulerFlags.passedWaypoints = null;
+	dragRulerFlags.trackedRound = null;
+	dragRulerFlags.rulerState = null;
+	await updateCombatantDragRulerFlags(combat, [{_id: combatantId, dragRulerFlags}]);
+	recalculate();
+}

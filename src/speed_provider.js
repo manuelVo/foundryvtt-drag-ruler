@@ -67,7 +67,7 @@ export class SpeedProvider {
 	 */
 	getCostForStep(token, area) {
 		// Lookup the cost for each square occupied by the token
-		const costs = area.map(space => canvas.terrain.costGrid[space.y]?.[space.x]?.multiple ?? 1)
+		const costs = area.map(space => terrainRuler.getCost(space.x, space.y, {token}));
 		// Return the maximum of the costs
 		return costs.reduce((max, current) => Math.max(max, current))
 	}
@@ -83,6 +83,14 @@ export class SpeedProvider {
 	usesRuler(token) {
 		return true
 	}
+
+	/**
+	 * This hook is being called after Drag Ruler has updated the movement history for one or more tokens.
+	 * It'll receive an array of tokens that have been updated.
+	 * If your speed provider is storing any additional values that are relevant for the movement history, this function should
+	 * await until those updates have completed inside foundry.
+	 */
+	async onMovementHistoryUpdate(tokens) {}
 
 	/**
 	 * Returns the value that is currently set for the setting registered with the provided settingId.
@@ -124,7 +132,7 @@ export class GenericSpeedProvider extends SpeedProvider {
 		const speedAttribute = this.getSetting("speedAttribute")
 		if (!speedAttribute)
 			return []
-		const tokenSpeed = getProperty(token, speedAttribute)
+		const tokenSpeed = parseFloat(getProperty(token, speedAttribute));
 		if (tokenSpeed === undefined) {
 			console.warn(`Drag Ruler (Generic Speed Provider) | The configured token speed attribute "${speedAttribute}" didn't return a speed value. To use colors based on drag distance set the setting to the correct value (or clear the box to disable this feature).`)
 			return []

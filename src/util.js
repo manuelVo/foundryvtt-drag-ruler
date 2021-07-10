@@ -7,6 +7,9 @@ export function* zip(it1, it2) {
 }
 
 export function getSnapPointForToken(x, y, token) {
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+		return new PIXI.Point(x, y);
+	}
 	if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(token)) {
 		if (token.getFlag("hex-size-support", "borderSize") % 2 === 0) {
 			const snapPoint = CONFIG.hexSizeSupport.findVertexSnapPoint(x, y, token, canvas.grid.grid)
@@ -16,18 +19,65 @@ export function getSnapPointForToken(x, y, token) {
 			return new PIXI.Point(...canvas.grid.getCenter(x, y))
 		}
 	}
-	if (canvas.grid.isHex || token.data.width % 2 === 1) {
+	// Tiny tokens can snap to the cells corners
+	if (!canvas.grid.isHex && token.data.width <= 0.5) {
+		const [topLeftX, topLeftY] = canvas.grid.getTopLeft(x, y);
+		const offsetX = x - topLeftX;
+		const offsetY = y - topLeftY;
+		const subGridWidth = Math.floor(canvas.grid.w / 2);
+		const subGridHeight = Math.floor(canvas.grid.h / 2);
+		const subGridPosX = Math.floor(offsetX / subGridWidth);
+		const subGridPosY = Math.floor(offsetY / subGridHeight);
+		return new PIXI.Point(topLeftX + (subGridPosX + 0.5) * subGridWidth, topLeftY + (subGridPosY + 0.5) * subGridHeight);
+	}
+	// Hex tokens, tokens with odd multipliers (1x1, 3x3, ...) and tokens smaller than 1x1 but bigger than 0.5x0.5 snap to the center of the grid cell
+	if (canvas.grid.isHex || Math.round(token.data.width) % 2 === 1 || token.data.width < 1) {
 		return new PIXI.Point(...canvas.grid.getCenter(x, y))
 	}
+	// All remaining tokens (those with even or fractional multipliers on square grids) snap to the intersection points of the grid
 	const [snappedX, snappedY] = canvas.grid.getCenter(x - canvas.grid.w / 2, y - canvas.grid.h / 2)
 	return new PIXI.Point(snappedX + canvas.grid.w / 2, snappedY + canvas.grid.h / 2)
 }
 
-export function highlightTokenShape(position, shape, color) {
+export function getSnapPointForMeasuredTemplate(x, y) {
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+		return new PIXI.Point(x, y);
+	}
+	let subgridWidth, subgridHeight;
+	if (canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
+		subgridWidth = subgridHeight = canvas.dimensions.size / 2;
+	}
+	else {
+		if (canvas.grid.grid.columns) {
+			subgridWidth = canvas.grid.w / 4;
+			subgridHeight = canvas.grid.h / 2;
+		}
+		else {
+			subgridWidth = canvas.grid.w / 2;
+			subgridHeight = canvas.grid.h / 4;
+		}
+	}
+	const snappedX = Math.round(x / subgridWidth) * subgridWidth;
+	const snappedY = Math.round(y / subgridHeight) * subgridHeight;
+	return new PIXI.Point(snappedX, snappedY);
+}
+
+export function getSnapPointForEntity(x, y, entity) {
+	const isToken = entity instanceof Token;
+	if (isToken)
+		return getSnapPointForToken(x, y, entity);
+	else
+		return getSnapPointForMeasuredTemplate(x, y);
+}
+
+export function highlightTokenShape(position, shape, color, alpha) {
+	const layer = canvas.grid.highlightLayers[this.name];
+    if ( !layer )
+		return false;
 	const area = getAreaFromPositionAndShape(position, shape);
 	for (const space of area) {
 		const [x, y] = getPixelsFromGridPosition(space.x, space.y);
-		canvas.grid.highlightPosition(this.name, {x, y, color})
+		canvas.grid.grid.highlightGridPosition(layer, {x, y, color, alpha: 0.25 * alpha});
 	}
 }
 

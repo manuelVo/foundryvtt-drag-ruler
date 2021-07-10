@@ -1,5 +1,8 @@
+import {measureDistances} from "./compatibility.js";
+import {getMovementHistory} from "./movement_tracking.js";
 import {GenericSpeedProvider, SpeedProvider} from "./speed_provider.js"
 import {settingsKey} from "./settings.js"
+import {getTokenShape} from "./util.js";
 
 export const availableSpeedProviders = {}
 export let currentSpeedProvider = undefined
@@ -11,6 +14,9 @@ function register(module, type, speedProvider) {
 		providerInstance = new speedProvider(id)
 	}
 	else {
+		console.warn(`Drag Ruler | The ${type} '${module.id}' uses the old, deprecated version of the Drag Ruler API. ` +
+		             "That old API will be removed in a future Drag Ruler version. " +
+		             `Please update the ${type} ${module.id} to stay compatible with future Drag Ruler versions.`);
 		speedProvider.id = id
 		speedProvider.usesRuler = () => true
 		providerInstance = speedProvider
@@ -98,10 +104,25 @@ export function getUnreachableColorFromSpeedProvider() {
 }
 
 export function getCostFromSpeedProvider(token, area) {
-	if (currentSpeedProvider instanceof Function) {
-		return SpeedProvider.prototype.getCostForStep.call(undefined, token, area);
+	try {
+		if (currentSpeedProvider instanceof Function) {
+			return SpeedProvider.prototype.getCostForStep.call(undefined, token, area);
+		}
+		return currentSpeedProvider.getCostForStep(token, area);
 	}
-	return currentSpeedProvider.getCostForStep(token, area);
+	catch (e) {
+		console.error(e);
+		return 1;
+	}
+}
+
+export function getMovedDistanceFromToken(token) {
+	const history = getMovementHistory(token);
+	const segments = Ruler.dragRulerGetRaysFromWaypoints(history, {x: token.x, y: token.y}).map(ray => {return {ray}});
+	const shape = getTokenShape(token);
+	const distances = measureDistances(segments, token, shape);
+	// Sum up the distances
+	return distances.reduce((acc, val) => acc + val, 0);
 }
 
 export function registerModule(moduleId, speedProvider) {
