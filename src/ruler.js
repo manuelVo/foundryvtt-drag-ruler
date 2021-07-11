@@ -27,7 +27,7 @@ export class DragRulerRuler extends Ruler {
 			this.dragRulerAddWaypoint(this.destination, snap);
 		}
 		else {
-			this.dragRulerDeleteWaypoint();
+			this.dragRulerDeleteWaypoint(event);
 		}
 	}
 
@@ -96,7 +96,7 @@ export class DragRulerRuler extends Ruler {
 			event.preventDefault();
 			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
 			const rulerOffset = this.rulerOffset;
-			this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y});
+			this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}, {snap: !event.shiftKey});
 			game.user.broadcastActivity({ruler: this});
 		}
 		else {

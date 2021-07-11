@@ -148,22 +148,26 @@ function scheduleMeasurement(destination, event) {
 }
 
 // This is a modified version of Ruler.measure form foundry 0.7.9
-export function measure(destination, {gridSpaces=true, snap=false} = {}) {
+export function measure(destination, options={gridSpaces=true, snap=false} = {}) {
 	const isToken = this.draggedEntity instanceof Token;
 	if (isToken && !this.draggedEntity.isVisible)
 		return []
 
-	if (snap) {
+	if (options.snap) {
 		destination = getSnapPointForEntity(destination.x, destination.y, this.draggedEntity);
 	}
 
-	const terrainRulerAvailable = isToken && game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+	if(options.gridSpaces == undefined) {
+		options.gridSpaces = canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS;
+	}
 
+	options.terrainRulerAvailable = isToken && game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+	
 	const waypoints = this.waypoints.concat([destination]);
 	// Move the waypoints to the center of the grid if a size is used that measures from edge to edge
 	const centeredWaypoints = isToken ? applyTokenSizeOffset(waypoints, this.draggedEntity) : duplicate(waypoints);
 	// Foundries native ruler requires the waypoints to sit in the dead center of the square to work properly
-	if (!terrainRulerAvailable)
+	if (!options.terrainRulerAvailable && options.gridSpaces)
 		centeredWaypoints.forEach(w => [w.x, w.y] = canvas.grid.getCenter(w.x, w.y));
 
 	const r = this.ruler;
@@ -197,7 +201,7 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	const shape = isToken ? getTokenShape(this.draggedEntity) : null;
 
 	// Compute measured distance
-	const distances = measureDistances(centeredSegments, this.draggedEntity, shape, {gridSpaces});
+	const distances = measureDistances(centeredSegments, this.draggedEntity, shape, options);
 
 	let totalDistance = 0;
 	for (let [i, d] of distances.entries()) {
@@ -216,7 +220,7 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	// Draw measured path
 	r.clear();
 	let rulerColor
-	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
+	if (!options.gridSpaces || canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
 		rulerColor = getColorForDistance.call(this, totalDistance)
 	else
 		rulerColor = this.color
@@ -252,8 +256,8 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 		}
 
 		// Highlight grid positions
-		if (isToken && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS) {
-			if (terrainRulerAvailable)
+		if (isToken && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS && options.gridSpaces) {
+			if (options.terrainRulerAvailable)
 				highlightMeasurementTerrainRuler.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier)
 			else
 				highlightMeasurementNative.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier);

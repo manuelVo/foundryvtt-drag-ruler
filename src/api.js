@@ -103,12 +103,12 @@ export function getUnreachableColorFromSpeedProvider() {
 	}
 }
 
-export function getCostFromSpeedProvider(token, area) {
+export function getCostFromSpeedProvider(token, area, options) {
 	try {
 		if (currentSpeedProvider instanceof Function) {
-			return SpeedProvider.prototype.getCostForStep.call(undefined, token, area);
+			return SpeedProvider.prototype.getCostForStep.call(undefined, token, area, options);
 		}
-		return currentSpeedProvider.getCostForStep(token, area);
+		return currentSpeedProvider.getCostForStep(token, area, options);
 	}
 	catch (e) {
 		console.error(e);
