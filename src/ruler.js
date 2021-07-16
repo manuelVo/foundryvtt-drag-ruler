@@ -18,16 +18,16 @@ export class DragRulerRuler extends Ruler {
 		this.dragRulerRanges = undefined;
 	}
 
-	async moveToken(event) {
+	async moveToken(event, options) {
 		// This function is invoked by left clicking
 		if (!this.isDragRuler)
 			return await super.moveToken(event);
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
-			const snap = !event.shiftKey;
-			this.dragRulerAddWaypoint(this.destination, snap);
+			options.snap = !event.shiftKey;
+			this.dragRulerAddWaypoint(this.destination, options);
 		}
 		else {
-			this.dragRulerDeleteWaypoint(event);
+			this.dragRulerDeleteWaypoint(event, options);
 		}
 	}
 
@@ -37,6 +37,7 @@ export class DragRulerRuler extends Ruler {
 			const isToken = this.draggedEntity instanceof Token;
 			json["draggedEntityIsToken"] = isToken;
 			json["draggedEntity"] = this.draggedEntity.id;
+			json["snappedToGrid"] = this.snappedToGrid;
 		}
 		return json;
 	}
@@ -52,6 +53,11 @@ export class DragRulerRuler extends Ruler {
 			else
 				this.draggedEntity = canvas.templates.get(data.draggedEntity);
 		}
+
+		if(data.snappedToGrid != undefined) {
+			this.socketIsSnappedToGrid = data.snappedToGrid;
+		}
+
 		super.update(data);
 	}
 
@@ -70,8 +76,11 @@ export class DragRulerRuler extends Ruler {
 	}
 
 	// The functions below aren't present in the orignal Ruler class and are added by Drag Ruler
-	dragRulerAddWaypoint(point, snap=true) {
-		if (snap) {
+	dragRulerAddWaypoint(point, options={snap: true}) {
+		if(options.toggleSnapToGridActive) {
+			options.snap = false;
+		}
+		if (options.snap) {
 			point = getSnapPointForEntity(point.x, point.y, this.draggedEntity);
 		}
 		this.waypoints.push(new PIXI.Point(point.x, point.y));
@@ -91,12 +100,17 @@ export class DragRulerRuler extends Ruler {
 		this.labels.removeChildren().forEach(c => c.destroy());
 	}
 
-	dragRulerDeleteWaypoint(event={preventDefault: () => {return}}) {
+	dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={}) {
 		if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 			event.preventDefault();
 			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
 			const rulerOffset = this.rulerOffset;
-			this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}, {snap: !event.shiftKey});
+
+			if(options.toggleSnapToGridActive) {
+				options.snap = false;
+			}
+
+			this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}, {snap: options.snap});
 			game.user.broadcastActivity({ruler: this});
 		}
 		else {
@@ -123,7 +137,7 @@ export class DragRulerRuler extends Ruler {
 		if (game.settings.get(settingsKey, "enableMovementHistory"))
 			this.dragRulerAddWaypointHistory(getMovementHistory(this.draggedEntity));
 		for (const waypoint of waypoints) {
-			this.dragRulerAddWaypoint(waypoint, false);
+			this.dragRulerAddWaypoint(waypoint, {snap: false});
 		}
 		this.measure(this.destination);
 		game.user.broadcastActivity({ruler: this});

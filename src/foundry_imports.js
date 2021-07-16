@@ -153,6 +153,17 @@ export function measure(destination, options={gridSpaces=true, snap=false} = {})
 	if (isToken && !this.draggedEntity.isVisible)
 		return []
 
+	// If this ruler is for a socketed player, override snapping based on what they are doing on their end
+	// socketOverrideAlreadySet allows other modules to handle this case first
+	if(this.socketIsSnappedToGrid != undefined && !options.socketOverrideAlreadySet) {
+		options.snap = this.socketIsSnappedToGrid;
+	}
+
+	// If this is the local player store the current snap state to socket to other players
+	if(this.socketIsSnappedToGrid == undefined) {
+		this.snappedToGrid = options.snap;
+	}
+
 	if (options.snap) {
 		destination = getSnapPointForEntity(destination.x, destination.y, this.draggedEntity);
 	}
