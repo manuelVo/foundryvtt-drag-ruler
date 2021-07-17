@@ -106,11 +106,12 @@ export class DragRulerRuler extends Ruler {
 			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
 			const rulerOffset = this.rulerOffset;
 
+			options.snap = !event.shiftKey;
 			if(options.toggleSnapToGridActive) { //toggleSnapToGridActive is set in the 'Toggle Snap to Grid' module
 				options.snap = false;
 			}
 
-			this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}, {snap: options.snap});
+			this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}, options);
 			game.user.broadcastActivity({ruler: this});
 		}
 		else {
