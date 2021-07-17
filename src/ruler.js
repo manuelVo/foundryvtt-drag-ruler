@@ -77,7 +77,7 @@ export class DragRulerRuler extends Ruler {
 
 	// The functions below aren't present in the orignal Ruler class and are added by Drag Ruler
 	dragRulerAddWaypoint(point, options={snap: true}) {
-		if(options.toggleSnapToGridActive) {
+		if(options.toggleSnapToGridActive) { //toggleSnapToGridActive is set in the 'Toggle Snap to Grid' module
 			options.snap = false;
 		}
 		if (options.snap) {
@@ -106,7 +106,7 @@ export class DragRulerRuler extends Ruler {
 			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
 			const rulerOffset = this.rulerOffset;
 
-			if(options.toggleSnapToGridActive) {
+			if(options.toggleSnapToGridActive) { //toggleSnapToGridActive is set in the 'Toggle Snap to Grid' module
 				options.snap = false;
 			}
 
