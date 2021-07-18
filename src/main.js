@@ -76,8 +76,8 @@ function hookDragHandlers(entityType) {
 	}
 
 	const originalDragLeftCancelHandler = entityType.prototype._onDragLeftCancel
-	entityType.prototype._onDragLeftCancel = function (event) {
-		const eventHandled = onEntityDragLeftCancel.call(this, event)
+	entityType.prototype._onDragLeftCancel = function (event, options={}) {
+		const eventHandled = onEntityDragLeftCancel.call(this, event, options)
 		if (!eventHandled)
 			originalDragLeftCancelHandler.call(this, event)
 	}
@@ -141,7 +141,7 @@ function onEntityLeftDragStart(event) {
 	ruler.rulerOffset = {x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y};
 	if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
 		ruler.dragRulerAddWaypointHistory(getMovementHistory(this));
-	ruler.dragRulerAddWaypoint(entityCenter, false);
+	ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
 }
 
 function onEntityLeftDragMove(event) {
@@ -165,19 +165,19 @@ function onEntityDragLeftDrop(event) {
 	return true
 }
 
-function onEntityDragLeftCancel(event) {
+function onEntityDragLeftCancel(event, options={}) {
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler || ruler._state === Ruler.STATES.MOVING)
 		return false
 	if (ruler._state === Ruler.STATES.MEASURING) {
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
-			ruler.dragRulerDeleteWaypoint(event);
+			ruler.dragRulerDeleteWaypoint(event, options);
 		}
 		else {
 			event.preventDefault()
-			const snap = !event.shiftKey
-			ruler.dragRulerAddWaypoint(ruler.destination, snap);
+			options.snap = !event.shiftKey;
+			ruler.dragRulerAddWaypoint(ruler.destination, options);
 		}
 	}
 	return true

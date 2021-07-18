@@ -65,9 +65,10 @@ export class SpeedProvider {
 	 *
 	 * Implementing this method is optional and only needs to be done if you want to provide a custom cost function (for example to allow tokens to ignore difficult terrain)
 	 */
-	getCostForStep(token, area) {
+	getCostForStep(token, area, options={token}) {
 		// Lookup the cost for each square occupied by the token
-		const costs = area.map(space => terrainRuler.getCost(space.x, space.y, {token}));
+		options.token = token
+		const costs = area.map(space => terrainRuler.getCost(space.x, space.y, options));
 		// Return the maximum of the costs
 		return costs.reduce((max, current) => Math.max(max, current))
 	}
