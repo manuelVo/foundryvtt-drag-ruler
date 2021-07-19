@@ -82,6 +82,15 @@ export function registerSettings() {
 		default: true,
 	});
 
+	game.settings.register(settingsKey, "autoPathfinding", {
+		name: "drag-ruler.settings.autoPathfinding.name",
+		hint: "drag-ruler.settings.autoPathfinding.hint",
+		scpoe: "client",
+		config: true,
+		type: Boolean,
+		defualt: true,
+	});
+
 	game.settings.register(settingsKey, "lastTerrainRulerHintTime", {
 		config: false,
 		type: Number,

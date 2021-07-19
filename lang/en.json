@@ -51,6 +51,10 @@
 				"name": "Automatically start measuring",
 				"hint": "If enabled, Drag Ruler will start measuring as soon as the token is being dragged. If disabled, Drag Ruler will remain inactive and will only start measuring once the button to add a waypoint is being pressed."
 			},
+			"autoPathfinding": {
+				"name": "Pathfinding by default",
+				"hint": "If enabled, dragging a token will automatically use a pathfinding ruler"
+			},
 			"enableMovementHistory": {
 				"name": "Enable movement history during combat",
 				"hint": "If enabled, Drag Ruler will remember the path a token took during it's turn in combat and will display it when you pick the token back up."
