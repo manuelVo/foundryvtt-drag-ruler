@@ -34,6 +34,10 @@
 				"name": "Show PC speed to everyone",
 				"hint": "If enabled the coloring based on actor speed for player characters will shown to everyone, even if they don't have observer permission for the character sheet."
 			},
+			"autoPathfinding": {
+				"name": "Pathfinding by default",
+				"hint": "If enabled, dragging a token will automatically use a pathfinding ruler"
+			},
 			"enableMovementHistory": {
 				"name": "Enable movement history during combat",
 				"hint": "If enabled, Drag Ruler will remember the path a token took during it's turn in combat and will display it when you pick the token back up."
