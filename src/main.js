@@ -76,8 +76,8 @@ function hookDragHandlers(entityType) {
 	}
 
 	const originalDragLeftCancelHandler = entityType.prototype._onDragLeftCancel
-	entityType.prototype._onDragLeftCancel = function (event, options={}) {
-		const eventHandled = onEntityDragLeftCancel.call(this, event, options)
+	entityType.prototype._onDragLeftCancel = function (event) {
+		const eventHandled = onEntityDragLeftCancel.call(this, event)
 		if (!eventHandled)
 			originalDragLeftCancelHandler.call(this, event)
 	}
@@ -165,18 +165,24 @@ function onEntityDragLeftDrop(event) {
 	return true
 }
 
-function onEntityDragLeftCancel(event, options={}) {
+function onEntityDragLeftCancel(event) {
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler || ruler._state === Ruler.STATES.MOVING)
 		return false
 	if (ruler._state === Ruler.STATES.MEASURING) {
+		let options = {};
+		options.snap = !event.shiftKey;
+		if(this.toggleSnapToGridData) { // toggleSnapToGridData is set in the 'Toggle Snap to Grid' module
+			options.toggleSnapToGridActive = this.toggleSnapToGridData.toggleSnapToGridActive;
+			this.toggleSnapToGridData = undefined; // remove it to prevent any lingering data issues
+		}
+
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
 			ruler.dragRulerDeleteWaypoint(event, options);
 		}
 		else {
-			event.preventDefault()
-			options.snap = !event.shiftKey;
+			event.preventDefault();
 			ruler.dragRulerAddWaypoint(ruler.destination, options);
 		}
 	}

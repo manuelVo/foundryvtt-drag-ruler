@@ -18,12 +18,19 @@ export class DragRulerRuler extends Ruler {
 		this.dragRulerRanges = undefined;
 	}
 
-	async moveToken(event, options) {
+	async moveToken(event) {
 		// This function is invoked by left clicking
 		if (!this.isDragRuler)
 			return await super.moveToken(event);
+
+		let options = {};
+		options.snap = !event.shiftKey;
+		if(this.toggleSnapToGridData) { // toggleSnapToGridData is set in the 'Toggle Snap to Grid' module
+			options.toggleSnapToGridActive = this.toggleSnapToGridData.toggleSnapToGridActive;
+			this.toggleSnapToGridData = undefined; // remove it to prevent any lingering data issues
+		}
+
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
-			options.snap = !event.shiftKey;
 			this.dragRulerAddWaypoint(this.destination, options);
 		}
 		else {
