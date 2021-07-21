@@ -36,6 +36,16 @@ export function measureDistances(segments, entity, shape, options={}) {
 		return distances.concat(terrainRuler.measureDistances(newSegments, opts));
 	}
 	else {
+		// If another module wants to enable grid measurements but disabled grid highlighting,
+		// manually set the *duplicate* option's gridSpaces value to true for Foundry
+		if(!opts.ignoreGrid && !opts.gridSpaces) {
+			opts.gridSpaces = true;
+		}
+		// If another module wants to disable grid measurements but enabled grid highlighting,
+		// manually set the *duplicate* option's gridSpaces value to false for Foundry
+		else if(opts.ignoreGrid && opts.gridSpaces) {
+			opts.gridSpaces = false;
+		}
 		return canvas.grid.measureDistances(segments, opts);
 	}
 }
