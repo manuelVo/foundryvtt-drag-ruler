@@ -19,8 +19,7 @@ export function measureDistances(segments, entity, shape, options={}) {
 	const opts = duplicate(options)
 
 	if (opts.terrainRulerAvailable) {
-		if (!opts.gridSpaces)
-			opts.gridSpaces = true;
+		opts.gridSpaces = true;
 		const firstNewSegmentIndex = segments.findIndex(segment => !segment.ray.dragRulerVisitedSpaces);
 		const previousSegments = segments.slice(0, firstNewSegmentIndex);
 		const newSegments = segments.slice(firstNewSegmentIndex);

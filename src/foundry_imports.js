@@ -173,7 +173,7 @@ export function measure(destination, options={gridSpaces=true, snap=false} = {})
 	}
 
 	if(options.ignoreGrid == undefined) {
-		options.ignoreGrid = options.gridSpaces;
+		options.ignoreGrid = false;
 	}
 
 	options.terrainRulerAvailable = isToken && game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
