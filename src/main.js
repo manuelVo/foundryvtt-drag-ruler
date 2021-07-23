@@ -172,10 +172,15 @@ function onEntityDragLeftCancel(event) {
 		return false
 	if (ruler._state === Ruler.STATES.MEASURING) {
 		let options = {};
-		options.snap = !event.shiftKey;
-		if(this.toggleSnapToGridData) { // toggleSnapToGridData is set in the 'Toggle Snap to Grid' module
-			options.toggleSnapToGridActive = this.toggleSnapToGridData.toggleSnapToGridActive;
-			this.toggleSnapToGridData = undefined; // remove it to prevent any lingering data issues
+
+		// Allow outside modules to override snapping
+		if (this.snapOverride !== undefined && this.snapOverride.active) {
+			options.snapOverrideActive = true;
+			options.snap = this.snapOverride.snap;
+			this.snapOverride = undefined; // remove it to prevent any lingering data issues
+		}
+		else {
+			options.snap = !event.shiftKey;
 		}
 
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {

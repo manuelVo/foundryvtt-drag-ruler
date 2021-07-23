@@ -24,10 +24,15 @@ export class DragRulerRuler extends Ruler {
 			return await super.moveToken(event);
 
 		let options = {};
-		options.snap = !event.shiftKey;
-		if(this.toggleSnapToGridData) { // toggleSnapToGridData is set in the 'Toggle Snap to Grid' module
-			options.toggleSnapToGridActive = this.toggleSnapToGridData.toggleSnapToGridActive;
-			this.toggleSnapToGridData = undefined; // remove it to prevent any lingering data issues
+
+		// Allow outside modules to override snapping
+		if (this.snapOverride !== undefined && this.snapOverride.active) {
+			options.snapOverrideActive = true;
+			options.snap = this.snapOverride.snap;
+			this.snapOverride = undefined; // remove it to prevent any lingering data issues
+		}
+		else {
+			options.snap = !event.shiftKey;
 		}
 
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
@@ -84,9 +89,6 @@ export class DragRulerRuler extends Ruler {
 
 	// The functions below aren't present in the orignal Ruler class and are added by Drag Ruler
 	dragRulerAddWaypoint(point, options={snap: true}) {
-		if(options.toggleSnapToGridActive) { //toggleSnapToGridActive is set in the 'Toggle Snap to Grid' module
-			options.snap = false;
-		}
 		if (options.snap) {
 			point = getSnapPointForEntity(point.x, point.y, this.draggedEntity);
 		}
@@ -107,17 +109,18 @@ export class DragRulerRuler extends Ruler {
 		this.labels.removeChildren().forEach(c => c.destroy());
 	}
 
-	dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={}) {
+	dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={snap: true}) {
 		if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 			event.preventDefault();
 			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
 			const rulerOffset = this.rulerOffset;
 
-			options.snap = !event.shiftKey;
-			if(options.toggleSnapToGridActive) { //toggleSnapToGridActive is set in the 'Toggle Snap to Grid' module
-				options.snap = false;
+			if(options.snap === undefined){
+				options.snap = !event.shiftKey;
 			}
 
+			// Options are not passed to _removeWaypoint in vanilla Foundry.
+			// Send them in case other modules have overriden that behavior and accept an options parameter (Toggle Snap to Grid)
 			this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}, options);
 			game.user.broadcastActivity({ruler: this});
 		}
