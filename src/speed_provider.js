@@ -61,13 +61,17 @@ export class SpeedProvider {
 	 * The area indicates the whole area that the token will occupy (for tokens larger than 1x1) the array will more than one entry.
 	 * The return value should be an integer indicating a multiplicator by that the cost of that step should be increased.
 	 * (1 is regular cost, 2 costs double, 3 costs triple, ...)
+	 * 
+	 * Parameters:
+	 * - options: An object used to configure TerrainLayer's cost calculation. Ex: If options.ignoreGrid is set to true, then Euclidean measurement can be forced on a gridded map.
+	 * 
 	 * This function is only called if the TerrainLayer and TerrainRuler modules are enabled.
 	 *
 	 * Implementing this method is optional and only needs to be done if you want to provide a custom cost function (for example to allow tokens to ignore difficult terrain)
 	 */
-	getCostForStep(token, area, options={token}) {
+	getCostForStep(token, area, options={}) {
 		// Lookup the cost for each square occupied by the token
-		options.token = token
+		options.token = token;
 		const costs = area.map(space => terrainRuler.getCost(space.x, space.y, options));
 		// Return the maximum of the costs
 		return costs.reduce((max, current) => Math.max(max, current))

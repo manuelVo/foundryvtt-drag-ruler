@@ -1,7 +1,7 @@
 import {measure} from "./foundry_imports.js"
 import {getMovementHistory} from "./movement_tracking.js";
 import {settingsKey} from "./settings.js";
-import {getSnapPointForEntity} from "./util.js";
+import {getSnapPointForEntity, setSnapParameterOnOptions} from "./util.js";
 
 export class DragRulerRuler extends Ruler {
 	// Functions below are overridden versions of functions in Ruler
@@ -24,16 +24,7 @@ export class DragRulerRuler extends Ruler {
 			return await super.moveToken(event);
 
 		let options = {};
-
-		// Allow outside modules to override snapping
-		if (this.snapOverride !== undefined && this.snapOverride.active) {
-			options.snapOverrideActive = true;
-			options.snap = this.snapOverride.snap;
-			this.snapOverride = undefined; // remove it to prevent any lingering data issues
-		}
-		else {
-			options.snap = !event.shiftKey;
-		}
+		setSnapParameterOnOptions(this, event, options);
 
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
 			this.dragRulerAddWaypoint(this.destination, options);
@@ -88,7 +79,8 @@ export class DragRulerRuler extends Ruler {
 	}
 
 	// The functions below aren't present in the orignal Ruler class and are added by Drag Ruler
-	dragRulerAddWaypoint(point, options={snap: true}) {
+	dragRulerAddWaypoint(point, options={}) {
+		options.snap = options.snap ?? true;
 		if (options.snap) {
 			point = getSnapPointForEntity(point.x, point.y, this.draggedEntity);
 		}
@@ -109,15 +101,12 @@ export class DragRulerRuler extends Ruler {
 		this.labels.removeChildren().forEach(c => c.destroy());
 	}
 
-	dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={snap: true}) {
+	dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={}) {
+		options.snap = options.snap ?? true;
 		if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 			event.preventDefault();
 			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
 			const rulerOffset = this.rulerOffset;
-
-			if(options.snap === undefined){
-				options.snap = !event.shiftKey;
-			}
 
 			// Options are not passed to _removeWaypoint in vanilla Foundry.
 			// Send them in case other modules have overriden that behavior and accept an options parameter (Toggle Snap to Grid)

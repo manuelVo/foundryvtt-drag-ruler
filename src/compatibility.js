@@ -18,18 +18,14 @@ export function highlightMeasurementTerrainRuler(ray, startDistance, tokenShape=
 export function measureDistances(segments, entity, shape, options={}) {
 	const opts = duplicate(options)
 
-	if (opts.terrainRulerAvailable) {
+	if (opts.enableTerrainLayer) {
 		opts.gridSpaces = true;
 		const firstNewSegmentIndex = segments.findIndex(segment => !segment.ray.dragRulerVisitedSpaces);
 		const previousSegments = segments.slice(0, firstNewSegmentIndex);
 		const newSegments = segments.slice(firstNewSegmentIndex);
 		const distances = previousSegments.map(segment => segment.ray.dragRulerVisitedSpaces[segment.ray.dragRulerVisitedSpaces.length - 1].distance);
 		previousSegments.forEach(segment => segment.ray.terrainRulerVisitedSpaces = duplicate(segment.ray.dragRulerVisitedSpaces));
-		opts.costFunction = (x, y, costOptions={}) => {
-			costOptions.x = x;
-			costOptions.y = y;
-			return getCostFromSpeedProvider(entity, getAreaFromPositionAndShape({x, y}, shape), costOptions);
-		}
+		opts.costFunction = (x, y, costOptions={}) => {	return getCostFromSpeedProvider(entity, getAreaFromPositionAndShape({x, y}, shape), costOptions); }
 		if (previousSegments.length > 0)
 			opts.terrainRulerInitialState = previousSegments[previousSegments.length - 1].ray.dragRulerFinalState;
 		return distances.concat(terrainRuler.measureDistances(newSegments, opts));
@@ -37,7 +33,7 @@ export function measureDistances(segments, entity, shape, options={}) {
 	else {
 		// If another module wants to enable grid measurements but disable grid highlighting,
 		// manually set the *duplicate* option's gridSpaces value to true for the Foundry logic to work properly
-		if(!opts.ignoreGrid && !opts.gridSpaces) {
+		if(!opts.ignoreGrid) {
 			opts.gridSpaces = true;
 		}
 		return canvas.grid.measureDistances(segments, opts);

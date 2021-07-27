@@ -9,6 +9,7 @@ import {getMovementHistory, resetMovementHistory} from "./movement_tracking.js";
 import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
+import {setSnapParameterOnOptions} from "./util.js";
 
 Hooks.once("init", () => {
 	registerSettings()
@@ -172,16 +173,7 @@ function onEntityDragLeftCancel(event) {
 		return false
 	if (ruler._state === Ruler.STATES.MEASURING) {
 		let options = {};
-
-		// Allow outside modules to override snapping
-		if (this.snapOverride !== undefined && this.snapOverride.active) {
-			options.snapOverrideActive = true;
-			options.snap = this.snapOverride.snap;
-			this.snapOverride = undefined; // remove it to prevent any lingering data issues
-		}
-		else {
-			options.snap = !event.shiftKey;
-		}
+		setSnapParameterOnOptions(this, event, options);
 
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
 			ruler.dragRulerDeleteWaypoint(event, options);

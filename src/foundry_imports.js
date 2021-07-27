@@ -148,19 +148,19 @@ function scheduleMeasurement(destination, event) {
 }
 
 // This is a modified version of Ruler.measure form foundry 0.7.9
-export function measure(destination, options={gridSpaces=true, snap=false} = {}) {
+export function measure(destination, options={}) {
 	const isToken = this.draggedEntity instanceof Token;
 	if (isToken && !this.draggedEntity.isVisible)
 		return []
 
 	// If this ruler is for a socketed player, override snapping based on what they are doing on their end
 	// socketOverrideAlreadySet allows other modules to handle this case first
-	if(this.socketIsSnappedToGrid != undefined && !options.socketOverrideAlreadySet) {
+	if(this.socketIsSnappedToGrid !== undefined && !options.socketOverrideAlreadySet) {
 		options.snap = this.socketIsSnappedToGrid;
 	}
 
 	// If this is the local player store the current snap state to socket to other players
-	if(this.socketIsSnappedToGrid == undefined) {
+	if(this.socketIsSnappedToGrid === undefined) {
 		this.snappedToGrid = options.snap;
 	}
 
@@ -168,21 +168,21 @@ export function measure(destination, options={gridSpaces=true, snap=false} = {})
 		destination = getSnapPointForEntity(destination.x, destination.y, this.draggedEntity);
 	}
 
-	if(options.gridSpaces == undefined) {
+	if(options.gridSpaces === undefined) {
 		options.gridSpaces = canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS;
 	}
 
-	if(options.ignoreGrid == undefined) {
+	if(options.ignoreGrid === undefined) {
 		options.ignoreGrid = false;
 	}
 
-	options.terrainRulerAvailable = isToken && game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+	options.enableTerrainLayer = isToken && game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
 	
 	const waypoints = this.waypoints.concat([destination]);
 	// Move the waypoints to the center of the grid if a size is used that measures from edge to edge
 	const centeredWaypoints = isToken ? applyTokenSizeOffset(waypoints, this.draggedEntity) : duplicate(waypoints);
 	// Foundries native ruler requires the waypoints to sit in the dead center of the square to work properly
-	if (!options.terrainRulerAvailable && !options.ignoreGrid)
+	if (!options.enableTerrainLayer && !options.ignoreGrid)
 		centeredWaypoints.forEach(w => [w.x, w.y] = canvas.grid.getCenter(w.x, w.y));
 
 	const r = this.ruler;
@@ -272,7 +272,7 @@ export function measure(destination, options={gridSpaces=true, snap=false} = {})
 
 		// Highlight grid positions
 		if (isToken && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS && options.gridSpaces) {
-			if (options.terrainRulerAvailable)
+			if (options.enableTerrainLayer)
 				highlightMeasurementTerrainRuler.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier)
 			else
 				highlightMeasurementNative.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier);
