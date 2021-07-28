@@ -18,7 +18,7 @@ export function highlightMeasurementTerrainRuler(ray, startDistance, tokenShape=
 export function measureDistances(segments, entity, shape, options={}) {
 	const opts = duplicate(options)
 
-	if (opts.enableTerrainLayer) {
+	if (opts.enableTerrainRuler) {
 		opts.gridSpaces = true;
 		const firstNewSegmentIndex = segments.findIndex(segment => !segment.ray.dragRulerVisitedSpaces);
 		const previousSegments = segments.slice(0, firstNewSegmentIndex);

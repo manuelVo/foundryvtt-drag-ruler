@@ -176,13 +176,13 @@ export function measure(destination, options={}) {
 		options.ignoreGrid = false;
 	}
 
-	options.enableTerrainLayer = isToken && game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
-	
+	options.enableTerrainRuler = isToken && game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+
 	const waypoints = this.waypoints.concat([destination]);
 	// Move the waypoints to the center of the grid if a size is used that measures from edge to edge
 	const centeredWaypoints = isToken ? applyTokenSizeOffset(waypoints, this.draggedEntity) : duplicate(waypoints);
 	// Foundries native ruler requires the waypoints to sit in the dead center of the square to work properly
-	if (!options.enableTerrainLayer && !options.ignoreGrid)
+	if (!options.enableTerrainRuler && !options.ignoreGrid)
 		centeredWaypoints.forEach(w => [w.x, w.y] = canvas.grid.getCenter(w.x, w.y));
 
 	const r = this.ruler;
@@ -272,7 +272,7 @@ export function measure(destination, options={}) {
 
 		// Highlight grid positions
 		if (isToken && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS && options.gridSpaces) {
-			if (options.enableTerrainLayer)
+			if (options.enableTerrainRuler)
 				highlightMeasurementTerrainRuler.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier)
 			else
 				highlightMeasurementNative.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier);
