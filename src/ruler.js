@@ -40,7 +40,6 @@ export class DragRulerRuler extends Ruler {
 			const isToken = this.draggedEntity instanceof Token;
 			json["draggedEntityIsToken"] = isToken;
 			json["draggedEntity"] = this.draggedEntity.id;
-			json["snappedToGrid"] = this.snappedToGrid;
 		}
 		return json;
 	}
@@ -55,10 +54,6 @@ export class DragRulerRuler extends Ruler {
 				this.draggedEntity = canvas.tokens.get(data.draggedEntity);
 			else
 				this.draggedEntity = canvas.templates.get(data.draggedEntity);
-		}
-
-		if(data.snappedToGrid != undefined) {
-			this.socketIsSnappedToGrid = data.snappedToGrid;
 		}
 
 		super.update(data);
