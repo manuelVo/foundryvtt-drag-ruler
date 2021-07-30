@@ -9,6 +9,7 @@ import {getMovementHistory, resetMovementHistory} from "./movement_tracking.js";
 import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
+import {setSnapParameterOnOptions} from "./util.js";
 
 Hooks.once("init", () => {
 	registerSettings()
@@ -141,7 +142,7 @@ function onEntityLeftDragStart(event) {
 	ruler.rulerOffset = {x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y};
 	if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
 		ruler.dragRulerAddWaypointHistory(getMovementHistory(this));
-	ruler.dragRulerAddWaypoint(entityCenter, false);
+	ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
 }
 
 function onEntityLeftDragMove(event) {
@@ -171,13 +172,15 @@ function onEntityDragLeftCancel(event) {
 	if (!ruler.isDragRuler || ruler._state === Ruler.STATES.MOVING)
 		return false
 	if (ruler._state === Ruler.STATES.MEASURING) {
+		let options = {};
+		setSnapParameterOnOptions(this, event, options);
+
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
-			ruler.dragRulerDeleteWaypoint(event);
+			ruler.dragRulerDeleteWaypoint(event, options);
 		}
 		else {
-			event.preventDefault()
-			const snap = !event.shiftKey
-			ruler.dragRulerAddWaypoint(ruler.destination, snap);
+			event.preventDefault();
+			ruler.dragRulerAddWaypoint(ruler.destination, options);
 		}
 	}
 	return true
