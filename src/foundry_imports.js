@@ -134,9 +134,7 @@ function scheduleMeasurement(destination, event) {
 		this.measure(destination, {snap: !originalEvent.shiftKey});
 		event._measureTime = Date.now();
 		this._state = Ruler.STATES.MEASURING;
-		window.clearTimeout(this.deferredMeasurementTimeout);
-		this.deferredMeasurementTimeout = undefined;
-		this.deferredMeasurementResolve?.();
+		cancelScheduledMeasurement.call(this);
 	}
 	else {
 		this.deferredMeasurementData = {destination, event};
@@ -145,6 +143,12 @@ function scheduleMeasurement(destination, event) {
 			this.deferredMeasurementTimeout = window.setTimeout(() => scheduleMeasurement.call(this, this.deferredMeasurementData.destination, this.deferredMeasurementData.event), measurementInterval);
 		}
 	}
+}
+
+export function cancelScheduledMeasurement() {
+	window.clearTimeout(this.deferredMeasurementTimeout);
+	this.deferredMeasurementTimeout = undefined;
+	this.deferredMeasurementResolve?.();
 }
 
 // This is a modified version of Ruler.measure form foundry 0.7.9

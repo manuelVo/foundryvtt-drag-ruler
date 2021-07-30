@@ -1,4 +1,4 @@
-import {measure} from "./foundry_imports.js"
+import {cancelScheduledMeasurement, measure} from "./foundry_imports.js"
 import {getMovementHistory} from "./movement_tracking.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForEntity, setSnapParameterOnOptions} from "./util.js";
@@ -16,6 +16,7 @@ export class DragRulerRuler extends Ruler {
 		this.previousWaypoints = [];
 		this.previousLabels.removeChildren().forEach(c => c.destroy());
 		this.dragRulerRanges = undefined;
+		cancelScheduledMeasurement.call(this);
 	}
 
 	async moveToken(event) {
