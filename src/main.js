@@ -114,9 +114,11 @@ function handleKeys(event, key, up) {
 	if (event.repeat || this.hasFocus)
 		return false
 
-	if (key.toLowerCase() === "x") return onKeyX(up)
-	if (key.toLowerCase() === "shift") return onKeyShift(up)
-	if (key.toLowerCase() === "space") return onKeySpace(up);
+	const lowercaseKey = key.toLowerCase();
+
+	if (lowercaseKey === "x") return onKeyX(up)
+	if (lowercaseKey === "shift") return onKeyShift(up)
+	if (lowercaseKey === "space") return onKeySpace(up);
 	return false
 }
 
