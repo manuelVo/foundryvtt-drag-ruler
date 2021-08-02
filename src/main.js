@@ -41,7 +41,7 @@ Hooks.on("canvasReady", () => {
 		ruler.draggedEntity = null;
 		Object.defineProperty(ruler, "isDragRuler", {
 			get: function isDragRuler() {
-				return Boolean(this.draggedEntity); // If draggedEntity is set this is a drag ruler
+				return Boolean(this.draggedEntity) && this._state !== Ruler.STATES.INACTIVE;
 			}
 		})
 	})
@@ -99,6 +99,7 @@ function handleKeys(event, key, up) {
 
 	if (key.toLowerCase() === "x") return onKeyX(up)
 	if (key.toLowerCase() === "shift") return onKeyShift(up)
+	if (key.toLowerCase() === "space") return onKeySpace(up);
 	return false
 }
 
@@ -126,10 +127,29 @@ function onKeyShift(up) {
 	ruler.measure(measurePosition, {snap: up})
 }
 
+function onKeySpace(up) {
+	const ruler = canvas.controls.ruler;
+	if (!ruler.draggedEntity)
+		return false;
+
+	if (ruler._state !== Ruler.STATES.INACTIVE)
+		return false;
+
+	const swapSpacebarRightClick = game.settings.get(settingsKey, "swapSpacebarRightClick");
+	let options = {};
+	setSnapParameterOnOptions(ruler, options);
+
+	if (!up) {
+		if (swapSpacebarRightClick)
+			ruler.dragRulerDeleteWaypoint();
+		else
+			startDragRuler.call(ruler.draggedEntity, options);
+	}
+	return true;
+}
+
 function onEntityLeftDragStart(event) {
 	const isToken = this instanceof Token;
-	if (isToken && !currentSpeedProvider.usesRuler(this))
-		return
 	const ruler = canvas.controls.ruler
 	ruler.draggedEntity = this;
 	let entityCenter;
@@ -137,12 +157,33 @@ function onEntityLeftDragStart(event) {
 		entityCenter = getHexSizeSupportTokenGridCenter(this);
 	else
 		entityCenter = this.center;
+	ruler.rulerOffset = {x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y};
+	if (game.settings.get(settingsKey, "autoStartMeasurement")) {
+		let options = {};
+		setSnapParameterOnOptions(ruler, options);
+		startDragRuler.call(this, options, false);
+	}
+}
+
+function startDragRuler(options, measureImmediately=true) {
+	const isToken = this instanceof Token;
+	if (isToken && !currentSpeedProvider.usesRuler(this))
+		return;
+	const ruler = canvas.controls.ruler;
 	ruler.clear();
 	ruler._state = Ruler.STATES.STARTING;
-	ruler.rulerOffset = {x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y};
+	let entityCenter;
+	if (isToken && canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
+		entityCenter = getHexSizeSupportTokenGridCenter(this);
+	else
+		entityCenter = this.center;
 	if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
 		ruler.dragRulerAddWaypointHistory(getMovementHistory(this));
 	ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
+	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
+	const destination = {x: mousePosition.x + ruler.rulerOffset.x, y: mousePosition.y + ruler.rulerOffset.y};
+	if (measureImmediately)
+		ruler.measure(destination, options);
 }
 
 function onEntityLeftDragMove(event) {
@@ -153,8 +194,10 @@ function onEntityLeftDragMove(event) {
 
 function onEntityDragLeftDrop(event) {
 	const ruler = canvas.controls.ruler
-	if (!ruler.isDragRuler)
+	if (!ruler.isDragRuler) {
+		ruler.draggedEntity = undefined;
 		return false
+	}
 	// When we're dragging a measured template no token will ever be selected,
 	// resulting in only the dragged template to be moved as would be expected
 	const selectedTokens = canvas.tokens.controlled
@@ -169,13 +212,21 @@ function onEntityDragLeftDrop(event) {
 function onEntityDragLeftCancel(event) {
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
-	if (!ruler.isDragRuler || ruler._state === Ruler.STATES.MOVING)
+	if (!ruler.draggedEntity || ruler._state === Ruler.STATES.MOVING)
 		return false
-	if (ruler._state === Ruler.STATES.MEASURING) {
-		let options = {};
-		setSnapParameterOnOptions(this, event, options);
 
-		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
+	const swapSpacebarRightClick = game.settings.get(settingsKey, "swapSpacebarRightClick");
+	let options = {};
+	setSnapParameterOnOptions(ruler, options);
+
+	if (ruler._state === Ruler.STATES.INACTIVE) {
+		if (!swapSpacebarRightClick)
+			return false;
+		startDragRuler.call(this, options);
+		event.preventDefault();
+	}
+	else if (ruler._state === Ruler.STATES.MEASURING) {
+		if (!swapSpacebarRightClick) {
 			ruler.dragRulerDeleteWaypoint(event, options);
 		}
 		else {

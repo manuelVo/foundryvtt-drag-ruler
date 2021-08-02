@@ -199,7 +199,7 @@ export function applyTokenSizeOffset(waypoints, token) {
 	return waypoints.map(w => new PIXI.Point(w.x + waypointOffset.x, w.y + waypointOffset.y))
 }
 
-export function setSnapParameterOnOptions(sourceObject, event, options) {
+export function setSnapParameterOnOptions(sourceObject, options) {
 	// Allow outside modules to override snapping
 	if (sourceObject.snapOverride?.active) {
 		options.snapOverrideActive = true;
@@ -207,6 +207,6 @@ export function setSnapParameterOnOptions(sourceObject, event, options) {
 		sourceObject.snapOverride = undefined; // remove it to prevent any lingering data issues
 	}
 	else {
-		options.snap = !event.shiftKey;
+		options.snap = !game.keyboard._downKeys.has("Shift");
 	}
 }

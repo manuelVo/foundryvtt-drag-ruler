@@ -34,6 +34,10 @@
 				"name": "Geschwindigkeit von Spielercharakteren für jeden anzeigen",
 				"hint": "Wenn diese Einstellung aktiviert ist wird die Färbung der hervorgehobenen Felder bei Spielercharakteren allen Spielern angezeigt, selbst wenn diese keinen Zugriff auf den Charakterbogen haben."
 			},
+			"autoStartMeasurement": {
+				"name": "Automatisch mit Messen beginnen",
+				"hint": "Wenn diese Option aktiviert ist beginnt Drag Ruler mit dem Messen sobald das Token bewegt wird. Wenn die Option deaktiviert ist bleibt Drag Ruler deaktiviert bis der Knopf zum platzieren eines Wegpunkts betätigt wird."
+			},
 			"enableMovementHistory": {
 				"name": "Bewegungsverlauf während des Kampfes aktivieren",
 				"hint": "Wenn diesen Option aktiviert ist merkt sich Drag Ruler die Bewegungen, die während einer Runde eines Kampfes gemacht wurden und zeigt diese an, wenn das Token weiterbewegt wird."
