@@ -110,17 +110,21 @@ export class DragRulerRuler extends Ruler {
 			game.user.broadcastActivity({ruler: this});
 		}
 		else {
-			const token = this.draggedEntity;
-			this._endMeasurement();
-
-			// Deactivate the drag workflow in mouse
-			token.mouseInteractionManager._deactivateDragEvents();
-			token.mouseInteractionManager.state = token.mouseInteractionManager.states.HOVER;
-
-			// This will cancel the current drag operation
-			// Pass in a fake event that hopefully is enough to allow other modules to function
-			token._onDragLeftCancel(event);
+			this.dragRulerAbortDrag(event);
 		}
+	}
+
+	dragRulerAbortDrag(event={preventDefault: () => {return}}) {
+		const token = this.draggedEntity;
+		this._endMeasurement();
+
+		// Deactivate the drag workflow in mouse
+		token.mouseInteractionManager._deactivateDragEvents();
+		token.mouseInteractionManager.state = token.mouseInteractionManager.states.HOVER;
+
+		// This will cancel the current drag operation
+		// Pass in a fake event that hopefully is enough to allow other modules to function
+		token._onDragLeftCancel(event);
 	}
 
 	async dragRulerRecalculate(tokenIds) {

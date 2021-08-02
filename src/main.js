@@ -119,6 +119,7 @@ function handleKeys(event, key, up) {
 	if (lowercaseKey === "x") return onKeyX(up)
 	if (lowercaseKey === "shift") return onKeyShift(up)
 	if (lowercaseKey === "space") return onKeySpace(up);
+	if (lowercaseKey === "escape") return onKeyEscape(up);
 	return false
 }
 
@@ -160,10 +161,19 @@ function onKeySpace(up) {
 
 	if (!up) {
 		if (swapSpacebarRightClick)
-			ruler.dragRulerDeleteWaypoint();
+			ruler.dragRulerAbortDrag();
 		else
 			startDragRuler.call(ruler.draggedEntity, options);
 	}
+	return true;
+}
+
+function onKeyEscape(up) {
+	const ruler = canvas.controls.ruler;
+	if (!ruler.draggedEntity)
+		return false;
+	if (!up)
+		ruler.dragRulerAbortDrag();
 	return true;
 }
 
