@@ -17,7 +17,7 @@ export function getDefaultSpeedAttribute() {
 		case "shadowrun5e":
 			return "actor.data.data.movement.walk.value";
 		case "swade":
-			return "actor.data.data.stats.speed.value"
+			return "actor.data.data.stats.speed.adjusted";
 	}
 	return ""
 }

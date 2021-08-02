@@ -1,3 +1,31 @@
+## 1.8.0
+### New features
+- Pressing escape during a drag now cancels the drag
+- Undoing a movement via Ctrl+Z will now also remove that movement from Drag Ruler's movement history
+- Drag Ruler can now configured to stay disabled by default when a Token/Template is being dragged. In that case it will activate once the button to place a waypoint is being pressed.
+
+### Bugfixes
+- Fixed a bug that caused the ruler to snap to grid when a waypoint was deleted while shift was being pressed (thanks to Michael Clavell!)
+- Fixed a bug that could leave behind a single waypoint on the canvas when canceling a dragging operation while moving the mouse
+
+### Compatibility
+- Drag Ruler is now compatible with the "Toggle Snap To Grid" module (thanks to Michael Clavell!)
+
+
+## 1.7.7
+### Compatibility
+- Updated the default settings for the swade game system. The new default speed attribute points to a speed value that gets adjusted for wounds.
+
+
+## 1.7.6
+### Translation
+- Added Korean translation (thanks to KLO#1490)
+- Added Spanish translation (thanks to Viriato139ac#342)
+
+### Compatibility
+- Drag Ruler's Generic Speed Provider is now awar of good default values for the "Call of Cthulhu 7th edition (Unofficial)" game system
+- Drag Ruler is now compatible with Foundry 0.8.8
+
 ## 1.7.5
 ### Bugfixes
 - Decimal speeds (as often used in metric game systems) are no longer being rounded down (thanks to DarKDinDoN for diagnosing this bug)
