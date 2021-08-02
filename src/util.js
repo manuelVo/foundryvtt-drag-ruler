@@ -210,3 +210,7 @@ export function setSnapParameterOnOptions(sourceObject, options) {
 		options.snap = !game.keyboard._downKeys.has("Shift");
 	}
 }
+
+export function isClose(a, b, delta) {
+	return Math.abs(a - b) <= delta;
+}

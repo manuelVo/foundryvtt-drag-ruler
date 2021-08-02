@@ -5,11 +5,11 @@ import {checkDependencies, getHexSizeSupportTokenGridCenter} from "./compatibili
 import {moveEntities, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
 import {DragRulerRuler} from "./ruler.js";
-import {getMovementHistory, resetMovementHistory} from "./movement_tracking.js";
+import {getMovementHistory, removeLastHistoryEntryIfAt, resetMovementHistory} from "./movement_tracking.js";
 import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
-import {setSnapParameterOnOptions} from "./util.js";
+import {isClose, setSnapParameterOnOptions} from "./util.js";
 
 Hooks.once("init", () => {
 	registerSettings()
@@ -17,6 +17,7 @@ Hooks.once("init", () => {
 	hookDragHandlers(Token);
 	hookDragHandlers(MeasuredTemplate);
 	hookKeyboardManagerFunctions()
+	hookLayerFunctions();
 
 	Ruler = DragRulerRuler;
 
@@ -90,6 +91,22 @@ function hookKeyboardManagerFunctions() {
 		const eventHandled = handleKeys.call(this, event, key, up)
 		if (!eventHandled)
 			originalHandleKeys.call(this, event, key, up)
+	}
+}
+
+function hookLayerFunctions() {
+	const originalTokenLayerUndoHistory = TokenLayer.prototype.undoHistory;
+	TokenLayer.prototype.undoHistory = function () {
+		const historyEntry = this.history[this.history.length - 1];
+		return originalTokenLayerUndoHistory.call(this).then((returnValue) => {
+			if (historyEntry.type === "update") {
+				for (const entry of historyEntry.data) {
+					const token = canvas.tokens.get(entry._id);
+					removeLastHistoryEntryIfAt(token, entry.x, entry.y);
+				}
+			}
+			return returnValue;
+		});
 	}
 }
 
