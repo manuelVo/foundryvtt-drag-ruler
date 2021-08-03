@@ -1,3 +1,11 @@
+## 1.8.1
+### Bugfixes
+- Fixed a bug where the function that was bound to the spacebar key wouldn't work correctly when the "Toggle Snap To Grid" module was enabled
+
+### Translation
+- Updated Spanish translation (thanks to Viriato139ac#342)
+
+
 ## 1.8.0
 ### New features
 - Pressing escape during a drag now cancels the drag
