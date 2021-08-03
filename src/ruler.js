@@ -25,7 +25,7 @@ export class DragRulerRuler extends Ruler {
 			return await super.moveToken(event);
 
 		let options = {};
-		setSnapParameterOnOptions(this, event, options);
+		setSnapParameterOnOptions(this, options);
 
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
 			this.dragRulerAddWaypoint(this.destination, options);
