@@ -10,6 +10,7 @@ import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
 import {isClose, setSnapParameterOnOptions} from "./util.js";
+import {registerLibWrapper} from "./libwrapper.js"
 
 Hooks.once("init", () => {
 	registerSettings()
@@ -18,6 +19,13 @@ Hooks.once("init", () => {
 	hookDragHandlers(MeasuredTemplate);
 	hookKeyboardManagerFunctions()
 	hookLayerFunctions();
+
+        if(!game.modules.get('lib-wrapper')?.active) {
+	  hookTokenDragHandlers()
+	  hookKeyboardManagerFunctions()
+        } else {
+          registerLibWrapper();
+        }
 
 	Ruler = DragRulerRuler;
 
@@ -112,7 +120,7 @@ function hookLayerFunctions() {
 	}
 }
 
-function handleKeys(event, key, up) {
+export function handleKeys(event, key, up) {
 	if (event.repeat || this.hasFocus)
 		return false
 
@@ -182,6 +190,8 @@ function onKeyEscape(up) {
 
 function onEntityLeftDragStart(event) {
 	const isToken = this instanceof Token;
+	if (!currentSpeedProvider.usesRuler(this))
+		return
 	const ruler = canvas.controls.ruler
 	ruler.draggedEntity = this;
 	let entityCenter;
