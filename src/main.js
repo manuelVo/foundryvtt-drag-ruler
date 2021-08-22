@@ -9,12 +9,18 @@ import {getMovementHistory, resetMovementHistory} from "./movement_tracking.js";
 import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
+import {registerLibWrapper} from "./libwrapper.js"
 
 Hooks.once("init", () => {
 	registerSettings()
 	initApi()
-	hookTokenDragHandlers()
-	hookKeyboardManagerFunctions()
+
+        if(!game.modules.get('lib-wrapper')?.active) {
+	  hookTokenDragHandlers()
+	  hookKeyboardManagerFunctions()
+        } else {
+          registerLibWrapper();
+        }
 
 	Ruler = DragRulerRuler;
 
@@ -91,7 +97,7 @@ function hookKeyboardManagerFunctions() {
 	}
 }
 
-function handleKeys(event, key, up) {
+export function handleKeys(event, key, up) {
 	if (event.repeat || this.hasFocus)
 		return false
 
@@ -122,7 +128,7 @@ function onKeyShift(up) {
 	ruler.measure(measurePosition, {snap: up})
 }
 
-function onTokenLeftDragStart(event) {
+export function onTokenLeftDragStart(event) {
 	if (!currentSpeedProvider.usesRuler(this))
 		return
 	const ruler = canvas.controls.ruler
@@ -140,13 +146,13 @@ function onTokenLeftDragStart(event) {
 	ruler.dragRulerAddWaypoint(tokenCenter, false);
 }
 
-function onTokenLeftDragMove(event) {
+export function onTokenLeftDragMove(event) {
 	const ruler = canvas.controls.ruler
 	if (ruler.isDragRuler)
 		onMouseMove.call(ruler, event)
 }
 
-function onTokenDragLeftDrop(event) {
+export function onTokenDragLeftDrop(event) {
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler)
 		return false
@@ -157,7 +163,7 @@ function onTokenDragLeftDrop(event) {
 	return true
 }
 
-function onTokenDragLeftCancel(event) {
+export function onTokenDragLeftCancel(event) {
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler || ruler._state === Ruler.STATES.MOVING)
