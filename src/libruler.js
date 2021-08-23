@@ -77,11 +77,7 @@ function dragRulerOnMouseMove(wrapped, event) {
   log("dragRulerOnMouseMove");
   if(!this.isDragRuler) return wrapped(event);
 
-  // TO-DO: Confirm that we need to offset origin as well as destination here.
   const offset = this.getFlag(MODULE_ID, "rulerOffset");
-  event.data.origin.x = event.data.origin.x + offset.x;
-  event.data.origin.y = event.data.origin.y + offset.y;
-
   event.data.destination.x = event.data.destination.x + offset.x;
   event.data.destination.y = event.data.destination.y + offset.y;
 
