@@ -1,4 +1,5 @@
 import { MODULE_ID } from "./libwrapper.js"
+import { applyTokenSizeOffset, getTokenShape } from "./util.js";
 
 export function registerLibRuler() {
   // Wrappers for base Ruler methods
@@ -11,14 +12,19 @@ export function registerLibRuler() {
   // Wrappers for libRuler Ruler methods
   libWrapper.register(MODULE_ID, "Ruler.prototype.setDestination", dragRulerSetDestination, "WRAPPER");
   libWrapper.register(MODULE_ID, "Ruler.prototype._addWaypoint", dragRulerAddWaypoint, "WRAPPER");
-  libWrapper.register(MODULE_ID, "Ruler.prototype.moveToken", dragRulerMoveToken, "MIXED");
 
   // Wrappers for libRuler RulerSegment methods
   libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.addProperties", dragRulerAddProperties, "WRAPPER");
-  libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.drawLine", dragRulerDrawLine, "WRAPPER");
-  libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.highlightPosition", dragRulerHighlightPosition, "WRAPPER");
+  libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.drawLine", dragRulerDrawLine, "MIXED");
+  libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.highlightPosition", dragRulerHighlightPosition, "MIXED");
 
   addRulerProperties();
+}
+
+export function log(...args) {
+  try {
+      console.log(MODULE_ID, '|', ...args);
+  } catch (e) {}
 }
 
 
@@ -29,11 +35,12 @@ export function registerLibRuler() {
  * Wrap for Ruler.clear
  */
 function dragRulerClear(wrapped) {
-  this.setFlag(MODULE_ID, "previousWaypoints", []);
-  const previousLabels = this.getFlag(MODULE_ID, "previousLabels");
-  previousLabels.removeChildren().forEach(c => c.destroy());
-  this.unsetFlag(MODULE_ID, "previousLabels");
-  this.unsetFlag(MODULE_ID, "dragRulerRanges");
+  //this.setFlag(MODULE_ID, "previousWaypoints", []);
+  //const previousLabels = this.getFlag(MODULE_ID, "previousLabels");
+  //previousLabels.removeChildren().forEach(c => c.destroy());
+  //this.unsetFlag(MODULE_ID, "previousLabels");
+  //this.unsetFlag(MODULE_ID, "dragRulerRanges");
+  log("Clear.");
   wrapped();
 }
 
@@ -53,8 +60,9 @@ function dragRulerUpdate(wrapped, data) {
  * clean up after measuring
  */
 function dragRulerEndMeasurement(wrapped) {
+  log("EndMeasurement");
   wrapped();
-  this.draggedToken = null;
+  this.unsetFlag(MODULE_ID, "draggedTokenID");
 }
 
 
@@ -66,14 +74,16 @@ function dragRulerEndMeasurement(wrapped) {
  */
 
 function dragRulerOnMouseMove(wrapped, event) {
+  log("dragRulerOnMouseMove");
   if(!this.isDragRuler) return wrapped(event);
 
   // TO-DO: Confirm that we need to offset origin as well as destination here.
-  event.data.origin.x = event.data.origin.x + this.rulerOffset.x;
-  event.data.origin.y = event.data.origin.y + this.rulerOffset.y;
+  const offset = this.getFlag(MODULE_ID, "rulerOffset");
+  event.data.origin.x = event.data.origin.x + offset.x;
+  event.data.origin.y = event.data.origin.y + offset.y;
 
-  event.data.destination.x = event.data.destination.x + this.rulerOffset.x;
-  event.data.destination.y = event.data.destination.y + this.rulerOffset.y;
+  event.data.destination.x = event.data.destination.x + offset.x;
+  event.data.destination.y = event.data.destination.y + offset.y;
 
   wrapped(event);
   // FYI: original drag ruler version calls this.measure with {snap: !originalEvent.shiftKey}, not {gridSpace: !originalEvent.shiftKey}
@@ -86,6 +96,7 @@ function dragRulerOnMouseMove(wrapped, event) {
  * @param {Object} destination  The destination point to which to measure. Should have at least x and y properties.
  */
 function dragRulerSetDestination(wrapped, destination) {
+  log("dragRulerSetDestination");
   const snap = this.getFlag(MODULE_ID, "snap");
   if(snap) {
     const new_dest = getSnapPointForToken(destination.x, destination.y, this.draggedToken);
@@ -101,6 +112,7 @@ function dragRulerSetDestination(wrapped, destination) {
  */
 // TO-DO: Change libRuler to override _addWaypoint to add a switch for centering
 function dragRulerAddWaypoint(wrapped, point, center = true) {
+  log("dragRulerAddWaypoint");
   if(!this.isDragRuler) return wrapped(point, center);
 
   if(center) {
@@ -113,6 +125,7 @@ function dragRulerAddWaypoint(wrapped, point, center = true) {
  * New waypoint history function
  */
 function dragRulerAddWaypointHistory(waypoints) {
+  log("dragRulerAddWaypointHistory");
 		waypoints.forEach(waypoint => waypoint.isPrevious = true);
 		this.waypoints = this.waypoints.concat(waypoints);
 		for (const waypoint of waypoints) {
@@ -124,6 +137,7 @@ function dragRulerAddWaypointHistory(waypoints) {
  * New clear waypoints function
  */
 function dragRulerClearWaypoints() {
+  log("dragRulerClearWaypoints");
   	this.waypoints = [];
 		this.labels.removeChildren().forEach(c => c.destroy());
 	}
@@ -133,10 +147,12 @@ function dragRulerClearWaypoints() {
  * New delete waypoints function
  */
 function dragRulerDeleteWaypoint(event={preventDefault: () => {return}}) {
+  log("dragRulerDeleteWaypoint");
+
 		if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 			event.preventDefault();
 			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
-			const rulerOffset = this.rulerOffset;
+			const rulerOffset = this.getFlag(MODULE_ID, "rulerOffset");
 			this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y});
 			game.user.broadcastActivity({ruler: this});
 		}
@@ -158,6 +174,7 @@ function dragRulerDeleteWaypoint(event={preventDefault: () => {return}}) {
  * New recalculate function
  */
 async function dragRulerRecalculate(tokenIds) {
+  log("dragRulerRecalculate");
 	if (this._state !== Ruler.STATES.MEASURING)
 		return;
 
@@ -195,6 +212,7 @@ export function dragRulerGetRaysFromWaypoints(waypoints, destination) {
 // TO-DO: Deal with selected tokens and collisions
 // See drag ruler original version of moveTokens in foundry_imports.js
 function dragRulerGetMovementToken(wrapped) {
+  log("dragRulerGetMovementToken");
   if(!this.isDragRuler) return wrapped();
   return this.draggedToken;
 }
@@ -207,14 +225,15 @@ function dragRulerGetMovementToken(wrapped) {
 // Wrappers for libRuler RulerSegment methods
 
 function dragRulerAddProperties(wrapped) {
+  log("dragRulerAddProperties");
   wrapped();
   if(!this.ruler.isDragRuler) return;
 
   // center the segments
   // TO-DO: Can Terrain Ruler handle its part separately? So just center everything here?
   // See if (!terrainRulerAvailable) in drag ruler original measure function
-	const centeredWaypoints = applyTokenSizeOffset([this.Ray.A, this.Ray.B], this.ruler.draggedToken);
-	centeredWaypoints.forEach(w => [w.x, w.y] = canvas.grid.getCenter(w.x, w.y));
+  const centeredWaypoints = applyTokenSizeOffset([this.ray.A, this.ray.B], this.ruler.draggedToken);
+  centeredWaypoints.forEach(w => [w.x, w.y] = canvas.grid.getCenter(w.x, w.y));
 
   this.ray = new Ray(centeredWaypoints[0], centeredWaypoints[1]);
 
@@ -230,6 +249,7 @@ function dragRulerAddProperties(wrapped) {
 
 
 function dragRulerHighlightPosition(wrapped, position) {
+  log(`dragRulerHighlightPosition position ${position.x}, ${position.y}`, position);
   if(!this.ruler.isDragRuler) return wrapped(position);
 
   const shape = getTokenShape(this.ruler.draggedToken);
@@ -250,6 +270,7 @@ function dragRulerHighlightPosition(wrapped, position) {
 }
 
 function dragRulerDrawLine(wrapped) {
+  log(`dragRulerDrawLine`);
   if(!this.ruler.isDragRuler) return wrapped();
   const opacityMultiplier = this.ray.isPrevious ? 0.33 : 1;
   const ray = this.ray;
@@ -264,6 +285,7 @@ function dragRulerDrawLine(wrapped) {
 
 // Additions to Ruler class
 function addRulerProperties() {
+  log(`addRulerProperties`);
 	// Add a getter method to check for drag token in Ruler flags.
 	Object.defineProperty(Ruler.prototype, "isDragRuler", {
 		get() { return Boolean(this.getFlag(MODULE_ID, "draggedTokenID")); },

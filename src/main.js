@@ -10,7 +10,7 @@ import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
 import {registerLibWrapper, MODULE_ID} from "./libwrapper.js"
-import {registerLibRuler} from "./libruler.js"
+import {registerLibRuler, log} from "./libruler.js"
 
 Hooks.once("init", () => {
 	registerSettings()
@@ -114,6 +114,7 @@ export function handleKeys(event, key, up) {
 }
 
 function onKeyX(up) {
+  log(`onKeyX ${up}`);
 	if (up)
 		return false
 	const ruler = canvas.controls.ruler;
@@ -125,6 +126,7 @@ function onKeyX(up) {
 }
 
 function onKeyShift(up) {
+  log(`onKeyShift ${up}`);
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler)
 		return false
@@ -140,12 +142,15 @@ function onKeyShift(up) {
 }
 
 export function onTokenLeftDragStart(event) {
+  log(`onTokenLeftDragStart`, event);
 	if (!currentSpeedProvider.usesRuler(this))
 		return
 	const ruler = canvas.controls.ruler
 
 	if(game.modules.get('libruler')?.active) {
-    ruler.setFlag(MODULE_ID, "draggedTokenID", this._id);
+    log(`token id is ${this.id}`, this);
+    ruler.setFlag(MODULE_ID, "draggedTokenID", this.id);
+    log(`Set draggedTokenID. Ruler isDragRuler? ${ruler.isDragRuler}`, ruler);
 	} else {
 	  ruler.draggedToken = this
 	}
@@ -167,11 +172,17 @@ export function onTokenLeftDragStart(event) {
 
 
 	if (game.settings.get(settingsKey, "enableMovementHistory"))
-		ruler.dragRulerAddWaypointHistory(getMovementHistory(this));
-	ruler.dragRulerAddWaypoint(tokenCenter, false);
+		ruler.dragRulerAddWaypointHistory(getMovementHistory(this))
+
+        if(game.modules.get('libruler')?.active) {
+          ruler._addWaypoint(tokenCenter, false);
+        } else {
+          ruler.dragRulerAddWaypoint(tokenCenter, false);
+        }
 }
 
 export function onTokenLeftDragMove(event) {
+  log(`onTokenLeftDragMove`, event);
 	const ruler = canvas.controls.ruler
 	if (ruler.isDragRuler) {
 	  if(game.modules.get('libruler')?.active) {
@@ -183,6 +194,7 @@ export function onTokenLeftDragMove(event) {
 }
 
 export function onTokenDragLeftDrop(event) {
+  log(`onTokenDragLeftDrop`, event);
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler)
 		return false
@@ -197,7 +209,7 @@ export function onTokenDragLeftDrop(event) {
 	ruler._state = Ruler.STATES.MOVING
 
 	if(game.modules.get('libruler')?.active) {
-	  ruler.moveTokens();
+	  ruler.moveToken();
 	} else {
 	  const selectedTokens = canvas.tokens.controlled
 	  moveTokens.call(ruler, ruler.draggedToken, selectedTokens)
@@ -207,6 +219,7 @@ export function onTokenDragLeftDrop(event) {
 }
 
 export function onTokenDragLeftCancel(event) {
+  log(`onTokenDragLeftCancel`, event);
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler || ruler._state === Ruler.STATES.MOVING)
