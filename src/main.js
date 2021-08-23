@@ -9,7 +9,8 @@ import {getMovementHistory, resetMovementHistory} from "./movement_tracking.js";
 import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
-import {registerLibWrapper} from "./libwrapper.js"
+import {registerLibWrapper, MODULE_ID} from "./libwrapper.js"
+import {registerLibRuler} from "./libruler.js"
 
 Hooks.once("init", () => {
 	registerSettings()
@@ -21,8 +22,7 @@ Hooks.once("init", () => {
         } else {
           registerLibWrapper();
         }
-
-	Ruler = DragRulerRuler;
+  if(!game.modules.get('libruler')?.active)	Ruler = DragRulerRuler;
 
 	window.dragRuler = {
 		getColorForDistance,
@@ -41,14 +41,17 @@ Hooks.once("ready", () => {
 })
 
 Hooks.on("canvasReady", () => {
-	canvas.controls.rulers.children.forEach(ruler => {
-		ruler.draggedToken = null
-		Object.defineProperty(ruler, "isDragRuler", {
-			get: function isDragRuler() {
-				return Boolean(this.draggedToken) // If draggedToken is set this is a drag ruler
-			}
+  if(!game.modules.get('libruler')?.active)) {
+
+		canvas.controls.rulers.children.forEach(ruler => {
+			ruler.draggedToken = null
+			Object.defineProperty(ruler, "isDragRuler", {
+				get: function isDragRuler() {
+					return Boolean(this.draggedToken) // If draggedToken is set this is a drag ruler
+				}
+			})
 		})
-	})
+	}
 })
 
 Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
@@ -58,6 +61,10 @@ Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
 		callback: li => resetMovementHistory(ui.combat.combat, li.data('combatant-id')),
 	};
 	menu.splice(1, 0, entry);
+});
+
+Hooks.on("libRulerReady", () => {
+  registerLibRuler();
 });
 
 function hookTokenDragHandlers() {
@@ -125,6 +132,10 @@ function onKeyShift(up) {
 	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens)
 	const rulerOffset = ruler.rulerOffset
 	const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}
+
+  if(game.modules.get('lib-wrapper')?.active) {
+    ruler.setFlag(MODULE_ID, "snap", up);
+  }
 	ruler.measure(measurePosition, {snap: up})
 }
 
