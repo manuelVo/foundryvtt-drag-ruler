@@ -1,4 +1,4 @@
-import "MODULE_ID" from "./libwrapper.js"
+import { MODULE_ID } from "./libwrapper.js"
 
 export function registerLibRuler() {
   // Wrappers for base Ruler methods
@@ -256,8 +256,8 @@ function dragRulerDrawLine(wrapped) {
   const r = this.ruler.ruler;
   const rulerColor = this.color;
 
-  r.lineStyle(6, 0x000000, 0.5 * opacityMultiplier).moveTo(ray.A.x, ray.A.y).lineTo(ray.B.x, ray.B.y)
-			.lineStyle(4, rulerColor, 0.25 * opacityMultiplier).moveTo(ray.A.x, ray.A.y).lineTo.ray.B.x, ray.B.y);
+  r.lineStyle(6, 0x000000, 0.5 * opacityMultiplier).moveTo(ray.A.x, ray.A.y).lineTo(ray.B.x, ray.B.y).
+    lineStyle(4, rulerColor, 0.25 * opacityMultiplier).moveTo(ray.A.x, ray.A.y).lineTo(ray.B.x, ray.B.y);
 }
 
 
