@@ -5,7 +5,7 @@ import { onTokenLeftDragStart,
          onTokenDragLeftCancel,
          handleKeys } from "./main.js";
 
-const MODULE_ID = "drag-ruler";
+export const MODULE_ID = "drag-ruler";
 
 export function registerLibWrapper() {
   libWrapper.register(MODULE_ID, "Token.prototype._onDragLeftStart", onTokenLeftDragStartWrap, "WRAPPER");

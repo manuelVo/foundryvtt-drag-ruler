@@ -9,8 +9,9 @@ import {getMovementHistory, removeLastHistoryEntryIfAt, resetMovementHistory} fr
 import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
+import {registerLibWrapper, MODULE_ID} from "./libwrapper.js"
+import {registerLibRuler} from "./libruler.js"
 import {isClose, setSnapParameterOnOptions} from "./util.js";
-import {registerLibWrapper} from "./libwrapper.js"
 
 Hooks.once("init", () => {
 	registerSettings()
@@ -26,8 +27,7 @@ Hooks.once("init", () => {
         } else {
           registerLibWrapper();
         }
-
-	Ruler = DragRulerRuler;
+  if(!game.modules.get('libruler')?.active)	Ruler = DragRulerRuler;
 
 	window.dragRuler = {
 		getColorForDistanceAndToken,
@@ -46,14 +46,16 @@ Hooks.once("ready", () => {
 })
 
 Hooks.on("canvasReady", () => {
+  if(!game.modules.get('libruler')?.active)) {
 	canvas.controls.rulers.children.forEach(ruler => {
 		ruler.draggedEntity = null;
 		Object.defineProperty(ruler, "isDragRuler", {
 			get: function isDragRuler() {
 				return Boolean(this.draggedEntity) && this._state !== Ruler.STATES.INACTIVE;
 			}
+			})
 		})
-	})
+	}
 })
 
 Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
@@ -63,6 +65,10 @@ Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
 		callback: li => resetMovementHistory(ui.combat.viewed, li.data('combatant-id')),
 	};
 	menu.splice(1, 0, entry);
+});
+
+Hooks.on("libRulerReady", () => {
+  registerLibRuler();
 });
 
 function hookDragHandlers(entityType) {
@@ -154,6 +160,10 @@ function onKeyShift(up) {
 	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens)
 	const rulerOffset = ruler.rulerOffset
 	const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}
+
+  if(game.modules.get('lib-wrapper')?.active) {
+    ruler.setFlag(MODULE_ID, "snap", up);
+  }
 	ruler.measure(measurePosition, {snap: up})
 }
 
