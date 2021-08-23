@@ -10,7 +10,7 @@ import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
 import {registerLibWrapper, MODULE_ID} from "./libwrapper.js"
-import {registerLibRuler} from "./libruler.js"
+import {registerLibRuler, log} from "./libruler.js"
 import {isClose, setSnapParameterOnOptions} from "./util.js";
 
 Hooks.once("init", () => {
@@ -140,6 +140,7 @@ export function handleKeys(event, key, up) {
 }
 
 function onKeyX(up) {
+  log(`onKeyX ${up}`);
 	if (up)
 		return false
 	const ruler = canvas.controls.ruler;
@@ -151,6 +152,7 @@ function onKeyX(up) {
 }
 
 function onKeyShift(up) {
+  log(`onKeyShift ${up}`);
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler)
 		return false
@@ -199,13 +201,16 @@ function onKeyEscape(up) {
 }
 
 function onEntityLeftDragStart(event) {
+  log(`onTokenLeftDragStart`, event);
 	const isToken = this instanceof Token;
 	if (!currentSpeedProvider.usesRuler(this))
 		return
 	const ruler = canvas.controls.ruler
 
 	if(game.modules.get('libruler')?.active) {
-    ruler.setFlag(MODULE_ID, "draggedTokenID", this._id);
+    log(`token id is ${this.id}`, this);
+    ruler.setFlag(MODULE_ID, "draggedTokenID", this.id);
+    log(`Set draggedTokenID. Ruler isDragRuler? ${ruler.isDragRuler}`, ruler);
 	} else {
 	ruler.draggedEntity = this;
 	}
@@ -239,6 +244,11 @@ function startDragRuler(options, measureImmediately=true) {
 
 
 	if (game.settings.get(settingsKey, "enableMovementHistory"))
+		ruler.dragRulerAddWaypointHistory(getMovementHistory(this))
+
+        if(game.modules.get('libruler')?.active) {
+          ruler._addWaypoint(tokenCenter, false);
+        } else {
 	let entityCenter;
 	if (isToken && canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
 		entityCenter = getHexSizeSupportTokenGridCenter(this);
@@ -251,9 +261,11 @@ function startDragRuler(options, measureImmediately=true) {
 	const destination = {x: mousePosition.x + ruler.rulerOffset.x, y: mousePosition.y + ruler.rulerOffset.y};
 	if (measureImmediately)
 		ruler.measure(destination, options);
+        }
 }
 
 function onEntityLeftDragMove(event) {
+  log(`onTokenLeftDragMove`, event);
 	const ruler = canvas.controls.ruler
 	if (ruler.isDragRuler) {
 	  if(game.modules.get('libruler')?.active) {
@@ -265,6 +277,7 @@ function onEntityLeftDragMove(event) {
 }
 
 function onEntityDragLeftDrop(event) {
+  log(`onTokenDragLeftDrop`, event);
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler) {
 		ruler.draggedEntity = undefined;
@@ -288,7 +301,7 @@ function onEntityDragLeftDrop(event) {
 	moveEntities.call(ruler, ruler.draggedEntity, selectedTokens);
 
 	if(game.modules.get('libruler')?.active) {
-	  ruler.moveTokens();
+	  ruler.moveToken();
 	} else {
 	  const selectedTokens = canvas.tokens.controlled
 	  moveTokens.call(ruler, ruler.draggedToken, selectedTokens)
@@ -298,6 +311,7 @@ function onEntityDragLeftDrop(event) {
 }
 
 function onEntityDragLeftCancel(event) {
+  log(`onTokenDragLeftCancel`, event);
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
 	if (!ruler.draggedEntity || ruler._state === Ruler.STATES.MOVING)
