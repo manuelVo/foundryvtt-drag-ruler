@@ -1,11 +1,12 @@
 import "MODULE_ID" from "./libwrapper.js"
 
-
 export function registerLibRuler() {
   // Wrappers for base Ruler methods
   libWrapper.register(MODULE_ID, "Ruler.prototype.clear", dragRulerClear, "WRAPPER");
   libWrapper.register(MODULE_ID, "Ruler.prototype.update", dragRulerUpdate, "MIXED");
   libWrapper.register(MODULE_ID, "Ruler.prototype._endMeasurement", dragRulerEndMeasurement, "WRAPPER");
+  libWrapper.register(MODULE_ID, "Ruler.prototype._onMouseMove", dragRulerOnMouseMove, "WRAPPER");
+  libWrapper.register(MODULE_ID, "Ruler.prototype._getMovementToken", dragRulerGetMovementToken, "MIXED");
 
   // Wrappers for libRuler Ruler methods
   libWrapper.register(MODULE_ID, "Ruler.prototype.setDestination", dragRulerSetDestination, "WRAPPER");
@@ -13,6 +14,11 @@ export function registerLibRuler() {
   libWrapper.register(MODULE_ID, "Ruler.prototype.moveToken", dragRulerMoveToken, "MIXED");
 
   // Wrappers for libRuler RulerSegment methods
+  libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.addProperties", dragRulerAddProperties, "WRAPPER");
+  libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.drawLine", dragRulerDrawLine, "WRAPPER");
+  libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.highlightPosition", dragRulerHighlightPosition, "WRAPPER");
+
+  addRulerProperties();
 }
 
 
@@ -54,6 +60,24 @@ function dragRulerEndMeasurement(wrapped) {
 
 
 // Wrappers for libRuler Ruler methods
+
+/*
+ * Wrap for Ruler._onMouseMove
+ */
+
+function dragRulerOnMouseMove(wrapped, event) {
+  if(!this.isDragRuler) return wrapped(event);
+
+  // TO-DO: Confirm that we need to offset origin as well as destination here.
+  event.data.origin.x = event.data.origin.x + this.rulerOffset.x;
+  event.data.origin.y = event.data.origin.y + this.rulerOffset.y;
+
+  event.data.destination.x = event.data.destination.x + this.rulerOffset.x;
+  event.data.destination.y = event.data.destination.y + this.rulerOffset.y;
+
+  wrapped(event);
+  // FYI: original drag ruler version calls this.measure with {snap: !originalEvent.shiftKey}, not {gridSpace: !originalEvent.shiftKey}
+}
 
 /*
  * Modify destination to be the snap point for the token when snap is set.
@@ -163,16 +187,21 @@ export function dragRulerGetRaysFromWaypoints(waypoints, destination) {
 	}
 
 
-async function dragRulerMoveToken(wrapped, event) {
-  if(!this.isDragRuler) return wrapped(event); // TO-DO: does this need await?
+/*
+ * Wrap for Ruler._getMovementToken()
+ */
 
-  if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
-			const snap = !event.shiftKey;
-			this._addWaypoint(this.destination, snap);
-	} else {
-		  this.dragRulerDeleteWaypoint();
-	}
+
+// TO-DO: Deal with selected tokens and collisions
+// See drag ruler original version of moveTokens in foundry_imports.js
+function dragRulerGetMovementToken(wrapped) {
+  if(!this.isDragRuler) return wrapped();
+  return this.draggedToken;
 }
+
+// TO-DO: Deal with token animation and multiple selected token animation
+// See drag ruler original version of animateTokens; compare to libRulerAnimateToken
+
 
 
 // Wrappers for libRuler RulerSegment methods
@@ -181,31 +210,44 @@ function dragRulerAddProperties(wrapped) {
   wrapped();
   if(!this.ruler.isDragRuler) return;
 
-  // center waypoints? Or is this really just for terrain ruler?
-  // 	const centeredWaypoints = applyTokenSizeOffset(waypoints, this.draggedToken)
+  // center the segments
+  // TO-DO: Can Terrain Ruler handle its part separately? So just center everything here?
+  // See if (!terrainRulerAvailable) in drag ruler original measure function
+	const centeredWaypoints = applyTokenSizeOffset([this.Ray.A, this.Ray.B], this.ruler.draggedToken);
+	centeredWaypoints.forEach(w => [w.x, w.y] = canvas.grid.getCenter(w.x, w.y));
 
-  const origin =
+  this.ray = new Ray(centeredWaypoints[0], centeredWaypoints[1]);
+
+  // can pull origin information from the original waypoints
+  // segment 0 would have origin waypoint 0, destination waypoint 1, etc.
+  const origin = this.ruler.waypoints[this.segment_num];
   this.ray.isPrevious = Boolean(origin.isPrevious);
+  this.ray.dragRulerVisitedSpaces = origin.dragRulerVisitedSpaces;
+  this.ray.dragRulerFinalState = origin.dragRulerFinalState;
 
-
-
-  const centeredDest = centeredWaypoints[i + 1]
-		const origin = waypoints[i];
-		const centeredOrigin = centeredWaypoints[i]
-		const label = this.labels.children[i];
-		const ray = new Ray(origin, dest);
-		const centeredRay = new Ray(centeredOrigin, centeredDest)
-		ray.isPrevious = Boolean(origin.isPrevious);
-		centeredRay.isPrevious = ray.isPrevious;
-		ray.dragRulerVisitedSpaces = origin.dragRulerVisitedSpaces;
-		centeredRay.dragRulerVisitedSpaces = ray.dragRulerVisitedSpaces;
-		ray.dragRulerFinalState = origin.dragRulerFinalState;
-		centeredRay.dragRulerFinalState = ray.dragRulerFinalState;
-
-
+  // TO-DO: Is there any need to store the original ray? What about when drawing lines (see original drag ruler measure function)
 }
 
 
+function dragRulerHighlightPosition(wrapped, position) {
+  if(!this.ruler.isDragRuler) return wrapped(position);
+
+  const shape = getTokenShape(this.ruler.draggedToken);
+  const color = this.colorForPosition(position);
+  const alpha = this.ray.isPrevious ? 0.33 : 1;
+
+  // TO-DO: can we just use this.ruler.name instead of layer?
+  // TO-DO: have highlightPosition take in optional alpha and color
+  const layer = canvas.grid.highlightLayers[this.name];
+  if ( !layer ) return false;
+
+  const area = getAreaFromPositionAndShape(position, shape);
+  for (const space of area) {
+		const [x, y] = getPixelsFromGridPosition(space.x, space.y);
+		canvas.grid.grid.highlightGridPosition(layer, {x, y, color, alpha: 0.25 * alpha});
+	}
+
+}
 
 function dragRulerDrawLine(wrapped) {
   if(!this.ruler.isDragRuler) return wrapped();
@@ -221,8 +263,7 @@ function dragRulerDrawLine(wrapped) {
 
 
 // Additions to Ruler class
-
-if(game.modules.get('libruler')?.active) {
+function addRulerProperties() {
 	// Add a getter method to check for drag token in Ruler flags.
 	Object.defineProperty(Ruler.prototype, "isDragRuler", {
 		get() { return Boolean(this.getFlag(MODULE_ID, "draggedTokenID")); },
