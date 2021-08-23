@@ -67,7 +67,7 @@ Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
 	menu.splice(1, 0, entry);
 });
 
-Hooks.on("libRulerReady", () => {
+Hooks.once('libRulerReady', async function() {
   registerLibRuler();
 });
 
@@ -203,7 +203,12 @@ function onEntityLeftDragStart(event) {
 	if (!currentSpeedProvider.usesRuler(this))
 		return
 	const ruler = canvas.controls.ruler
+
+	if(game.modules.get('libruler')?.active) {
+    ruler.setFlag(MODULE_ID, "draggedTokenID", this._id);
+	} else {
 	ruler.draggedEntity = this;
+	}
 	let entityCenter;
 	if (isToken && canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
 		entityCenter = getHexSizeSupportTokenGridCenter(this);
@@ -224,6 +229,16 @@ function startDragRuler(options, measureImmediately=true) {
 	const ruler = canvas.controls.ruler;
 	ruler.clear();
 	ruler._state = Ruler.STATES.STARTING;
+
+	const rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
+	if(game.modules.get('libruler')?.active) {
+	  ruler.setFlag(MODULE_ID, "rulerOffset", rulerOffset);
+	} else {
+	  ruler.rulerOffset = rulerOffset
+	}
+
+
+	if (game.settings.get(settingsKey, "enableMovementHistory"))
 	let entityCenter;
 	if (isToken && canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
 		entityCenter = getHexSizeSupportTokenGridCenter(this);
@@ -240,8 +255,13 @@ function startDragRuler(options, measureImmediately=true) {
 
 function onEntityLeftDragMove(event) {
 	const ruler = canvas.controls.ruler
-	if (ruler.isDragRuler)
-		onMouseMove.call(ruler, event)
+	if (ruler.isDragRuler) {
+	  if(game.modules.get('libruler')?.active) {
+	    ruler._onMouseMove(event);
+	  } else {
+	    onMouseMove.call(ruler, event)
+	  }
+	}
 }
 
 function onEntityDragLeftDrop(event) {
@@ -256,8 +276,24 @@ function onEntityDragLeftDrop(event) {
 	// This can happen if the user presses ESC during drag (maybe there are other ways too)
 	if (selectedTokens.length === 0)
 		selectedTokens.push(ruler.draggedEntity);
+
+	if(game.modules.get('libruler')?.active) {
+	  ruler._onMouseMove(event);
+	} else {
+	  onMouseMove.call(ruler, event);
+	}
+
+
 	ruler._state = Ruler.STATES.MOVING
 	moveEntities.call(ruler, ruler.draggedEntity, selectedTokens);
+
+	if(game.modules.get('libruler')?.active) {
+	  ruler.moveTokens();
+	} else {
+	  const selectedTokens = canvas.tokens.controlled
+	  moveTokens.call(ruler, ruler.draggedToken, selectedTokens)
+	}
+
 	return true
 }
 
