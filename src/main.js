@@ -41,7 +41,7 @@ Hooks.once("ready", () => {
 })
 
 Hooks.on("canvasReady", () => {
-  if(!game.modules.get('libruler')?.active)) {
+  if(!game.modules.get('libruler')?.active) {
 
 		canvas.controls.rulers.children.forEach(ruler => {
 			ruler.draggedToken = null
