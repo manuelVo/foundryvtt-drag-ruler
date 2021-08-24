@@ -1,8 +1,8 @@
 // Hooks using libWrapper
-import { onTokenLeftDragStart,
-         onTokenLeftDragMove,
-         onTokenDragLeftDrop,
-         onTokenDragLeftCancel,
+import { onEntityLeftDragStart,
+         onEntityLeftDragMove,
+         onEntityDragLeftDrop,
+         onEntityDragLeftCancel,
          handleKeys } from "./main.js";
 
 export const MODULE_ID = "drag-ruler";
@@ -19,23 +19,23 @@ export function registerLibWrapper() {
 // simple wraps to keep the original functionality when not using libWrapper
 function onTokenLeftDragStartWrap(wrapped, event) {
   wrapped(event);
-  onTokenLeftDragStart.call(this, event);
+  onEntityLeftDragStart.call(this, event);
 }
 
 function onDragLeftMoveWrap(wrapped, event) {
   wrapped(event);
-  onTokenLeftDragMove.call(this, event);
+  onEntityLeftDragMove.call(this, event);
 }
 
 function onDragLeftDropWrap(wrapped, event) {
-  const eventHandled = onTokenDragLeftDrop.call(this, event);
+  const eventHandled = onEntityDragLeftDrop.call(this, event);
   if(!eventHandled) {
     wrapped(event);
   }
 }
 
 function onDragLeftCancelWrap(wrapped, event) {
-  const eventHandled = onTokenDragLeftCancel.call(this, event);
+  const eventHandled = onEntityDragLeftCancel.call(this, event);
   if(!eventHandled) {
     wrapped(event);
   }

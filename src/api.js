@@ -14,6 +14,9 @@ function register(module, type, speedProvider) {
 		providerInstance = new speedProvider(id)
 	}
 	else {
+		console.warn(`Drag Ruler | The ${type} '${module.id}' uses the old, deprecated version of the Drag Ruler API. ` +
+		             "That old API will be removed in a future Drag Ruler version. " +
+		             `Please update the ${type} ${module.id} to stay compatible with future Drag Ruler versions.`);
 		speedProvider.id = id
 		speedProvider.usesRuler = () => true
 		providerInstance = speedProvider
@@ -100,12 +103,12 @@ export function getUnreachableColorFromSpeedProvider() {
 	}
 }
 
-export function getCostFromSpeedProvider(token, area) {
+export function getCostFromSpeedProvider(token, area, options) {
 	try {
 		if (currentSpeedProvider instanceof Function) {
-			return SpeedProvider.prototype.getCostForStep.call(undefined, token, area);
+			return SpeedProvider.prototype.getCostForStep.call(undefined, token, area, options);
 		}
-		return currentSpeedProvider.getCostForStep(token, area);
+		return currentSpeedProvider.getCostForStep(token, area, options);
 	}
 	catch (e) {
 		console.error(e);

@@ -11,6 +11,15 @@ export function registerSettings() {
 		default: "fresh install"
 	})
 
+	game.settings.register(settingsKey, "autoStartMeasurement", {
+		name: "drag-ruler.settings.autoStartMeasurement.name",
+		hint: "drag-ruler.settings.autoStartMeasurement.hint",
+		scope: "client",
+		config: true,
+		type: Boolean,
+		default: true,
+	});
+
 	game.settings.register(settingsKey, "swapSpacebarRightClick", {
 		name: "drag-ruler.settings.swapSpacebarRightClick.name",
 		hint: "drag-ruler.settings.swapSpacebarRightClick.hint",

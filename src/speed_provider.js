@@ -61,13 +61,18 @@ export class SpeedProvider {
 	 * The area indicates the whole area that the token will occupy (for tokens larger than 1x1) the array will more than one entry.
 	 * The return value should be an integer indicating a multiplicator by that the cost of that step should be increased.
 	 * (1 is regular cost, 2 costs double, 3 costs triple, ...)
+	 * 
+	 * Parameters:
+	 * - options: An object used to configure TerrainLayer's cost calculation. Ex: If options.ignoreGrid is set to true, then Euclidean measurement can be forced on a gridded map.
+	 * 
 	 * This function is only called if the TerrainLayer and TerrainRuler modules are enabled.
 	 *
 	 * Implementing this method is optional and only needs to be done if you want to provide a custom cost function (for example to allow tokens to ignore difficult terrain)
 	 */
-	getCostForStep(token, area) {
+	getCostForStep(token, area, options={}) {
 		// Lookup the cost for each square occupied by the token
-		const costs = area.map(space => terrainRuler.getCost(space.x, space.y, {token}));
+		options.token = token;
+		const costs = area.map(space => terrainRuler.getCost(space.x, space.y, options));
 		// Return the maximum of the costs
 		return costs.reduce((max, current) => Math.max(max, current))
 	}
@@ -132,7 +137,7 @@ export class GenericSpeedProvider extends SpeedProvider {
 		const speedAttribute = this.getSetting("speedAttribute")
 		if (!speedAttribute)
 			return []
-		const tokenSpeed = parseInt(getProperty(token, speedAttribute));
+		const tokenSpeed = parseFloat(getProperty(token, speedAttribute));
 		if (tokenSpeed === undefined) {
 			console.warn(`Drag Ruler (Generic Speed Provider) | The configured token speed attribute "${speedAttribute}" didn't return a speed value. To use colors based on drag distance set the setting to the correct value (or clear the box to disable this feature).`)
 			return []

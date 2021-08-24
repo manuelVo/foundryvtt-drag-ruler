@@ -1,32 +1,35 @@
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/staebchenfisch)
 
 # Drag Ruler
-This module shows a ruler when you drag a token to infrom you how far you've dragged the token from it's start point. Additionally, if you're using a grid, the spaces the token will travel though will be colored depending on your tokens speed. If you're using a gridless map the ruler color will change to convey this information.
+This module shows a ruler when you drag a token or measurement template to infrom you how far you've dragged it from it's start point. Additionally, if you're using a grid, the spaces the token will travel though will be colored depending on your tokens speed. By default three colors are being used: green for spaces that your token can reach by walking normally are colored green, spaces that can only be reached by dashing will be colored red and spaces that cannot be reached with the token's speed will be colored red. If you're using a gridless map the ruler color will change to convey this information.
+
+![Drag Ruler being used on a square grids](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/basic_square.webp)
+![Drag Ruler being used on a gridless scene](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/basic_gridless.webp)
+![Drag Ruler while dragging a measurement template](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/measurement_template.webp)
 
 
-## Path color
-![Drag Ruler demonstration](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/5177746fbb4edb28b6ba09137247d142af575c47/media/drag_ruler.webp)
+## Supports Tokens of all sizes
+Terrain ruler has excellent support for tokens of all sizes. The Ruler will always originate from the token's center and will always highlight all the squares that tokens move over. If the [Hex Token Size Support](https://foundryvtt.com/packages/hex-size-support) is installed this is also true for large tokens on hex scenes.
 
-The token has a speed of 30ft. All squares on the path within that range are colored in the players color. If the token is running it can cover double that range (this can be changed in the settings). All Squares on the path that can only be reached while running are colored in yellow. Squares on the path that the token cannot possibly reached at regular speeds are colored red. This coloring behavior can be tweaked in the settings and can be overridden by modules and game systems to provide more granular, game system specific control. For more information on how to do this see the [API](#api) section of this document.
-
-
-## Waypoints
-You can add waypoints to the path by pressing spacebar while you drag the token. To remove a placed waypoint press the right mouse button.
-
-![Demonstration of Waypoints](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/5177746fbb4edb28b6ba09137247d142af575c47/media/waypoints.webp)
-
-## Difficult Terrain
-**To use support for difficult terrain you must install the [Terrain Ruler module](https://foundryvtt.com/packages/terrain-ruler)**
-
-With the Terrain Ruler module installed, Drag Ruler is able to take difficult terrain that was placed with the [TerrainLayer module](https://foundryvtt.com/packages/TerrainLayer/) into account when measuring distances.
-
-![Demonstration of Difficult Terrain support](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/bb8ac5d1acb9d6374d06f7e9c8e2c2dd61192d56/media/terrain_layer.webp)
+![Drag Ruler being used with a large token on a square grid](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/large_token_square.webp)
+![Drag Ruler being used with a large token on a hex grid](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/large_token_hex.webp)
 
 
-## Why would I want to use this instead of ShowDragDistance?
-ShowDragDistance isn't maintained anymore. This means that it is at risk to stop working with every foundry update. In fact this process has already begun. As of Foundry Version 0.7.9 ShowDragDistance doesn't work anymore on gridless maps. Drag Ruler on the other hand is fully compatible with the current Foundry release and I'll continue updating it for future foundry releases for the forseeable future.
+## Difficult Terrain support
+**To use support for difficult terrain you must install the [Terrain Ruler](https://foundryvtt.com/packages/terrain-ruler) module**
 
-In addition Drag Ruler provides more flexibility for game systems and modules via it's api to provide an experience that fits the rules of the game system that you are playing best.
+With the Terrain Ruler module installed, Drag Ruler is able to take difficult terrain that was placed down using the [Enhanced Terrain Layer](https://foundryvtt.com/packages/enhanced-terrain-layer) or [TerrainLayer](https://foundryvtt.com/packages/TerrainLayer) module into account.
+
+![Drag Ruler being used to measure distances over difficult terrain on square grid](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/difficult_terrain_square.webp)
+![Drag Ruler being used to measure distances over difficult terrain on gridless scenes](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/difficult_terrain_gridless.webp)
+
+
+## Movement history (optional)
+*This feature can be disabled in the settings if you don't like it*
+
+During combat, Drag Ruler will remember the path a token has taken during it's turn. When the token is being picked up again, Drag Ruler will continue measuring where it has left off. The path of the previous movement will be dipslayed in a faded color.
+
+![Demonstration of the Movement History](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/movement_history.webp)
 
 
 ## Game systems with Drag Ruler integration
@@ -40,6 +43,7 @@ The game systems that offer Drag Ruler integration are:
 - Tagmar RPG (starting with version 1.1.4)
 - Tormenta20 (starting with version 1.1.37)
 - Shadow of the Demon Lord  (starting with version 1.7.15)
+- Wasteland Ventures (starting with version 0.1.0)
 - WWII:OWB (starting with version 1.0.4)
 
 
@@ -49,6 +53,8 @@ Drag Ruler is available in the follwing languages:
 - English
 - German
 - Japanese (thanks to touge)
+- Korean (thanks to KLO#1490)
+- Spanish (thanks to Viriato139ac#342)
 
 ## API
 *Audience: This paragraph is intended for module and system devleopers that want to add more complex behavior to Drag Ruler. If you just want to use this plugins features skip this paragraph.*

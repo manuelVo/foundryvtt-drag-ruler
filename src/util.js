@@ -39,6 +39,37 @@ export function getSnapPointForToken(x, y, token) {
 	return new PIXI.Point(snappedX + canvas.grid.w / 2, snappedY + canvas.grid.h / 2)
 }
 
+export function getSnapPointForMeasuredTemplate(x, y) {
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+		return new PIXI.Point(x, y);
+	}
+	let subgridWidth, subgridHeight;
+	if (canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
+		subgridWidth = subgridHeight = canvas.dimensions.size / 2;
+	}
+	else {
+		if (canvas.grid.grid.columns) {
+			subgridWidth = canvas.grid.w / 4;
+			subgridHeight = canvas.grid.h / 2;
+		}
+		else {
+			subgridWidth = canvas.grid.w / 2;
+			subgridHeight = canvas.grid.h / 4;
+		}
+	}
+	const snappedX = Math.round(x / subgridWidth) * subgridWidth;
+	const snappedY = Math.round(y / subgridHeight) * subgridHeight;
+	return new PIXI.Point(snappedX, snappedY);
+}
+
+export function getSnapPointForEntity(x, y, entity) {
+	const isToken = entity instanceof Token;
+	if (isToken)
+		return getSnapPointForToken(x, y, entity);
+	else
+		return getSnapPointForMeasuredTemplate(x, y);
+}
+
 export function highlightTokenShape(position, shape, color, alpha) {
 	const layer = canvas.grid.highlightLayers[this.name];
     if ( !layer )
@@ -166,4 +197,20 @@ export function applyTokenSizeOffset(waypoints, token) {
 	}
 
 	return waypoints.map(w => new PIXI.Point(w.x + waypointOffset.x, w.y + waypointOffset.y))
+}
+
+export function setSnapParameterOnOptions(sourceObject, options) {
+	// Allow outside modules to override snapping
+	if (sourceObject.snapOverride?.active) {
+		options.snapOverrideActive = true;
+		options.snap = sourceObject.snapOverride.snap;
+		sourceObject.snapOverride = undefined; // remove it to prevent any lingering data issues
+	}
+	else {
+		options.snap = !game.keyboard._downKeys.has("Shift");
+	}
+}
+
+export function isClose(a, b, delta) {
+	return Math.abs(a - b) <= delta;
 }

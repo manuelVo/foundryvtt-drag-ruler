@@ -1,26 +1,30 @@
 import {highlightMeasurementTerrainRuler, measureDistances} from "./compatibility.js";
 import {getGridPositionFromPixels} from "./foundry_fixes.js";
+import {Line} from "./geometry.js";
 import {getColorForDistance} from "./main.js"
 import {trackRays} from "./movement_tracking.js"
 import {recalculate} from "./socket.js";
-import {applyTokenSizeOffset, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
+import {applyTokenSizeOffset, getSnapPointForEntity, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
-export async function moveTokens(draggedToken, selectedTokens) {
+export async function moveEntities(draggedEntity, selectedEntities) {
 	let wasPaused = game.paused;
 	if (wasPaused && !game.user.isGM) {
 		ui.notifications.warn(game.i18n.localize("GAME.PausedWarning"));
 		return false;
 	}
 	if (!this.visible || !this.destination) return false;
-	if (!draggedToken) return;
+	if (!draggedEntity) return;
+
+	// Wait until all scheduled measurements are done
+	await this.deferredMeasurementPromise;
 
 	// Get the movement rays and check collision along each Ray
 	// These rays are center-to-center for the purposes of collision checking
 	const rays = this.constructor.dragRulerGetRaysFromWaypoints(this.waypoints, this.destination);
-	if (!game.user.isGM) {
-		const hasCollision = selectedTokens.some(token => {
-			const offset = calculateTokenOffset(token, draggedToken)
+	if (!game.user.isGM && draggedEntity instanceof Token) {
+		const hasCollision = selectedEntities.some(token => {
+			const offset = calculateEntityOffset(token, draggedEntity);
 			const offsetRays = rays.filter(ray => !ray.isPrevious).map(ray => applyOffsetToRay(ray, offset))
 			return offsetRays.some(r => canvas.walls.checkCollision(r));
 		})
@@ -34,65 +38,71 @@ export async function moveTokens(draggedToken, selectedTokens) {
 	// Execute the movement path.
 	// Transform each center-to-center ray into a top-left to top-left ray using the prior token offsets.
 	this._state = Ruler.STATES.MOVING;
-	await animateTokens.call(this, selectedTokens, draggedToken, rays, wasPaused);
+	await animateEntities.call(this, selectedEntities, draggedEntity, rays, wasPaused);
 
 	// Once all animations are complete we can clear the ruler
-	if (this.draggedToken?.id === draggedToken.id)
+	if (this.draggedEntity?.id === draggedEntity.id)
 		this._endMeasurement();
 }
 
 // This is a modified version code extracted from Ruler.moveToken from foundry 0.7.9
-async function animateTokens(tokens, draggedToken, draggedRays, wasPaused) {
+async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) {
 	const newRays = draggedRays.filter(r => !r.isPrevious);
-	const tokenAnimationData = tokens.map(token => {
-		const tokenOffset = calculateTokenOffset(token, draggedToken);
-		const offsetRays = newRays.map(ray => applyOffsetToRay(ray, tokenOffset));
+	const entityAnimationData = entities.map(entity => {
+		const entityOffset = calculateEntityOffset(entity, draggedEntity);
+		const offsetRays = newRays.map(ray => applyOffsetToRay(ray, entityOffset));
 
 		// Determine offset relative to the Token top-left.
 		// This is important so we can position the token relative to the ruler origin for non-1x1 tokens.
 		const firstWaypoint = this.waypoints.find(w => !w.isPrevious);
-		const origin = [firstWaypoint.x + tokenOffset.x, firstWaypoint.y + tokenOffset.y];
+		const origin = [firstWaypoint.x + entityOffset.x, firstWaypoint.y + entityOffset.y];
 		let dx, dy;
 		if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
-			dx = token.data.x - origin[0];
-			dy = token.data.y - origin[1];
+			dx = entity.data.x - origin[0];
+			dy = entity.data.y - origin[1];
 		}
 		else {
-			dx = token.data.x - origin[0];
-			dy = token.data.y - origin[1];
+			dx = entity.data.x - origin[0];
+			dy = entity.data.y - origin[1];
 		}
 
-		return {token, rays: offsetRays, dx, dy};
+		return {entity, rays: offsetRays, dx, dy};
 	});
 
-	for (const {token, rays} of tokenAnimationData) {
-		token._noAnimate = true;
-	}
-	const animate = !game.keyboard.isDown("Alt");
-	const startWaypoint = animate ? 0 : tokenAnimationData[0].rays.length - 1;
-	for (let i = startWaypoint;i < tokenAnimationData[0].rays.length; i++) {
+	const isToken = draggedEntity instanceof Token;
+	const animate = isToken && !game.keyboard.isDown("Alt");
+	const startWaypoint = animate ? 0 : entityAnimationData[0].rays.length - 1;
+
+	// This is a flag of the "Monk's Active Tile Triggers" module that signals that the movement should be cancelled early
+	this.cancelMovement = false;
+
+	for (let i = startWaypoint;i < entityAnimationData[0].rays.length; i++) {
 		if (!wasPaused && game.paused) break;
-		const tokenPaths = tokenAnimationData.map(({token, rays, dx, dy}) => {
+		const entityPaths = entityAnimationData.map(({entity, rays, dx, dy}) => {
 			const ray = rays[i];
 			const dest = [ray.B.x, ray.B.y];
-			const path = new Ray({x: token.x, y: token.y}, {x: dest[0] + dx, y: dest[1] + dy});
-			return {token, path};
+			const path = new Ray({x: entity.x, y: entity.y}, {x: dest[0] + dx, y: dest[1] + dy});
+			return {entity, path};
 		});
-		const updates = tokenPaths.map(({token, path}) => {
-			return {x: path.B.x, y: path.B.y, _id: token.id};
+		const updates = entityPaths.map(({entity, path}) => {
+			return {x: path.B.x, y: path.B.y, _id: entity.id};
 		});
-		await draggedToken.scene.updateEmbeddedEntity(draggedToken.constructor.embeddedName, updates, {animate});
+		await draggedEntity.scene.updateEmbeddedDocuments(draggedEntity.constructor.embeddedName, updates, {animate});
 		if (animate)
-			await Promise.all(tokenPaths.map(({token, path}) => token.animateMovement(path)));
+			await Promise.all(entityPaths.map(({entity, path}) => entity.animateMovement(path)));
+
+		// This is a flag of the "Monk's Active Tile Triggers" module that signals that the movement should be cancelled early
+		if (this.cancelMovement) {
+			entityAnimationData.forEach(ead => ead.rays = ead.rays.slice(0, i + 1));
+			break;
+		}
 	}
-	for (const {token} of tokenAnimationData) {
-		token._noAnimate = false;
-	}
-	trackRays(tokens, tokenAnimationData.map(({rays}) => rays)).then(() => recalculate(tokens));
+	if (isToken)
+		trackRays(entities, entityAnimationData.map(({rays}) => rays)).then(() => recalculate(entities));
 }
 
-function calculateTokenOffset(tokenA, tokenB) {
-	return {x: tokenA.data.x - tokenB.data.x, y: tokenA.data.y - tokenB.data.y}
+function calculateEntityOffset(entityA, entityB) {
+	return {x: entityA.data.x - entityB.data.x, y: entityA.data.y - entityB.data.y};
 }
 
 function applyOffsetToRay(ray, offset) {
@@ -106,8 +116,6 @@ export function onMouseMove(event) {
 	if (this._state === Ruler.STATES.MOVING) return;
 
 	// Extract event data
-	const mt = event._measureTime || 0;
-	const originalEvent = event.data.originalEvent;
 	const destination = {x: event.data.destination.x + this.rulerOffset.x, y: event.data.destination.y + this.rulerOffset.y}
 
 	// Hide any existing Token HUD
@@ -115,28 +123,59 @@ export function onMouseMove(event) {
 	delete event.data.hudState;
 
 	// Draw measurement updates
-	if (Date.now() - mt > 50) {
+	scheduleMeasurement.call(this, destination, event);
+}
+
+function scheduleMeasurement(destination, event) {
+	const measurementInterval = 50;
+	const mt = event._measureTime || 0;
+	const originalEvent = event.data.originalEvent;
+	if (Date.now() - mt > measurementInterval) {
 		this.measure(destination, {snap: !originalEvent.shiftKey});
 		event._measureTime = Date.now();
 		this._state = Ruler.STATES.MEASURING;
+		cancelScheduledMeasurement.call(this);
+	}
+	else {
+		this.deferredMeasurementData = {destination, event};
+		if (!this.deferredMeasurementTimeout) {
+			this.deferredMeasurementPromise = new Promise((resolve, reject) => this.deferredMeasurementResolve = resolve);
+			this.deferredMeasurementTimeout = window.setTimeout(() => scheduleMeasurement.call(this, this.deferredMeasurementData.destination, this.deferredMeasurementData.event), measurementInterval);
+		}
 	}
 }
 
+export function cancelScheduledMeasurement() {
+	window.clearTimeout(this.deferredMeasurementTimeout);
+	this.deferredMeasurementTimeout = undefined;
+	this.deferredMeasurementResolve?.();
+}
+
 // This is a modified version of Ruler.measure form foundry 0.7.9
-export function measure(destination, {gridSpaces=true, snap=false} = {}) {
-	if (this.isDragRuler && !this.draggedToken.isVisible)
+export function measure(destination, options={}) {
+	const isToken = this.draggedEntity instanceof Token;
+	if (isToken && !this.draggedEntity.isVisible)
 		return []
 
-	if (snap)
-		destination = getSnapPointForToken(destination.x, destination.y, this.draggedToken)
+	if (options.snap) {
+		destination = getSnapPointForEntity(destination.x, destination.y, this.draggedEntity);
+	}
 
-	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+	if(options.gridSpaces === undefined) {
+		options.gridSpaces = canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS;
+	}
+
+	if(options.ignoreGrid === undefined) {
+		options.ignoreGrid = false;
+	}
+
+	options.enableTerrainRuler = isToken && game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
 
 	const waypoints = this.waypoints.concat([destination]);
 	// Move the waypoints to the center of the grid if a size is used that measures from edge to edge
-	const centeredWaypoints = applyTokenSizeOffset(waypoints, this.draggedToken)
+	const centeredWaypoints = isToken ? applyTokenSizeOffset(waypoints, this.draggedEntity) : duplicate(waypoints);
 	// Foundries native ruler requires the waypoints to sit in the dead center of the square to work properly
-	if (!terrainRulerAvailable)
+	if (!options.enableTerrainRuler && !options.ignoreGrid)
 		centeredWaypoints.forEach(w => [w.x, w.y] = canvas.grid.getCenter(w.x, w.y));
 
 	const r = this.ruler;
@@ -167,10 +206,10 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	}
 
 
-	const shape = getTokenShape(this.draggedToken)
+	const shape = isToken ? getTokenShape(this.draggedEntity) : null;
 
 	// Compute measured distance
-	const distances = measureDistances(centeredSegments, this.draggedToken, shape, {gridSpaces});
+	const distances = measureDistances(centeredSegments, this.draggedEntity, shape, options);
 
 	let totalDistance = 0;
 	for (let [i, d] of distances.entries()) {
@@ -189,7 +228,7 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 	// Draw measured path
 	r.clear();
 	let rulerColor
-	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
+	if (!options.gridSpaces || canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
 		rulerColor = getColorForDistance.call(this, totalDistance)
 	else
 		rulerColor = this.color
@@ -206,13 +245,27 @@ export function measure(destination, {gridSpaces=true, snap=false} = {}) {
 			label.text = text;
 			label.alpha = last ? 1.0 : 0.5;
 			label.visible = true;
-			let labelPosition = cs.ray.project((cs.ray.distance + 50) / cs.ray.distance);
+			let labelPosition = {x: s.ray.x0, y: s.ray.y0};
+			labelPosition.x -= label.width / 2;
+			labelPosition.y -= label.height / 2;
+			const rayLine = Line.fromPoints(s.ray.A, s.ray.B);
+			const rayLabelXHitY = rayLine.calcY(labelPosition.x);
+			let innerDistance;
+			// If ray hits top or bottom side of label
+			if (rayLine.isVertical || rayLabelXHitY < labelPosition.y || rayLabelXHitY > labelPosition.y + label.height)
+				innerDistance = Math.abs((label.height / 2) / Math.sin(s.ray.angle));
+			// If ray hits left or right side of label
+			else
+				innerDistance = Math.abs((label.width / 2) / Math.cos(s.ray.angle));
+			labelPosition = s.ray.project((s.ray.distance + 50 + innerDistance) / s.ray.distance);
+			labelPosition.x -= label.width / 2;
+			labelPosition.y -= label.height / 2;
 			label.position.set(labelPosition.x, labelPosition.y);
 		}
 
 		// Highlight grid positions
-		if (canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS) {
-			if (terrainRulerAvailable)
+		if (isToken && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS && options.gridSpaces) {
+			if (options.enableTerrainRuler)
 				highlightMeasurementTerrainRuler.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier)
 			else
 				highlightMeasurementNative.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier);
@@ -249,7 +302,7 @@ export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0
 		let [xg, yg] = canvas.grid.grid.getPixelsFromGridPosition(x1, y1);
 		const subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xg, y: yg})}], {gridSpaces: true})[0]
 		const color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
-		const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedToken);
+		const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedEntity);
 		const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);
 
 		prior = [x1, y1];
@@ -262,7 +315,7 @@ export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0
 			let [xgh, ygh] = canvas.grid.grid.getPixelsFromGridPosition(x1h, y1h);
 			const subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xgh, y: ygh})}], {gridSpaces: true})[0]
 			const color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
-			const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedToken);
+			const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedEntity);
 			const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);
 			highlightTokenShape.call(this, {x: snapX, y: snapY}, tokenShape, color, alpha);
 		}
