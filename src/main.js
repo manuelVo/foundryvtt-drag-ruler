@@ -286,6 +286,7 @@ export function onEntityDragLeftDrop(event) {
 		selectedTokens.push(ruler.draggedEntity);
 	ruler._state = Ruler.STATES.MOVING
 	if(game.modules.get('libruler')?.active) {
+	  ruler.setFlag(MODULE_ID, "doTokenMove", true);
 	  ruler.moveToken();
 	} else {
 	  const selectedTokens = canvas.tokens.controlled
@@ -318,7 +319,7 @@ export function onEntityDragLeftCancel(event) {
 		}
 		else {
 			event.preventDefault();
-                        if(game.modules.get('libruler')?.active) { 
+                        if(game.modules.get('libruler')?.active) {
                           ruler._addWaypoint(ruler.destination, Boolean(options.snap));
                         } else {
             		  ruler.dragRulerAddWaypoint(ruler.destination, options);

@@ -1,5 +1,5 @@
 import { MODULE_ID } from "./libwrapper.js"
-import { applyTokenSizeOffset, getTokenShape, getSnapPointForToken } from "./util.js";
+import { applyTokenSizeOffset, getTokenShape, getSnapPointForToken, setSnapParameterOnOptions } from "./util.js";
 
 export function registerLibRuler() {
   // Wrappers for base Ruler methods
@@ -8,6 +8,7 @@ export function registerLibRuler() {
   libWrapper.register(MODULE_ID, "Ruler.prototype._endMeasurement", dragRulerEndMeasurement, "WRAPPER");
   libWrapper.register(MODULE_ID, "Ruler.prototype._onMouseMove", dragRulerOnMouseMove, "WRAPPER");
   libWrapper.register(MODULE_ID, "Ruler.prototype._getMovementToken", dragRulerGetMovementToken, "MIXED");
+  libWrapper.register(MODULE_ID, "Ruler.prototype.moveToken", dragRulerMoveToken, "MIXED");
 
   // Wrappers for libRuler Ruler methods
   libWrapper.register(MODULE_ID, "Ruler.prototype.setDestination", dragRulerSetDestination, "WRAPPER");
@@ -25,6 +26,7 @@ export function registerLibRuler() {
   libWrapper.register(MODULE_ID, "Ruler.prototype._onClickRight", dragRulerOnClickRight, "WRAPPER");
   libWrapper.register(MODULE_ID, "Ruler.prototype._onMouseMove", dragRulerOnMouseMove, "WRAPPER");
   libWrapper.register(MODULE_ID, "Ruler.prototype._onMouseUp", dragRulerOnMouseUp, "WRAPPER");
+  libWrapper.register(MODULE_ID, "KeyboardManager.prototype._onSpace", dragRulerOnSpace, "WRAPPER");
 
   addRulerProperties();
 }
@@ -53,6 +55,11 @@ function dragRulerOnMouseMove(wrapper, event) {
 function dragRulerOnMouseUp(wrapper, event) {
   log(`Ruler._onMouseUp`, event);
   wrapper(event);
+}
+
+function dragRulerOnSpace(wrapper, up, modifiers) {
+  log(`Keyboard._onSpace. up: ${up}`);
+  return wrapper(up, modifiers);
 }
 
 export function log(...args) {
@@ -135,6 +142,34 @@ function dragRulerSetDestination(wrapped, destination) {
   }
 
   wrapped(destination);
+}
+
+/*
+ * Wrapper for Ruler.moveToken
+ * Drag ruler original code breaks this out into two functions;
+ *   - moveToken just adds or deletes waypoints; intercepting the space bar or right-click press
+ *   - moveEntities is basically Ruler.moveToken with modifications
+ * To conform to libRuler and Foundry expectations, combine back into single wrap here
+ *   - check a flag to start the actual movement
+ * TO-DO: Handle multiple entities
+ *        Handle measured template entity
+ */
+async function dragRulerMoveToken(wrapped) {
+  log(`dragRulerMoveToken`, event, this);
+  if(!this.isDragRuler) return wrapped(event);
+  if(this.getFlag(MODULE_ID, "doTokenMove")) {
+		let options = {};
+		setSnapParameterOnOptions(this, options);
+
+		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
+			this.dragRulerAddWaypoint(this.destination, options);
+		} else {
+			this.dragRulerDeleteWaypoint(event, options);
+		}
+  } else {
+    this.setFlag(MODULE_ID, "doTokenMove", false);
+    return wrapped(event);
+  }
 }
 
 /*
