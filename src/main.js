@@ -118,7 +118,7 @@ function hookLayerFunctions() {
 	}
 }
 
-function handleKeys(event, key, up) {
+export function handleKeys(event, key, up) {
 	if (event.repeat || this.hasFocus)
 		return false
 
@@ -185,7 +185,7 @@ function onKeyEscape(up) {
 	return true;
 }
 
-function onEntityLeftDragStart(event) {
+export function onEntityLeftDragStart(event) {
 	const isToken = this instanceof Token;
 	const ruler = canvas.controls.ruler
 	ruler.draggedEntity = this;
@@ -202,7 +202,7 @@ function onEntityLeftDragStart(event) {
 	}
 }
 
-function startDragRuler(options, measureImmediately=true) {
+export function startDragRuler(options, measureImmediately=true) {
 	const isToken = this instanceof Token;
 	if (isToken && !currentSpeedProvider.usesRuler(this))
 		return;
@@ -223,13 +223,13 @@ function startDragRuler(options, measureImmediately=true) {
 		ruler.measure(destination, options);
 }
 
-function onEntityLeftDragMove(event) {
+export function onEntityLeftDragMove(event) {
 	const ruler = canvas.controls.ruler
 	if (ruler.isDragRuler)
 		onMouseMove.call(ruler, event)
 }
 
-function onEntityDragLeftDrop(event) {
+export function onEntityDragLeftDrop(event) {
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler) {
 		ruler.draggedEntity = undefined;
@@ -246,7 +246,7 @@ function onEntityDragLeftDrop(event) {
 	return true
 }
 
-function onEntityDragLeftCancel(event) {
+export function onEntityDragLeftCancel(event) {
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
 	if (!ruler.draggedEntity || ruler._state === Ruler.STATES.MOVING)
