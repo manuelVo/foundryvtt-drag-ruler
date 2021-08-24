@@ -1,32 +1,31 @@
-import { MODULE_ID } from "./libwrapper.js"
+import {settingsKey} from "./settings.js"
 import { applyTokenSizeOffset, getTokenShape, getSnapPointForToken, setSnapParameterOnOptions } from "./util.js";
 
 export function registerLibRuler() {
   // Wrappers for base Ruler methods
-  libWrapper.register(MODULE_ID, "Ruler.prototype.clear", dragRulerClear, "WRAPPER");
-  libWrapper.register(MODULE_ID, "Ruler.prototype.update", dragRulerUpdate, "MIXED");
-  libWrapper.register(MODULE_ID, "Ruler.prototype._endMeasurement", dragRulerEndMeasurement, "WRAPPER");
-  libWrapper.register(MODULE_ID, "Ruler.prototype._onMouseMove", dragRulerOnMouseMove, "WRAPPER");
-  libWrapper.register(MODULE_ID, "Ruler.prototype._getMovementToken", dragRulerGetMovementToken, "MIXED");
-  libWrapper.register(MODULE_ID, "Ruler.prototype.moveToken", dragRulerMoveToken, "MIXED");
+  libWrapper.register(settingsKey, "Ruler.prototype.clear", dragRulerClear, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype.update", dragRulerUpdate, "MIXED");
+  libWrapper.register(settingsKey, "Ruler.prototype._endMeasurement", dragRulerEndMeasurement, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype._onMouseMove", dragRulerOnMouseMove, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype._getMovementToken", dragRulerGetMovementToken, "MIXED");
+  libWrapper.register(settingsKey, "Ruler.prototype.moveToken", dragRulerMoveToken, "MIXED");
 
   // Wrappers for libRuler Ruler methods
-  libWrapper.register(MODULE_ID, "Ruler.prototype.setDestination", dragRulerSetDestination, "WRAPPER");
-  libWrapper.register(MODULE_ID, "Ruler.prototype._addWaypoint", dragRulerAddWaypoint, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype.setDestination", dragRulerSetDestination, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype._addWaypoint", dragRulerAddWaypoint, "WRAPPER");
 
   // Wrappers for libRuler RulerSegment methods
-  libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.addProperties", dragRulerAddProperties, "WRAPPER");
-  libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.drawLine", dragRulerDrawLine, "MIXED");
-  libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.highlightPosition", dragRulerHighlightPosition, "MIXED");
+  libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.addProperties", dragRulerAddProperties, "WRAPPER");
+  libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.drawLine", dragRulerDrawLine, "MIXED");
+  libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.highlightPosition", dragRulerHighlightPosition, "MIXED");
 
   // Wrappers for event handlers for testing
   // see what is happening with the various events
-  libWrapper.register(MODULE_ID, "Ruler.prototype._onDragStart", dragRulerOnDragStart, "WRAPPER");
-  libWrapper.register(MODULE_ID, "Ruler.prototype._onClickLeft", dragRulerOnClickLeft, "WRAPPER");
-  libWrapper.register(MODULE_ID, "Ruler.prototype._onClickRight", dragRulerOnClickRight, "WRAPPER");
-  //libWrapper.register(MODULE_ID, "Ruler.prototype._onMouseMove", dragRulerOnMouseMove, "WRAPPER");
-  libWrapper.register(MODULE_ID, "Ruler.prototype._onMouseUp", dragRulerOnMouseUp, "WRAPPER");
-  libWrapper.register(MODULE_ID, "KeyboardManager.prototype._onSpace", dragRulerOnSpace, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype._onDragStart", dragRulerOnDragStart, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype._onClickLeft", dragRulerOnClickLeft, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype._onClickRight", dragRulerOnClickRight, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype._onMouseUp", dragRulerOnMouseUp, "WRAPPER");
+  libWrapper.register(settingsKey, "KeyboardManager.prototype._onSpace", dragRulerOnSpace, "WRAPPER");
 
   addRulerProperties();
 }
@@ -67,7 +66,7 @@ function dragRulerOnSpace(wrapper, up, modifiers) {
 
 export function log(...args) {
   try {
-      console.log(MODULE_ID, '|', ...args);
+      console.log(settingsKey, '|', ...args);
   } catch (e) {}
 }
 
@@ -79,11 +78,11 @@ export function log(...args) {
  * Wrap for Ruler.clear
  */
 function dragRulerClear(wrapped) {
-  //this.setFlag(MODULE_ID, "previousWaypoints", []);
-  //const previousLabels = this.getFlag(MODULE_ID, "previousLabels");
+  //this.setFlag(settingsKey, "previousWaypoints", []);
+  //const previousLabels = this.getFlag(settingsKey, "previousLabels");
   //previousLabels.removeChildren().forEach(c => c.destroy());
-  //this.unsetFlag(MODULE_ID, "previousLabels");
-  //this.unsetFlag(MODULE_ID, "dragRulerRanges");
+  //this.unsetFlag(settingsKey, "previousLabels");
+  //this.unsetFlag(settingsKey, "dragRulerRanges");
   log("Clear.");
   wrapped();
 }
@@ -106,7 +105,7 @@ function dragRulerUpdate(wrapped, data) {
 function dragRulerEndMeasurement(wrapped) {
   log("EndMeasurement");
   wrapped();
-  this.unsetFlag(MODULE_ID, "draggedTokenID");
+  this.unsetFlag(settingsKey, "draggedTokenID");
 }
 
 
@@ -121,7 +120,7 @@ function dragRulerOnMouseMove(wrapped, event) {
   log("dragRulerOnMouseMove");
   if(!this.isDragRuler) return wrapped(event);
 
-  const offset = this.getFlag(MODULE_ID, "rulerOffset");
+  const offset = this.getFlag(settingsKey, "rulerOffset");
   event.data.destination.x = event.data.destination.x + offset.x;
   event.data.destination.y = event.data.destination.y + offset.y;
 
@@ -137,7 +136,7 @@ function dragRulerOnMouseMove(wrapped, event) {
  */
 function dragRulerSetDestination(wrapped, destination) {
   log("dragRulerSetDestination");
-  const snap = this.getFlag(MODULE_ID, "snap");
+  const snap = this.getFlag(settingsKey, "snap");
   if(snap) {
     const new_dest = getSnapPointForToken(destination.x, destination.y, this.draggedToken);
     destination.x = new_dest.x;
@@ -160,7 +159,7 @@ function dragRulerSetDestination(wrapped, destination) {
 async function dragRulerMoveToken(wrapped) {
   log(`dragRulerMoveToken`, event, this);
   if(!this.isDragRuler) return wrapped(event);
-  if(this.getFlag(MODULE_ID, "doTokenMove")) {
+  if(this.getFlag(settingsKey, "doTokenMove")) {
 		let options = {};
 		setSnapParameterOnOptions(this, options);
 
@@ -170,7 +169,7 @@ async function dragRulerMoveToken(wrapped) {
 			this.dragRulerDeleteWaypoint(event, options);
 		}
   } else {
-    this.setFlag(MODULE_ID, "doTokenMove", false);
+    this.setFlag(settingsKey, "doTokenMove", false);
     return wrapped(event);
   }
 }
@@ -224,7 +223,7 @@ function dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options
 	if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 		event.preventDefault();
 		const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
-		const rulerOffset = this.getFlag(MODULE_ID, "rulerOffset");
+		const rulerOffset = this.getFlag(settingsKey, "rulerOffset");
 		this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y});
 		game.user.broadcastActivity({ruler: this});
 	}
@@ -367,14 +366,14 @@ function addRulerProperties() {
   log(`addRulerProperties`);
 	// Add a getter method to check for drag token in Ruler flags.
 	Object.defineProperty(Ruler.prototype, "isDragRuler", {
-		get() { return Boolean(this.getFlag(MODULE_ID, "draggedTokenID")); },
+		get() { return Boolean(this.getFlag(settingsKey, "draggedTokenID")); },
 		configurable: true
 	});
 
 	// Add a getter method to return the token for the stored token id
 	Object.defineProperty(Ruler.prototype, "draggedToken", {
 		get() {
-			const draggedTokenID = this.getFlag(MODULE_ID, "draggedTokenID");
+			const draggedTokenID = this.getFlag(settingsKey, "draggedTokenID");
 			if(!draggedTokenID) return undefined;
 			return canvas.tokens.get(draggedTokenID);
 		},

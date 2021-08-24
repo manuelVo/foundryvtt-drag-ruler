@@ -10,7 +10,7 @@ import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
 import {isClose, setSnapParameterOnOptions} from "./util.js";
-import {registerLibWrapper, MODULE_ID} from "./libwrapper.js"
+import {registerLibWrapper} from "./libwrapper.js"
 import {registerLibRuler, log} from "./libruler.js"
 
 Hooks.once("init", () => {
@@ -155,10 +155,10 @@ function onKeyShift(up) {
 		return false;
 
 	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens)
-        const rulerOffset = game.modules.get('libruler')?.active ? ruler.getFlag(MODULE_ID, "rulerOffset") : ruler.rulerOffset;
+        const rulerOffset = game.modules.get('libruler')?.active ? ruler.getFlag(settingsKey, "rulerOffset") : ruler.rulerOffset;
         const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y};
   if(game.modules.get('lib-wrapper')?.active) {
-    ruler.setFlag(MODULE_ID, "snap", up);
+    ruler.setFlag(settingsKey, "snap", up);
   }
 	ruler.measure(measurePosition, {snap: up})
 }
@@ -201,7 +201,7 @@ export function onEntityLeftDragStart(event) {
 
 	if(game.modules.get('libruler')?.active) {
     log(`token id is ${this.id}`, this);
-    ruler.setFlag(MODULE_ID, "draggedTokenID", this.id);
+    ruler.setFlag(settingsKey, "draggedTokenID", this.id);
     log(`Set draggedTokenID. Ruler isDragRuler? ${ruler.isDragRuler}`, ruler);
 	} else {
 	ruler.draggedEntity = this;
@@ -213,7 +213,7 @@ export function onEntityLeftDragStart(event) {
 		entityCenter = this.center;
 	const rulerOffset = {x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y};
         if(game.modules.get('libruler')?.active) {
-          ruler.setFlag(MODULE_ID, "rulerOffset", rulerOffset);
+          ruler.setFlag(settingsKey, "rulerOffset", rulerOffset);
         } else {
           ruler.rulerOffset = rulerOffset;
         }
@@ -245,7 +245,7 @@ export function startDragRuler(options, measureImmediately=true) {
         }
 	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
 
-        const rulerOffset = game.modules.get('libruler')?.active ? ruler.getFlag(MODULE_ID, "rulerOffset") : ruler.rulerOffset;
+        const rulerOffset = game.modules.get('libruler')?.active ? ruler.getFlag(settingsKey, "rulerOffset") : ruler.rulerOffset;
 	const destination = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y};
 	if (measureImmediately)
 		ruler.measure(destination, options);
@@ -286,7 +286,7 @@ export function onEntityDragLeftDrop(event) {
 		selectedTokens.push(ruler.draggedEntity);
 	ruler._state = Ruler.STATES.MOVING
 	if(game.modules.get('libruler')?.active) {
-	  ruler.setFlag(MODULE_ID, "doTokenMove", true);
+	  ruler.setFlag(settingsKey, "doTokenMove", true);
 	  ruler.moveToken();
 	} else {
 	  const selectedTokens = canvas.tokens.controlled
