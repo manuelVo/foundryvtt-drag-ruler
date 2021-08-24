@@ -142,10 +142,11 @@ function onKeyShift(up) {
 }
 
 export function onTokenLeftDragStart(event) {
-  log(`onTokenLeftDragStart`, event);
 	if (!currentSpeedProvider.usesRuler(this))
 		return
 	const ruler = canvas.controls.ruler
+  log(`onTokenLeftDragStart`, event, ruler);
+  log(`${ruler.waypoints.length} waypoints; waypoint[0] is ${ruler.waypoints[0]?.x}, ${ruler.waypoints[0]?.y}`, ruler.waypoints);
 
 	if(game.modules.get('libruler')?.active) {
     log(`token id is ${this.id}`, this);
@@ -182,8 +183,15 @@ export function onTokenLeftDragStart(event) {
 }
 
 export function onTokenLeftDragMove(event) {
-  log(`onTokenLeftDragMove`, event);
 	const ruler = canvas.controls.ruler
+  log(`onTokenLeftDragMove`, event, ruler);
+  log(`${ruler.waypoints.length} waypoints; waypoint[0] is ${ruler.waypoints[0]?.x}, ${ruler.waypoints[0]?.y}`, ruler.waypoints);
+
+        if(ruler.waypoints.length < 1) {
+          log(`No waypoints found; restarting.`);
+          return onTokenLeftDragStart(event);
+        }
+
 	if (ruler.isDragRuler) {
 	  if(game.modules.get('libruler')?.active) {
 	    ruler._onMouseMove(event);
@@ -194,8 +202,10 @@ export function onTokenLeftDragMove(event) {
 }
 
 export function onTokenDragLeftDrop(event) {
-  log(`onTokenDragLeftDrop`, event);
 	const ruler = canvas.controls.ruler
+  log(`onTokenDragLeftDrop`, event, ruler);
+  log(`${ruler.waypoints.length} waypoints; waypoint[0] is ${ruler.waypoints[0]?.x}, ${ruler.waypoints[0]?.y}`, ruler.waypoints);
+
 	if (!ruler.isDragRuler)
 		return false
 
@@ -219,19 +229,27 @@ export function onTokenDragLeftDrop(event) {
 }
 
 export function onTokenDragLeftCancel(event) {
-  log(`onTokenDragLeftCancel`, event);
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
+  log(`onTokenDragLeftCancel`, event, ruler);
+  log(`${ruler.waypoints.length} waypoints; waypoint[0] is ${ruler.waypoints[0]?.x}, ${ruler.waypoints[0]?.y}`, ruler.waypoints);
+
 	if (!ruler.isDragRuler || ruler._state === Ruler.STATES.MOVING)
 		return false
 	if (ruler._state === Ruler.STATES.MEASURING) {
 		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
+                log(`Dropping waypoint`);
 			ruler.dragRulerDeleteWaypoint(event);
 		}
 		else {
+                        log(`Adding waypoint at ${ruler.destination.x}, ${ruler.destination.y}`);
 			event.preventDefault()
 			const snap = !event.shiftKey
-			ruler.dragRulerAddWaypoint(ruler.destination, snap);
+                        if(game.modules.get('libruler')?.active) { 
+                          ruler._addWaypoint(ruler.destination, snap);
+                        } else {
+            		  ruler.dragRulerAddWaypoint(ruler.destination, snap);
+                        }
 		}
 	}
 	return true

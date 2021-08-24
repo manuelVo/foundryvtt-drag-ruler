@@ -65,7 +65,8 @@ export class DragRulerRuler extends Ruler {
 
 	// The functions below aren't present in the orignal Ruler class and are added by Drag Ruler
 	dragRulerAddWaypoint(point, snap=true) {
-		if (snap)
+          console.log(`drag-ruler|Adding waypoint ${point.x}, ${point.y}`);
+          		if (snap)
 			point = getSnapPointForToken(point.x, point.y, this.draggedToken);
 		this.waypoints.push(new PIXI.Point(point.x, point.y));
 		this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));

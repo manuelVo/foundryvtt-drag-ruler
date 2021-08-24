@@ -1,5 +1,5 @@
 import { MODULE_ID } from "./libwrapper.js"
-import { applyTokenSizeOffset, getTokenShape } from "./util.js";
+import { applyTokenSizeOffset, getTokenShape, getSnapPointForToken } from "./util.js";
 
 export function registerLibRuler() {
   // Wrappers for base Ruler methods
@@ -108,12 +108,15 @@ function dragRulerSetDestination(wrapped, destination) {
  */
 // TO-DO: Change libRuler to override _addWaypoint to add a switch for centering
 function dragRulerAddWaypoint(wrapped, point, center = true) {
-  log("dragRulerAddWaypoint");
+  log("dragRulerAddWaypoint", this);
   if(!this.isDragRuler) return wrapped(point, center);
 
   if(center) {
+    log(`centering ${point.x}, ${point.y}`);
     point = getSnapPointForToken(point.x, point.y, this.draggedToken);
+    
   }
+  log(`adding waypoint ${point.x}, ${point.y}`);
   return wrapped(point, false);
 }
 
@@ -321,6 +324,7 @@ function addRulerProperties() {
 	  writable: true,
 	  configurable: true
 	});
+
 }
 
 
