@@ -229,7 +229,7 @@ function onEntityLeftDragStart(event) {
 	}
 }
 
-function startDragRuler(options, measureImmediately=true) {
+export function startDragRuler(options, measureImmediately=true) {
 	const isToken = this instanceof Token;
 	if (isToken && !currentSpeedProvider.usesRuler(this))
 		return;
