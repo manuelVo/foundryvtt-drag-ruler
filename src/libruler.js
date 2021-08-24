@@ -24,7 +24,7 @@ export function registerLibRuler() {
   libWrapper.register(MODULE_ID, "Ruler.prototype._onDragStart", dragRulerOnDragStart, "WRAPPER");
   libWrapper.register(MODULE_ID, "Ruler.prototype._onClickLeft", dragRulerOnClickLeft, "WRAPPER");
   libWrapper.register(MODULE_ID, "Ruler.prototype._onClickRight", dragRulerOnClickRight, "WRAPPER");
-  libWrapper.register(MODULE_ID, "Ruler.prototype._onMouseMove", dragRulerOnMouseMove, "WRAPPER");
+  //libWrapper.register(MODULE_ID, "Ruler.prototype._onMouseMove", dragRulerOnMouseMove, "WRAPPER");
   libWrapper.register(MODULE_ID, "Ruler.prototype._onMouseUp", dragRulerOnMouseUp, "WRAPPER");
   libWrapper.register(MODULE_ID, "KeyboardManager.prototype._onSpace", dragRulerOnSpace, "WRAPPER");
 
@@ -47,10 +47,13 @@ function dragRulerOnClickRight(wrapper, event) {
   wrapper(event);
 }
 
+/*
+ * Defined below
 function dragRulerOnMouseMove(wrapper, event) {
   log(`Ruler._onMouseMove`, event);
   wrapper(event);
 }
+*/
 
 function dragRulerOnMouseUp(wrapper, event) {
   log(`Ruler._onMouseUp`, event);
