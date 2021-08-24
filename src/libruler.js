@@ -214,29 +214,37 @@ function dragRulerClearWaypoints() {
 /*
  * New delete waypoints function
  */
-function dragRulerDeleteWaypoint(event={preventDefault: () => {return}}) {
+function dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={}) {
   log("dragRulerDeleteWaypoint");
+  options.snap = options.snap ?? true;
 
-		if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
-			event.preventDefault();
-			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
-			const rulerOffset = this.getFlag(MODULE_ID, "rulerOffset");
-			this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y});
-			game.user.broadcastActivity({ruler: this});
-		}
-		else {
-			const token = this.draggedToken;
-			this._endMeasurement();
-
-			// Deactivate the drag workflow in mouse
-			token.mouseInteractionManager._deactivateDragEvents();
-			token.mouseInteractionManager.state = token.mouseInteractionManager.states.HOVER;
-
-			// This will cancel the current drag operation
-			// Pass in a fake event that hopefully is enough to allow other modules to function
-			token._onDragLeftCancel(event);
-		}
+	if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
+		event.preventDefault();
+		const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
+		const rulerOffset = this.getFlag(MODULE_ID, "rulerOffset");
+		this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y});
+		game.user.broadcastActivity({ruler: this});
 	}
+	else {
+		this.dragRulerAbortDrag(event);
+	}
+}
+
+/*
+ * New abort drag function
+ */
+function dragRulerAbortDrag(event={preventDefault: () => {return}}) {
+  	const token = this.draggedEntity;
+		this._endMeasurement();
+
+		// Deactivate the drag workflow in mouse
+		token.mouseInteractionManager._deactivateDragEvents();
+		token.mouseInteractionManager.state = token.mouseInteractionManager.states.HOVER;
+
+		// This will cancel the current drag operation
+		// Pass in a fake event that hopefully is enough to allow other modules to function
+		token._onDragLeftCancel(event);
+}
 
 /*
  * New recalculate function
@@ -384,6 +392,12 @@ function addRulerProperties() {
 
 	Object.defineProperty(Ruler.prototype, "dragRulerDeleteWaypoint", {
 	  value: dragRulerDeleteWaypoint,
+	  writable: true,
+	  configurable: true
+	});
+
+	Object.defineProperty(Ruler.prototype, "dragRulerAbortDrag", {
+	  value: dragRulerAbortDrag,
 	  writable: true,
 	  configurable: true
 	});
