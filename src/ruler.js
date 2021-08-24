@@ -20,6 +20,7 @@ export class DragRulerRuler extends Ruler {
 	}
 
 	async moveToken(event) {
+          console.log(`drag-ruler|moveToken`, this);
 		// This function is invoked by left clicking
 		if (!this.isDragRuler)
 			return await super.moveToken(event);
