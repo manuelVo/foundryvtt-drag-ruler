@@ -31,19 +31,19 @@ export function registerLibRuler() {
 }
 
 // Wrappers for event handlers for testing
-function dragRulerOnDragStart(wrapper, event) {
+function dragRulerOnDragStart(wrapped, event) {
   log(`Ruler._onDragStart`, event);
-  wrapper(event);
+  wrapped(event);
 }
 
-function dragRulerOnClickLeft(wrapper, event) {
+function dragRulerOnClickLeft(wrapped, event) {
   log(`Ruler._onClickLeft`, event);
-  wrapper(event);
+  wrapped(event);
 }
 
-function dragRulerOnClickRight(wrapper, event) {
+function dragRulerOnClickRight(wrapped, event) {
   log(`Ruler._onClickRight`, event);
-  wrapper(event);
+  wrapped(event);
 }
 
 /*
@@ -54,14 +54,14 @@ function dragRulerOnMouseMove(wrapper, event) {
 }
 */
 
-function dragRulerOnMouseUp(wrapper, event) {
+function dragRulerOnMouseUp(wrapped, event) {
   log(`Ruler._onMouseUp`, event);
-  wrapper(event);
+  wrapped(event);
 }
 
-function dragRulerOnSpace(wrapper, up, modifiers) {
+function dragRulerOnSpace(wrapped, event, up, modifiers) {
   log(`Keyboard._onSpace. up: ${up}`);
-  return wrapper(up, modifiers);
+  return wrapped(event, up, modifiers);
 }
 
 export function log(...args) {
@@ -83,7 +83,9 @@ function dragRulerClear(wrapped) {
   //previousLabels.removeChildren().forEach(c => c.destroy());
   //this.unsetFlag(settingsKey, "previousLabels");
   //this.unsetFlag(settingsKey, "dragRulerRanges");
-  log("Clear.");
+  log("Clear");
+  this.unsetFlag(settingsKey, "draggedEntityID");
+  this.unsetFlag(settingsKey, "rulerOffset");
   wrapped();
 }
 
@@ -93,7 +95,7 @@ function dragRulerClear(wrapped) {
  * Wrap for Ruler.update
  */
 function dragRulerUpdate(wrapped, data) {
-  if(data.flags['drag-ruler'].draggedToken && data.draggedToken && this.user.isGM && !game.user.isGM && !game.settings.get(settingsKey, "showGMRulerToPlayers"))
+  if(this.draggedEntity && this.user.isGM && !game.user.isGM && !game.settings.get(settingsKey, "showGMRulerToPlayers"))
 			return;
 
   wrapped(data);
@@ -105,7 +107,6 @@ function dragRulerUpdate(wrapped, data) {
 function dragRulerEndMeasurement(wrapped) {
   log("EndMeasurement");
   wrapped();
-  this.unsetFlag(settingsKey, "draggedTokenID");
 }
 
 
@@ -138,7 +139,7 @@ function dragRulerSetDestination(wrapped, destination) {
   log("dragRulerSetDestination");
   const snap = this.getFlag(settingsKey, "snap");
   if(snap) {
-    const new_dest = getSnapPointForToken(destination.x, destination.y, this.draggedToken);
+    const new_dest = getSnapPointForToken(destination.x, destination.y, this.draggedEntity);
     destination.x = new_dest.x;
     destination.y = new_dest.y;
   }
@@ -157,21 +158,23 @@ function dragRulerSetDestination(wrapped, destination) {
  *        Handle measured template entity
  */
 async function dragRulerMoveToken(wrapped) {
-  log(`dragRulerMoveToken`, event, this);
-  if(!this.isDragRuler) return wrapped(event);
-  if(this.getFlag(settingsKey, "doTokenMove")) {
-		let options = {};
-		setSnapParameterOnOptions(this, options);
-
-		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
-			this.dragRulerAddWaypoint(this.destination, options);
-		} else {
-			this.dragRulerDeleteWaypoint(event, options);
-		}
+  log(`dragRulerMoveToken`, this);
+  if(!this.isDragRuler) return await wrapped();
+  if(this._state === Ruler.STATES.MOVING) {
+    log(`Moving token`);
+    return await wrapped();
   } else {
-    this.setFlag(settingsKey, "doTokenMove", false);
-    return wrapped(event);
-  }
+    let options = {};
+    setSnapParameterOnOptions(this, options);
+
+    if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
+      log(`Adding waypoint`);
+      this._addWaypoint(this.destination, options);
+    } else {
+      log(`Deleting waypoint`);
+      this.dragRulerDeleteWaypoint(event, options);
+    }
+  } 
 }
 
 /*
@@ -184,7 +187,7 @@ function dragRulerAddWaypoint(wrapped, point, center = true) {
 
   if(center) {
     log(`centering ${point.x}, ${point.y}`);
-    point = getSnapPointForToken(point.x, point.y, this.draggedToken);
+    point = getSnapPointForToken(point.x, point.y, this.draggedEntity);
 
   }
   log(`adding waypoint ${point.x}, ${point.y}`);
@@ -256,7 +259,7 @@ async function dragRulerRecalculate(tokenIds) {
 	if (this._state !== Ruler.STATES.MEASURING)
 		return;
 
-	const dragged_token = this.draggedToken;
+	const dragged_token = this.draggedEntity;
 
 	if (tokenIds && !tokenIds.includes(dragged_token.id))
 		return;
@@ -292,7 +295,7 @@ export function dragRulerGetRaysFromWaypoints(waypoints, destination) {
 function dragRulerGetMovementToken(wrapped) {
   log("dragRulerGetMovementToken");
   if(!this.isDragRuler) return wrapped();
-  return this.draggedToken;
+  return this.draggedEntity;
 }
 
 // TO-DO: Deal with token animation and multiple selected token animation
@@ -310,7 +313,7 @@ function dragRulerAddProperties(wrapped) {
   // center the segments
   // TO-DO: Can Terrain Ruler handle its part separately? So just center everything here?
   // See if (!terrainRulerAvailable) in drag ruler original measure function
-  const centeredWaypoints = applyTokenSizeOffset([this.ray.A, this.ray.B], this.ruler.draggedToken);
+  const centeredWaypoints = applyTokenSizeOffset([this.ray.A, this.ray.B], this.ruler.draggedEntity);
   centeredWaypoints.forEach(w => [w.x, w.y] = canvas.grid.getCenter(w.x, w.y));
 
   this.ray = new Ray(centeredWaypoints[0], centeredWaypoints[1]);
@@ -330,7 +333,7 @@ function dragRulerHighlightPosition(wrapped, position) {
   log(`dragRulerHighlightPosition position ${position.x}, ${position.y}`, position);
   if(!this.ruler.isDragRuler) return wrapped(position);
 
-  const shape = getTokenShape(this.ruler.draggedToken);
+  const shape = getTokenShape(this.ruler.draggedEntity);
   const color = this.colorForPosition(position);
   const alpha = this.ray.isPrevious ? 0.33 : 1;
 
@@ -366,16 +369,16 @@ function addRulerProperties() {
   log(`addRulerProperties`);
 	// Add a getter method to check for drag token in Ruler flags.
 	Object.defineProperty(Ruler.prototype, "isDragRuler", {
-		get() { return Boolean(this.getFlag(settingsKey, "draggedTokenID")); },
+		get() { return Boolean(this.getFlag(settingsKey, "draggedEntityID")); },
 		configurable: true
 	});
 
 	// Add a getter method to return the token for the stored token id
-	Object.defineProperty(Ruler.prototype, "draggedToken", {
+	Object.defineProperty(Ruler.prototype, "draggedEntity", {
 		get() {
-			const draggedTokenID = this.getFlag(settingsKey, "draggedTokenID");
-			if(!draggedTokenID) return undefined;
-			return canvas.tokens.get(draggedTokenID);
+			const draggedEntityID = this.getFlag(settingsKey, "draggedEntityID");
+			if(!draggedEntityID) return undefined;
+			return canvas.tokens.get(draggedEntityID);
 		},
 		configurable: true
 	});

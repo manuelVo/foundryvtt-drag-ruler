@@ -210,8 +210,8 @@ function onEntityLeftDragStart(event) {
 
 	if(game.modules.get('libruler')?.active) {
     log(`token id is ${this.id}`, this);
-    ruler.setFlag(settingsKey, "draggedTokenID", this.id);
-    log(`Set draggedTokenID. Ruler isDragRuler? ${ruler.isDragRuler}`, ruler);
+    ruler.setFlag(settingsKey, "draggedEntityID", this.id);
+    log(`Set draggedEntityID. Ruler isDragRuler? ${ruler.isDragRuler}`, ruler);
 	} else {
 	ruler.draggedEntity = this;
 	}
@@ -238,7 +238,21 @@ export function startDragRuler(options, measureImmediately=true) {
 	if (isToken && !currentSpeedProvider.usesRuler(this))
 		return;
 	const ruler = canvas.controls.ruler;
+        // ruler.clear() call _endMeasurement and will wipe set flags.
+        // but the flags may have already been set by onEntityLeftDragStart
+        // so copy over
+        let draggedEntityID;
+        let rulerOffset;
+        if(game.modules.get('libruler')?.active) {
+          draggedEntityID = ruler.getFlag(settingsKey, "draggedEntityID");
+          rulerOffset = ruler.getFlag(settingsKey, "rulerOffset");
+        }
 	ruler.clear();
+
+        if(game.modules.get('libruler')?.active) {
+          ruler.setFlag(settingsKey, "draggedEntityID", draggedEntityID);
+          ruler.setFlag(settingsKey, "rulerOffset", rulerOffset);
+        }
 	ruler._state = Ruler.STATES.STARTING;
 
 	const rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
@@ -268,7 +282,7 @@ export function startDragRuler(options, measureImmediately=true) {
 	ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
 	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
 
-        const rulerOffset = game.modules.get('libruler')?.active ? ruler.getFlag(settingsKey, "rulerOffset") : ruler.rulerOffset;
+        rulerOffset = game.modules.get('libruler')?.active ? ruler.getFlag(settingsKey, "rulerOffset") : ruler.rulerOffset;
 	const destination = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y};
 	if (measureImmediately)
 		ruler.measure(destination, options);
@@ -281,11 +295,12 @@ function onEntityLeftDragMove(event) {
   log(`onTokenLeftDragMove`, event, ruler);
   log(`${ruler.waypoints.length} waypoints; waypoint[0] is ${ruler.waypoints[0]?.x}, ${ruler.waypoints[0]?.y}`, ruler.waypoints);
 
+/*
         if(ruler.waypoints.length < 1) {
           log(`No waypoints found; restarting.`);
           return onEntityLeftDragStart.call(this, event);
         }
-
+*/
 	if (ruler.isDragRuler) {
 	  if(game.modules.get('libruler')?.active) {
 	    ruler._onMouseMove(event);
@@ -322,7 +337,6 @@ function onEntityDragLeftDrop(event) {
 	moveEntities.call(ruler, ruler.draggedEntity, selectedTokens);
 
 	if(game.modules.get('libruler')?.active) {
-	  ruler.setFlag(settingsKey, "doTokenMove", true);
 	  ruler.moveToken();
 	} else {
 	  const selectedTokens = canvas.tokens.controlled
@@ -336,23 +350,30 @@ function onEntityDragLeftCancel(event) {
   log(`onTokenDragLeftCancel`, event);
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
-  log(`onTokenDragLeftCancel`, event, ruler);
+  log(`onTokenDragLeftCancel ruler state ${ruler._state} `, event, ruler);
   log(`${ruler.waypoints.length} waypoints; waypoint[0] is ${ruler.waypoints[0]?.x}, ${ruler.waypoints[0]?.y}`, ruler.waypoints);
-	if (!ruler.draggedEntity || ruler._state === Ruler.STATES.MOVING)
-		return false
+	if (!ruler.draggedEntity || ruler._state === Ruler.STATES.MOVING) {
+	  log('returning false from dragLeftCancel');
+         	return false
+        }
 
 	const swapSpacebarRightClick = game.settings.get(settingsKey, "swapSpacebarRightClick");
 	let options = {};
+        log('setting snap');
 	setSnapParameterOnOptions(ruler, options);
 
 	if (ruler._state === Ruler.STATES.INACTIVE) {
+          log('Ruler state inactive.');
 		if (!swapSpacebarRightClick)
 			return false;
+          log('Starting drag ruler');
 		startDragRuler.call(this, options);
 		event.preventDefault();
 	}
 	else if (ruler._state === Ruler.STATES.MEASURING) {
+          log('Ruler state measuring');
 		if (!swapSpacebarRightClick) {
+                   log('Deleting waypoint');
 			ruler.dragRulerDeleteWaypoint(event, options);
 		}
 		else {
@@ -360,8 +381,10 @@ function onEntityDragLeftCancel(event) {
 			event.preventDefault();
 			const snap = !event.shiftKey
                         if(game.modules.get('libruler')?.active) { 
+                          log('Adding waypoint');
                           ruler._addWaypoint(ruler.destination, Boolean(options.snap));
                         } else {
+                          log('Adding waypoint (non-libruler version)');
 			ruler.dragRulerAddWaypoint(ruler.destination, options);
                         }
 		}
