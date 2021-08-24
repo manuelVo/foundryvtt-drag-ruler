@@ -1,17 +1,94 @@
-## In development
+## 1.8.1
+### Bugfixes
+- Fixed a bug where the function that was bound to the spacebar key wouldn't work correctly when the "Toggle Snap To Grid" module was enabled
+
+### Translation
+- Updated Spanish translation (thanks to Viriato139ac#342)
+
+
+## 1.8.0
+### New features
+- Pressing escape during a drag now cancels the drag
+- Undoing a movement via Ctrl+Z will now also remove that movement from Drag Ruler's movement history
+- Drag Ruler can now configured to stay disabled by default when a Token/Template is being dragged. In that case it will activate once the button to place a waypoint is being pressed.
+
+### Bugfixes
+- Fixed a bug that caused the ruler to snap to grid when a waypoint was deleted while shift was being pressed (thanks to Michael Clavell!)
+- Fixed a bug that could leave behind a single waypoint on the canvas when canceling a dragging operation while moving the mouse
+
+### Compatibility
+- Drag Ruler is now compatible with the "Toggle Snap To Grid" module (thanks to Michael Clavell!)
+
+
+## 1.7.7
+### Compatibility
+- Updated the default settings for the swade game system. The new default speed attribute points to a speed value that gets adjusted for wounds.
+
+
+## 1.7.6
+### Translation
+- Added Korean translation (thanks to KLO#1490)
+- Added Spanish translation (thanks to Viriato139ac#342)
+
+### Compatibility
+- Drag Ruler's Generic Speed Provider is now awar of good default values for the "Call of Cthulhu 7th edition (Unofficial)" game system
+- Drag Ruler is now compatible with Foundry 0.8.8
+
+## 1.7.5
+### Bugfixes
+- Decimal speeds (as often used in metric game systems) are no longer being rounded down (thanks to DarKDinDoN for diagnosing this bug)
+
+
+## 1.7.4
+### Bugfixes
+- Fixed a bug where the ruler would wrongly snap to the grid center for other players when dragging a measurement template
+
+### Compatibility
+- Drag Ruler is now compatiblie with the "Monk's Active Tile Triggers" module
+- Drag Ruler's Generic Speed Provider is now aware of good default values for the D&D 3.5 game system
+- Drag Ruler is now compatible with Foundry 0.8.7
+
+## 1.7.3
+### Compatibility
+- Drag Ruler is now compatible with Foundry 0.8.5
+
+
+## 1.7.2
+### Bugfixes
+- Fixed a bug that prevented waypoints for measurement templates from snapping to any other point than a grid cell corner (or grid cell center on hex)
+- Fixed a bug that could cause the ruler to not end up at the token's center (especially if the token is being moved very quickly and then stopped abruptly)
+
+
+## 1.7.1
+### Bugfixes
+- Fixed a bug that prevented players from moving their tokens ([#74](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/74))
+
+
+## 1.7.0
 **BREAKING** This update is incompatible with previous Terrain Ruler versions. If you're using Terrain Ruler, make sure you update Terrain Ruler to at least version 1.3.0.
 
 ### New features
+- A ruler will now be shown when dragging measurement templates over the map ([#13](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/13))
 - Drag Ruler can now measure difficult terrain on gridless maps (if the Terrain Ruler module is installed and enabled)
+- Improved the positioning of the labels around the ruler. The labels should now never overlap with the waypoint.
 
 ### Bugfixes
 - Fixed a bug that sometimes measured diagonals incorrectly with the 5/10/5 grid rule
+- Fixed a bug that would cause the ruler to re-measure when the shift key is being pressed or released while a token is moving
 
 ### Compatibility
 - Drag Ruler's Generic Speed Provider is now aware of good default values for the Starfinder game system
 
 ### Translation
 - Corrected typos in the german translation (thanks to CarnVanBeck!)
+
+### API
+- The old API that Drag Ruler offered prior to version 1.3.0 is now deprecated. Speed Providers that still use this API will continue to work for now, but will generate a warning in the console about the deprecation. All modules and game systems offered on the FoundryVTT website have already updated to the new API. If you see the deprecation warning, please consider updating to the current version of the respective system/module you're using.
+
+
+## 1.6.5
+### Bugfixes
+- Drag Ruler no longer gets stuck if the user presses ESC during drag ([#70](https://github.com/manuelVo/foundryvtt-drag-ruler/issues/70))
 
 
 ## 1.6.4
