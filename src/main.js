@@ -16,13 +16,11 @@ import {registerLibRuler, log} from "./libruler.js"
 Hooks.once("init", () => {
 	registerSettings()
 	initApi()
-	hookDragHandlers(Token);
-	hookDragHandlers(MeasuredTemplate);
-	hookKeyboardManagerFunctions()
 	hookLayerFunctions();
 
         if(!game.modules.get('lib-wrapper')?.active) {
-	  hookTokenDragHandlers()
+	  hookDragHandlers(Token)
+          hookDragHandlers(MeasuredTemplate);
 	  hookKeyboardManagerFunctions()
         } else {
           registerLibWrapper();
