@@ -7,16 +7,17 @@ import { onEntityLeftDragStart,
 
 import { removeLastHistoryEntryIfAt } from "./movement_tracking.js";
 export const MODULE_ID = "drag-ruler";
+import { settingsKey } from "./settings.js"
 
 export function registerLibWrapper() {
-  libWrapper.register(MODULE_ID, "Token.prototype._onDragLeftStart", onTokenLeftDragStartWrap, "WRAPPER");
-  libWrapper.register(MODULE_ID, "Token.prototype._onDragLeftMove", onDragLeftMoveWrap, "WRAPPER");
-  libWrapper.register(MODULE_ID, "Token.prototype._onDragLeftDrop", onDragLeftDropWrap, "MIXED");
-  libWrapper.register(MODULE_ID, "Token.prototype._onDragLeftCancel", onDragLeftCancelWrap, "MIXED");
+  libWrapper.register(settingsKey, "Token.prototype._onDragLeftStart", onTokenLeftDragStartWrap, "WRAPPER");
+  libWrapper.register(settingsKey, "Token.prototype._onDragLeftMove", onDragLeftMoveWrap, "WRAPPER");
+  libWrapper.register(settingsKey, "Token.prototype._onDragLeftDrop", onDragLeftDropWrap, "MIXED");
+  libWrapper.register(settingsKey, "Token.prototype._onDragLeftCancel", onDragLeftCancelWrap, "MIXED");
 
-  libWrapper.register(MODULE_ID, "KeyboardManager.prototype._handleKeys", handleKeysWrap, "MIXED");
+  libWrapper.register(settingsKey, "KeyboardManager.prototype._handleKeys", handleKeysWrap, "MIXED");
 
-  libWrapper.register(MODULE_ID, "TokenLayer.prototype.undoHistory", dragRulerUndoHistory, "WRAPPER");
+  libWrapper.register(settingsKey, "TokenLayer.prototype.undoHistory", dragRulerUndoHistory, "WRAPPER");
 }
 
 // simple wraps to keep the original functionality when not using libWrapper
@@ -54,7 +55,7 @@ function handleKeysWrap(wrapped, event, key, up) {
 async function dragRulerUndoHistory(wrapped) {
   const historyEntry = this.history[this.history.length - 1];
   const returnValue = await wrapped();
-  
+
   if (historyEntry.type === "update") {
     for (const entry of historyEntry.data) {
       const token = canvas.tokens.get(entry._id);
