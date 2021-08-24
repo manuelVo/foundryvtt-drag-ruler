@@ -18,7 +18,41 @@ export function registerLibRuler() {
   libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.drawLine", dragRulerDrawLine, "MIXED");
   libWrapper.register(MODULE_ID, "window.libRuler.RulerSegment.prototype.highlightPosition", dragRulerHighlightPosition, "MIXED");
 
+  // Wrappers for event handlers for testing
+  // see what is happening with the various events
+  libWrapper.register(MODULE_ID, "Ruler.prototype._onDragStart", dragRulerOnDragStart, "WRAPPER");
+  libWrapper.register(MODULE_ID, "Ruler.prototype._onClickLeft", dragRulerOnClickLeft, "WRAPPER");
+  libWrapper.register(MODULE_ID, "Ruler.prototype._onClickRight", dragRulerOnClickRight, "WRAPPER");
+  libWrapper.register(MODULE_ID, "Ruler.prototype._onMouseMove", dragRulerOnMouseMove, "WRAPPER");
+  libWrapper.register(MODULE_ID, "Ruler.prototype._onMouseUp", dragRulerOnMouseUp, "WRAPPER");
+
   addRulerProperties();
+}
+
+// Wrappers for event handlers for testing
+function dragRulerOnDragStart(wrapper, event) {
+  log(`Ruler._onDragStart`, event);
+  wrapper(event);
+}
+
+function dragRulerOnClickLeft(wrapper, event) {
+  log(`Ruler._onClickLeft`, event);
+  wrapper(event);
+}
+
+function dragRulerOnClickRight(wrapper, event) {
+  log(`Ruler._onClickRight`, event);
+  wrapper(event);
+}
+
+function dragRulerOnMouseMove(wrapper, event) {
+  log(`Ruler._onMouseMove`, event);
+  wrapper(event);
+}
+
+function dragRulerOnMouseUp(wrapper, event) {
+  log(`Ruler._onMouseUp`, event);
+  wrapper(event);
 }
 
 export function log(...args) {
@@ -114,7 +148,7 @@ function dragRulerAddWaypoint(wrapped, point, center = true) {
   if(center) {
     log(`centering ${point.x}, ${point.y}`);
     point = getSnapPointForToken(point.x, point.y, this.draggedToken);
-    
+
   }
   log(`adding waypoint ${point.x}, ${point.y}`);
   return wrapped(point, false);
