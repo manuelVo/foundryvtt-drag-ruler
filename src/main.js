@@ -321,6 +321,7 @@ function onEntityDragLeftDrop(event) {
 	moveEntities.call(ruler, ruler.draggedEntity, selectedTokens);
 
 	if(game.modules.get('libruler')?.active) {
+	  ruler.setFlag(MODULE_ID, "doTokenMove", true);
 	  ruler.moveToken();
 	} else {
 	  const selectedTokens = canvas.tokens.controlled
