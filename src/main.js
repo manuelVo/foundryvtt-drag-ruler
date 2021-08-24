@@ -53,8 +53,9 @@ Hooks.on("canvasReady", () => {
 			}
 			})
 		})
-	}
-})
+	})
+  }
+});
 
 Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
 	const entry = {
@@ -158,9 +159,8 @@ function onKeyShift(up) {
 		return false;
 
 	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens)
-	const rulerOffset = ruler.rulerOffset
-	const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}
-
+        const rulerOffset = game.modules.get('libruler')?.active ? ruler.getFlag(MODULE_ID, "rulerOffset") : ruler.rulerOffset;
+        const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y};
   if(game.modules.get('lib-wrapper')?.active) {
     ruler.setFlag(MODULE_ID, "snap", up);
   }
@@ -219,7 +219,12 @@ function onEntityLeftDragStart(event) {
 		entityCenter = getHexSizeSupportTokenGridCenter(this);
 	else
 		entityCenter = this.center;
-	ruler.rulerOffset = {x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y};
+	const rulerOffset = {x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y};
+        if(game.modules.get('libruler')?.active) {
+          ruler.setFlag(MODULE_ID, "rulerOffset", rulerOffset);
+        } else {
+          ruler.rulerOffset = rulerOffset;
+        }
 	if (game.settings.get(settingsKey, "autoStartMeasurement")) {
 		let options = {};
 		setSnapParameterOnOptions(ruler, options);
@@ -256,9 +261,14 @@ export function startDragRuler(options, measureImmediately=true) {
 		entityCenter = this.center;
 	if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
 		ruler.dragRulerAddWaypointHistory(getMovementHistory(this));
+        if(game.modules.get('libruler')?.active) {
+          ruler._addWaypoint(entityCenter, false);
+        } else {
 	ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
 	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
-	const destination = {x: mousePosition.x + ruler.rulerOffset.x, y: mousePosition.y + ruler.rulerOffset.y};
+
+        const rulerOffset = game.modules.get('libruler')?.active ? ruler.getFlag(MODULE_ID, "rulerOffset") : ruler.rulerOffset;
+	const destination = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y};
 	if (measureImmediately)
 		ruler.measure(destination, options);
         }
@@ -272,7 +282,7 @@ function onEntityLeftDragMove(event) {
 
         if(ruler.waypoints.length < 1) {
           log(`No waypoints found; restarting.`);
-          return onTokenLeftDragStart(event);
+          return onEntityLeftDragStart.call(this, event);
         }
 
 	if (ruler.isDragRuler) {
@@ -348,7 +358,7 @@ function onEntityDragLeftCancel(event) {
 			event.preventDefault();
 			const snap = !event.shiftKey
                         if(game.modules.get('libruler')?.active) { 
-                          ruler._addWaypoint(ruler.destination, snap);
+                          ruler._addWaypoint(ruler.destination, Boolean(options.snap));
                         } else {
 			ruler.dragRulerAddWaypoint(ruler.destination, options);
                         }
