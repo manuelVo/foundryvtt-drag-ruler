@@ -20,6 +20,13 @@ export function registerLibRuler() {
   // Wrappers for libRuler Ruler methods
   libWrapper.register(settingsKey, "Ruler.prototype.setDestination", dragRulerSetDestination, "WRAPPER");
   libWrapper.register(settingsKey, "Ruler.prototype._addWaypoint", dragRulerAddWaypoint, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype.deferMeasurement", dragRulerDeferMeasurement, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype.cancelScheduledMeasurement", dragRulerCancelScheduledMeasurement, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype.doDeferredMeasurements", dragRulerDoDeferredMeasurements, "WRAPPER");
+
+
+
+
 
   // Wrappers for libRuler RulerSegment methods
   libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.addProperties", dragRulerAddProperties, "WRAPPER");
@@ -87,6 +94,8 @@ function dragRulerEndMeasurement(wrapped) {
 
 /*
  * Wrap for Ruler._onMouseMove
+ * Must set the offset for the destination before onMouseMove measures the distance
+ * Offset then used for the measurement, if it occurs
  */
 
 function dragRulerOnMouseMove(wrapped, event) {
@@ -99,6 +108,44 @@ function dragRulerOnMouseMove(wrapped, event) {
 
   wrapped(event);
   // FYI: original drag ruler version calls this.measure with {snap: !originalEvent.shiftKey}, not {gridSpace: !originalEvent.shiftKey}
+}
+
+// The below deferMeasurement and cancelScheduleMeasurement handle situation in which
+// if a measurement is being skipped because of the ruler's rate limiting,
+// schedule the measurement for later to ensure the ruler sticks to the token
+// see https://github.com/manuelVo/foundryvtt-drag-ruler/commit/3cbe41e2be7b4ca8dabcf98094caad15a321ddc0#diff-8afd60da4c5dc44f5ed9d0c15918eab6724af29b5d385b05a1cd0aaa85bfcf8c
+
+/*
+ * Wrap for libRuler Ruler.deferMeasurement
+ *
+ */
+function dragRulerDeferMeasurement(wrapped, destination, event) {
+  if(this.isDragRuler) {
+		this.deferredMeasurementData = {destination, event};
+		if (!this.deferredMeasurementTimeout) {
+			this.deferredMeasurementPromise = new Promise((resolve, reject) => this.deferredMeasurementResolve = resolve);
+			this.deferredMeasurementTimeout = window.setTimeout(() => this.scheduleMeasurement(this.deferredMeasurementData.destination, this.deferredMeasurementData.event));
+		}
+	}
+	return wrapped(destination, event);
+}
+
+/*
+ * Wrap for libRuler Ruler.cancelScheduledMeasurement
+ * Uses existing internal drag ruler function to avoid unnecessary copy
+ */
+function dragRulerCancelScheduledMeasurement(wrapped) {
+  if(this.isDragRuler) { cancelScheduledMeasurement.call(this); }
+  return wrapped();
+}
+
+/*
+ * Wrap for libRuler Ruler.doDeferredMeasurement
+ * This is called from Ruler.moveToken and will catch the deferred promise in dragRulerDeferMeasurement above
+ */
+function dragRulerDoDeferredMeasurements() {
+  if(this.isDragRuler) { await this.deferredMeasurementPromise; }
+  return wrapped();
 }
 
 /*
