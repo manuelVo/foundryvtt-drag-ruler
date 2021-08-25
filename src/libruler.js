@@ -55,7 +55,7 @@ function dragRulerClear(wrapped) {
   //this.unsetFlag(settingsKey, "previousLabels");
   //this.unsetFlag(settingsKey, "dragRulerRanges");
   log("Clear");
-  cancelScheduledMeasurement.call(this);
+  //cancelScheduledMeasurement();
   wrapped();
 }
 
@@ -91,47 +91,14 @@ function dragRulerEndMeasurement(wrapped) {
 
 function dragRulerOnMouseMove(wrapped, event) {
   log("dragRulerOnMouseMove");
-
   if(!this.isDragRuler) return wrapped(event);
-  if(this._state === Ruler.STATES.MOVING) return wrapped(event);
 
-  const mt = event._measureTime || 0;
-  const rulerOffset = this.getFlag(settingsKey, "rulerOffset");
-  event.data.destination.x = event.data.destination.x + rulerOffset.x;
-  event.data.destination.y = event.data.destination.y + rulerOffset.y;
-  const {origin, destination, originalEvent} = event.data; // in case we need it after wrap
+  const offset = this.getFlag(settingsKey, "rulerOffset");
+  event.data.destination.x = event.data.destination.x + offset.x;
+  event.data.destination.y = event.data.destination.y + offset.y;
 
   wrapped(event);
   // FYI: original drag ruler version calls this.measure with {snap: !originalEvent.shiftKey}, not {gridSpace: !originalEvent.shiftKey}
-
-  // handle deferred measurements
-  // drag ruler commit 3cbe41e2be7b4ca8dabcf98094caad15a321ddc0
-  //   If a measurement is being skipped because of the ruler's rate limiting,
-  //   schedule the measurement for later to ensure the ruler sticks to the token
-  // a bit tricky b/c we want to use a wrap if at all possible.
-  // but we cannot easily tell if _onMouseMove returned early or not.
-  // looks like _onMouseMove sets event._measureTime to the Date.now() if updating
-  // otherwise, event._measureTime is either undefined or the prior set time at start
-  // cheating a bit to use such information, but prefer wrap to not wrap.
-
-  if(event._measureTime & mt !== event._measureTime) {
-    // a measurement update occurred
-    cancelScheduledMeasurement.call(this);
-  } else {
-    // either we did not move 1/4 grid space or Date.now() - mt <= 50
-    // and so event._measureTime not updated
-    const dx = destination.x - origin.x;
-    const dy = destination.y - origin.y;
-    const distance = Math.hypot(dy, dx);
-    if ( !this.waypoints.length && (distance < (canvas.dimensions.size / 4))) return;
-
-    const measurementInterval = 50;
-    this.deferredMeasurementData = {destination, event};
-		if (!this.deferredMeasurementTimeout) {
-			this.deferredMeasurementPromise = new Promise((resolve, reject) => this.deferredMeasurementResolve = resolve);
-			this.deferredMeasurementTimeout = window.setTimeout(() => scheduleMeasurement.call(this, this.deferredMeasurementData.destination, this.deferredMeasurementData.event), measurementInterval);
-		}
-  }
 }
 
 /*
