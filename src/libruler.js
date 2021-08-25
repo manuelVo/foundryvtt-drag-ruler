@@ -30,7 +30,6 @@ export function registerLibRuler() {
 
   // Wrappers for libRuler RulerSegment methods
   libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.addProperties", dragRulerAddProperties, "WRAPPER");
-  libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.drawLine", dragRulerDrawLine, "MIXED");
   libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.highlightPosition", dragRulerHighlightPosition, "MIXED");
 
   addRulerProperties();
@@ -264,6 +263,11 @@ function dragRulerAddProperties(wrapped) {
   this.ray.dragRulerVisitedSpaces = origin.dragRulerVisitedSpaces;
   this.ray.dragRulerFinalState = origin.dragRulerFinalState;
 
+  // set opacity for drawing the line and the highlight
+  const opacity_mult = this.ray.isPrevious ? 0.33 : 1;
+  this.opacityMultipliers.line = opacity_mult;
+  this.opacityMultipliers.highlight = opacity_mult;
+
   // TO-DO: Is there any need to store the original ray? What about when drawing lines (see original drag ruler measure function)
 }
 
@@ -288,19 +292,6 @@ function dragRulerHighlightPosition(wrapped, position) {
 	}
 
 }
-
-function dragRulerDrawLine(wrapped) {
-  log(`dragRulerDrawLine`);
-  if(!this.ruler.isDragRuler) return wrapped();
-  const opacityMultiplier = this.ray.isPrevious ? 0.33 : 1;
-  const ray = this.ray;
-  const r = this.ruler.ruler;
-  const rulerColor = this.color;
-
-  r.lineStyle(6, 0x000000, 0.5 * opacityMultiplier).moveTo(ray.A.x, ray.A.y).lineTo(ray.B.x, ray.B.y).
-    lineStyle(4, rulerColor, 0.25 * opacityMultiplier).moveTo(ray.A.x, ray.A.y).lineTo(ray.B.x, ray.B.y);
-}
-
 
 
 // Additions to Ruler class
