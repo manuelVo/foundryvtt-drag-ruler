@@ -28,6 +28,12 @@ export function registerLibRuler() {
   libWrapper.register(settingsKey, "KeyboardManager.prototype._onSpace", dragRulerOnSpace, "WRAPPER");
 
   addRulerProperties();
+
+  // tell libWrapper that it can ignore the conflict warning from drag ruler not always calling
+  // the underlying method for Ruler.moveToken. (i.e., drag ruler interrupts it 
+  // if just adding or deleting a waypoint)
+  libWrapper.ignore_conflicts(settingsKey, "libruler", "Ruler.prototype.moveToken");
+
 }
 
 // Wrappers for event handlers for testing
