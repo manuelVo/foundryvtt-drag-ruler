@@ -261,13 +261,6 @@ export function startDragRuler(options, measureImmediately=true) {
 
 export function onEntityLeftDragMove(event) {
 	const ruler = canvas.controls.ruler
-
-/*
-        if(ruler.waypoints.length < 1) {
-          log(`No waypoints found; restarting.`);
-          return onEntityLeftDragStart.call(this, event);
-        }
-*/
 	if (ruler.isDragRuler) {
 	  if(game.modules.get('libruler')?.active) {
 	    ruler._onMouseMove(event);
@@ -314,7 +307,6 @@ export function onEntityDragLeftCancel(event) {
 	if (ruler._state === Ruler.STATES.INACTIVE) {
 		if (!swapSpacebarRightClick)
 			return false;
-          log('Starting drag ruler');
 		startDragRuler.call(this, options);
 		event.preventDefault();
 	}
