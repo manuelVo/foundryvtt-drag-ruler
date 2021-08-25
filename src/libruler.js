@@ -1,5 +1,12 @@
 import {settingsKey} from "./settings.js"
 import { applyTokenSizeOffset, getTokenShape, getSnapPointForToken, setSnapParameterOnOptions } from "./util.js";
+import { dragRulerAddWaypointHistory,
+         dragRulerClearWaypoints,
+         dragRulerDeleteWaypoint,
+         dragRulerAbortDrag,
+         dragRulerRecalculate } from "./ruler.js";
+
+import { cancelScheduledMeasurement } from "./foundry_imports.js";
 
 export function registerLibRuler() {
   // Wrappers for base Ruler methods
@@ -48,8 +55,7 @@ function dragRulerClear(wrapped) {
   //this.unsetFlag(settingsKey, "previousLabels");
   //this.unsetFlag(settingsKey, "dragRulerRanges");
   log("Clear");
-  this.unsetFlag(settingsKey, "draggedEntityID");
-  this.unsetFlag(settingsKey, "rulerOffset");
+  cancelScheduledMeasurement();
   wrapped();
 }
 
@@ -70,6 +76,8 @@ function dragRulerUpdate(wrapped, data) {
  */
 function dragRulerEndMeasurement(wrapped) {
   log("EndMeasurement");
+  this.unsetFlag(settingsKey, "draggedEntityID");
+  this.unsetFlag(settingsKey, "rulerOffset");
   wrapped();
 }
 
@@ -144,7 +152,6 @@ async function dragRulerMoveToken(wrapped) {
 /*
  * Wrapper for Ruler._addWaypoint
  */
-// TO-DO: Change libRuler to override _addWaypoint to add a switch for centering
 function dragRulerAddWaypoint(wrapped, point, center = true) {
   log("dragRulerAddWaypoint", this);
   if(!this.isDragRuler) return wrapped(point, center);
@@ -158,85 +165,6 @@ function dragRulerAddWaypoint(wrapped, point, center = true) {
   return wrapped(point, false);
 }
 
-/*
- * New waypoint history function
- */
-function dragRulerAddWaypointHistory(waypoints) {
-  log("dragRulerAddWaypointHistory");
-		waypoints.forEach(waypoint => waypoint.isPrevious = true);
-		this.waypoints = this.waypoints.concat(waypoints);
-		for (const waypoint of waypoints) {
-			this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
-		}
-	}
-
-/*
- * New clear waypoints function
- */
-function dragRulerClearWaypoints() {
-  log("dragRulerClearWaypoints");
-  	this.waypoints = [];
-		this.labels.removeChildren().forEach(c => c.destroy());
-	}
-
-
-/*
- * New delete waypoints function
- */
-function dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={}) {
-  log("dragRulerDeleteWaypoint");
-  options.snap = options.snap ?? true;
-
-	if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
-		event.preventDefault();
-		const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
-		const rulerOffset = this.getFlag(settingsKey, "rulerOffset");
-		this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y});
-		game.user.broadcastActivity({ruler: this});
-	}
-	else {
-		this.dragRulerAbortDrag(event);
-	}
-}
-
-/*
- * New abort drag function
- */
-function dragRulerAbortDrag(event={preventDefault: () => {return}}) {
-  	const token = this.draggedEntity;
-		this._endMeasurement();
-
-		// Deactivate the drag workflow in mouse
-		token.mouseInteractionManager._deactivateDragEvents();
-		token.mouseInteractionManager.state = token.mouseInteractionManager.states.HOVER;
-
-		// This will cancel the current drag operation
-		// Pass in a fake event that hopefully is enough to allow other modules to function
-		token._onDragLeftCancel(event);
-}
-
-/*
- * New recalculate function
- */
-async function dragRulerRecalculate(tokenIds) {
-  log("dragRulerRecalculate");
-	if (this._state !== Ruler.STATES.MEASURING)
-		return;
-
-	const dragged_token = this.draggedEntity;
-
-	if (tokenIds && !tokenIds.includes(dragged_token.id))
-		return;
-	const waypoints = this.waypoints.filter(waypoint => !waypoint.isPrevious);
-	this.dragRulerClearWaypoints();
-	if (game.settings.get(settingsKey, "enableMovementHistory"))
-		this.dragRulerAddWaypointHistory(getMovementHistory(dragged_token));
-	for (const waypoint of waypoints) {
-		this.addWaypoint(waypoint, false);
-	}
-	this.measure(this.destination);
-	game.user.broadcastActivity({ruler: this});
-}
 
 export function dragRulerGetRaysFromWaypoints(waypoints, destination) {
 		if ( destination )
@@ -377,6 +305,11 @@ function addRulerProperties() {
 	  configurable: true
 	});
 
+  Object.defineProperty(Ruler, "dragRulerGetRaysFromWaypoints", {
+	  value: dragRulerGetRaysFromWaypoints,
+	  writable: true,
+	  configurable: true
+	});
 }
 
 
