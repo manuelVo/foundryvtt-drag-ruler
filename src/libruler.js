@@ -143,7 +143,7 @@ function dragRulerCancelScheduledMeasurement(wrapped) {
  * Wrap for libRuler Ruler.doDeferredMeasurement
  * This is called from Ruler.moveToken and will catch the deferred promise in dragRulerDeferMeasurement above
  */
-function dragRulerDoDeferredMeasurements() {
+async function dragRulerDoDeferredMeasurements() {
   if(this.isDragRuler) { await this.deferredMeasurementPromise; }
   return wrapped();
 }
