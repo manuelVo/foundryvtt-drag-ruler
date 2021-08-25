@@ -85,8 +85,10 @@ export class DragRulerRuler extends Ruler {
 		this.waypoints.push(new PIXI.Point(point.x, point.y));
 		this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
 	}
+}
 
-	dragRulerAddWaypointHistory(waypoints) {
+// export for use in libruler code as well as here.
+export function dragRulerAddWaypointHistory(waypoints) {
 		waypoints.forEach(waypoint => waypoint.isPrevious = true);
 		this.waypoints = this.waypoints.concat(waypoints);
 		for (const waypoint of waypoints) {
@@ -94,17 +96,17 @@ export class DragRulerRuler extends Ruler {
 		}
 	}
 
-	dragRulerClearWaypoints() {
+export function	dragRulerClearWaypoints() {
 		this.waypoints = [];
 		this.labels.removeChildren().forEach(c => c.destroy());
 	}
 
-	dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={}) {
+export function	dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={}) {
 		options.snap = options.snap ?? true;
 		if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 			event.preventDefault();
 			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
-			const rulerOffset = this.rulerOffset;
+			const rulerOffset = game.modules.get('libruler')?.active ? this.getFlag(settingsKey, "rulerOffset") : this.rulerOffset;
 
 			// Options are not passed to _removeWaypoint in vanilla Foundry.
 			// Send them in case other modules have overriden that behavior and accept an options parameter (Toggle Snap to Grid)
@@ -116,7 +118,7 @@ export class DragRulerRuler extends Ruler {
 		}
 	}
 
-	dragRulerAbortDrag(event={preventDefault: () => {return}}) {
+export function dragRulerAbortDrag(event={preventDefault: () => {return}}) {
 		const token = this.draggedEntity;
 		this._endMeasurement();
 
@@ -129,7 +131,7 @@ export class DragRulerRuler extends Ruler {
 		token._onDragLeftCancel(event);
 	}
 
-	async dragRulerRecalculate(tokenIds) {
+export async dragRulerRecalculate(tokenIds) {
 		if (this._state !== Ruler.STATES.MEASURING)
 			return;
 		if (tokenIds && !tokenIds.includes(this.draggedEntity.id))
@@ -139,13 +141,17 @@ export class DragRulerRuler extends Ruler {
 		if (game.settings.get(settingsKey, "enableMovementHistory"))
 			this.dragRulerAddWaypointHistory(getMovementHistory(this.draggedEntity));
 		for (const waypoint of waypoints) {
-			this.dragRulerAddWaypoint(waypoint, {snap: false});
+		  if(game.modules.get('libruler')?.active) {
+		    this._addWaypoint(waypoint, false);
+		  } else {
+		    this.dragRulerAddWaypoint(waypoint, {snap: false});
+		  }
 		}
 		this.measure(this.destination);
 		game.user.broadcastActivity({ruler: this});
 	}
 
-	static dragRulerGetRaysFromWaypoints(waypoints, destination) {
+export dragRulerGetRaysFromWaypoints(waypoints, destination) {
 		if ( destination )
 			waypoints = waypoints.concat([destination]);
 		return waypoints.slice(1).map((wp, i) => {
@@ -155,3 +161,40 @@ export class DragRulerRuler extends Ruler {
 		});
 	}
 }
+
+
+Object.defineProperty(DragRulerRuler.prototype, "dragRulerAddWaypointHistory", {
+  value: dragRulerAddWaypointHistory,
+	writable: true,
+	configurable: true
+});
+
+Object.defineProperty(DragRulerRuler.prototype, "dragRulerClearWaypoints", {
+  value: dragRulerClearWaypoints,
+	writable: true,
+	configurable: true
+});
+
+Object.defineProperty(DragRulerRuler.prototype, "dragRulerDeleteWaypoint", {
+  value: dragRulerDeleteWaypoint,
+	writable: true,
+	configurable: true
+});
+
+Object.defineProperty(DragRulerRuler.prototype, "dragRulerAbortDrag", {
+  value: dragRulerAbortDrag,
+	writable: true,
+	configurable: true
+});
+
+Object.defineProperty(DragRulerRuler.prototype, "dragRulerRecalculate", {
+  value: dragRulerRecalculate,
+	writable: true,
+	configurable: true
+});
+
+Object.defineProperty(DragRulerRuler, "dragRulerGetRaysFromWaypoints", {
+  value: dragRulerGetRaysFromWaypoints,
+	writable: true,
+	configurable: true
+});
