@@ -237,7 +237,6 @@ function dragRulerAddProperties(wrapped) {
 
 // Additions to Ruler class
 function addRulerProperties() {
-  log(`addRulerProperties`);
   // Add a getter method to check for drag token in Ruler flags.
   Object.defineProperty(Ruler.prototype, "isDragRuler", {
     get() { return Boolean(this.getFlag(settingsKey, "draggedEntityID")); },
