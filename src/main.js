@@ -287,20 +287,13 @@ export function startDragRuler(options, measureImmediately=true) {
 function onEntityLeftDragMove(event) {
   log(`onTokenLeftDragMove`, event);
 	const ruler = canvas.controls.ruler
-
-/*
-        if(ruler.waypoints.length < 1) {
-          log(`No waypoints found; restarting.`);
-          return onEntityLeftDragStart.call(this, event);
-        }
-*/
-  if (ruler.isDragRuler) {
-    if(game.modules.get('libruler')?.active) {
-      ruler._onMouseMove(event);
-    } else {
-      onMouseMove.call(ruler, event)
-    }
-  }
+	if (ruler.isDragRuler) {
+	  if(game.modules.get('libruler')?.active) {
+	    ruler._onMouseMove(event);
+	  } else {
+	    onMouseMove.call(ruler, event)
+	  }
+	}
 }
 
 export function onEntityDragLeftDrop(event) {
@@ -343,9 +336,9 @@ export function onEntityDragLeftCancel(event) {
   let options = {};
   setSnapParameterOnOptions(ruler, options);
 
-  if (ruler._state === Ruler.STATES.INACTIVE) {
-    if (!swapSpacebarRightClick)
-      return false;
+	if (ruler._state === Ruler.STATES.INACTIVE) {
+		if (!swapSpacebarRightClick)
+			return false;
           log('Starting drag ruler');
 		startDragRuler.call(this, options);
 		event.preventDefault();
