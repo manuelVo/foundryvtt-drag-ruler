@@ -55,7 +55,7 @@ function dragRulerClear(wrapped) {
   //this.unsetFlag(settingsKey, "previousLabels");
   //this.unsetFlag(settingsKey, "dragRulerRanges");
   log("Clear");
-  cancelScheduledMeasurement();
+  //cancelScheduledMeasurement();
   wrapped();
 }
 

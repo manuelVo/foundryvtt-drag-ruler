@@ -131,7 +131,7 @@ export function dragRulerAbortDrag(event={preventDefault: () => {return}}) {
 		token._onDragLeftCancel(event);
 	}
 
-export async dragRulerRecalculate(tokenIds) {
+export async function dragRulerRecalculate(tokenIds) {
 		if (this._state !== Ruler.STATES.MEASURING)
 			return;
 		if (tokenIds && !tokenIds.includes(this.draggedEntity.id))
@@ -151,7 +151,7 @@ export async dragRulerRecalculate(tokenIds) {
 		game.user.broadcastActivity({ruler: this});
 	}
 
-export dragRulerGetRaysFromWaypoints(waypoints, destination) {
+export function dragRulerGetRaysFromWaypoints(waypoints, destination) {
 		if ( destination )
 			waypoints = waypoints.concat([destination]);
 		return waypoints.slice(1).map((wp, i) => {
@@ -160,7 +160,7 @@ export dragRulerGetRaysFromWaypoints(waypoints, destination) {
 			return ray;
 		});
 	}
-}
+
 
 
 Object.defineProperty(DragRulerRuler.prototype, "dragRulerAddWaypointHistory", {
