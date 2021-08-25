@@ -54,7 +54,7 @@ function dragRulerClear(wrapped) {
  */
 function dragRulerUpdate(wrapped, data) {
   if(this.draggedEntity && this.user.isGM && !game.user.isGM && !game.settings.get(settingsKey, "showGMRulerToPlayers"))
-			return;
+      return;
 
   wrapped(data);
 }
@@ -100,13 +100,13 @@ function dragRulerOnMouseMove(wrapped, event) {
  */
 function dragRulerDeferMeasurement(wrapped, destination, event) {
   if(this.isDragRuler) {
-		this.deferredMeasurementData = {destination, event};
-		if (!this.deferredMeasurementTimeout) {
-			this.deferredMeasurementPromise = new Promise((resolve, reject) => this.deferredMeasurementResolve = resolve);
-			this.deferredMeasurementTimeout = window.setTimeout(() => this.scheduleMeasurement(this.deferredMeasurementData.destination, this.deferredMeasurementData.event));
-		}
-	}
-	return wrapped(destination, event);
+    this.deferredMeasurementData = {destination, event};
+    if (!this.deferredMeasurementTimeout) {
+      this.deferredMeasurementPromise = new Promise((resolve, reject) => this.deferredMeasurementResolve = resolve);
+      this.deferredMeasurementTimeout = window.setTimeout(() => this.scheduleMeasurement(this.deferredMeasurementData.destination, this.deferredMeasurementData.event));
+    }
+  }
+  return wrapped(destination, event);
 }
 
 /*
@@ -130,7 +130,7 @@ async function dragRulerDoDeferredMeasurements() {
 /*
  * Modify destination to be the snap point for the token when snap is set.
  * Wrap for Ruler.setDestination from libRuler.
- * @param {Object} wrapped 	Wrapped function from libWrapper.
+ * @param {Object} wrapped  Wrapped function from libWrapper.
  * @param {Object} destination  The destination point to which to measure. Should have at least x and y properties.
  */
 function dragRulerSetDestination(wrapped, destination) {
@@ -185,14 +185,14 @@ function dragRulerAddWaypoint(wrapped, point, center = true) {
 
 
 export function dragRulerGetRaysFromWaypoints(waypoints, destination) {
-		if ( destination )
-			waypoints = waypoints.concat([destination]);
-		return waypoints.slice(1).map((wp, i) => {
-			const ray =  new Ray(waypoints[i], wp);
-			ray.isPrevious = Boolean(waypoints[i].isPrevious);
-			return ray;
-		});
-	}
+    if ( destination )
+      waypoints = waypoints.concat([destination]);
+    return waypoints.slice(1).map((wp, i) => {
+      const ray =  new Ray(waypoints[i], wp);
+      ray.isPrevious = Boolean(waypoints[i].isPrevious);
+      return ray;
+    });
+  }
 
 
 /*
@@ -238,57 +238,57 @@ function dragRulerAddProperties(wrapped) {
 // Additions to Ruler class
 function addRulerProperties() {
   log(`addRulerProperties`);
-	// Add a getter method to check for drag token in Ruler flags.
-	Object.defineProperty(Ruler.prototype, "isDragRuler", {
-		get() { return Boolean(this.getFlag(settingsKey, "draggedEntityID")); },
-		configurable: true
-	});
+  // Add a getter method to check for drag token in Ruler flags.
+  Object.defineProperty(Ruler.prototype, "isDragRuler", {
+    get() { return Boolean(this.getFlag(settingsKey, "draggedEntityID")); },
+    configurable: true
+  });
 
-	// Add a getter method to return the token for the stored token id
-	Object.defineProperty(Ruler.prototype, "draggedEntity", {
-		get() {
-			const draggedEntityID = this.getFlag(settingsKey, "draggedEntityID");
-			if(!draggedEntityID) return undefined;
-			return canvas.tokens.get(draggedEntityID);
-		},
-		configurable: true
-	});
+  // Add a getter method to return the token for the stored token id
+  Object.defineProperty(Ruler.prototype, "draggedEntity", {
+    get() {
+      const draggedEntityID = this.getFlag(settingsKey, "draggedEntityID");
+      if(!draggedEntityID) return undefined;
+      return canvas.tokens.get(draggedEntityID);
+    },
+    configurable: true
+  });
 
-	Object.defineProperty(Ruler.prototype, "dragRulerAddWaypointHistory", {
+  Object.defineProperty(Ruler.prototype, "dragRulerAddWaypointHistory", {
     value: dragRulerAddWaypointHistory,
     writable: true,
     configurable: true
-	});
+  });
 
-	Object.defineProperty(Ruler.prototype, "dragRulerClearWaypoints", {
-	  value: dragRulerClearWaypoints,
-	  writable: true,
-	  configurable: true
-	});
+  Object.defineProperty(Ruler.prototype, "dragRulerClearWaypoints", {
+    value: dragRulerClearWaypoints,
+    writable: true,
+    configurable: true
+  });
 
-	Object.defineProperty(Ruler.prototype, "dragRulerDeleteWaypoint", {
-	  value: dragRulerDeleteWaypoint,
-	  writable: true,
-	  configurable: true
-	});
+  Object.defineProperty(Ruler.prototype, "dragRulerDeleteWaypoint", {
+    value: dragRulerDeleteWaypoint,
+    writable: true,
+    configurable: true
+  });
 
-	Object.defineProperty(Ruler.prototype, "dragRulerAbortDrag", {
-	  value: dragRulerAbortDrag,
-	  writable: true,
-	  configurable: true
-	});
+  Object.defineProperty(Ruler.prototype, "dragRulerAbortDrag", {
+    value: dragRulerAbortDrag,
+    writable: true,
+    configurable: true
+  });
 
-	Object.defineProperty(Ruler.prototype, "dragRulerRecalculate", {
-	  value: dragRulerRecalculate,
-	  writable: true,
-	  configurable: true
-	});
+  Object.defineProperty(Ruler.prototype, "dragRulerRecalculate", {
+    value: dragRulerRecalculate,
+    writable: true,
+    configurable: true
+  });
 
   Object.defineProperty(Ruler, "dragRulerGetRaysFromWaypoints", {
-	  value: dragRulerGetRaysFromWaypoints,
-	  writable: true,
-	  configurable: true
-	});
+    value: dragRulerGetRaysFromWaypoints,
+    writable: true,
+    configurable: true
+  });
 }
 
 
