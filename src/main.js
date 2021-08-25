@@ -260,21 +260,14 @@ export function startDragRuler(options, measureImmediately=true) {
 }
 
 export function onEntityLeftDragMove(event) {
-  const ruler = canvas.controls.ruler
-
-/*
-        if(ruler.waypoints.length < 1) {
-          log(`No waypoints found; restarting.`);
-          return onEntityLeftDragStart.call(this, event);
-        }
-*/
-  if (ruler.isDragRuler) {
-    if(game.modules.get('libruler')?.active) {
-      ruler._onMouseMove(event);
-    } else {
-      onMouseMove.call(ruler, event)
-    }
-  }
+	const ruler = canvas.controls.ruler
+	if (ruler.isDragRuler) {
+	  if(game.modules.get('libruler')?.active) {
+	    ruler._onMouseMove(event);
+	  } else {
+	    onMouseMove.call(ruler, event)
+	  }
+	}
 }
 
 export function onEntityDragLeftDrop(event) {
@@ -311,19 +304,18 @@ export function onEntityDragLeftCancel(event) {
   let options = {};
   setSnapParameterOnOptions(ruler, options);
 
-  if (ruler._state === Ruler.STATES.INACTIVE) {
-    if (!swapSpacebarRightClick)
-      return false;
-          log('Starting drag ruler');
-    startDragRuler.call(this, options);
-    event.preventDefault();
-  }
-  else if (ruler._state === Ruler.STATES.MEASURING) {
-    if (!swapSpacebarRightClick) {
-      ruler.dragRulerDeleteWaypoint(event, options);
-    }
-    else {
-      event.preventDefault();
+	if (ruler._state === Ruler.STATES.INACTIVE) {
+		if (!swapSpacebarRightClick)
+			return false;
+		startDragRuler.call(this, options);
+		event.preventDefault();
+	}
+	else if (ruler._state === Ruler.STATES.MEASURING) {
+		if (!swapSpacebarRightClick) {
+			ruler.dragRulerDeleteWaypoint(event, options);
+		}
+		else {
+			event.preventDefault();
                         if(game.modules.get('libruler')?.active) {
                           ruler._addWaypoint(ruler.destination, Boolean(options.snap));
                         } else {
