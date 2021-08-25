@@ -19,55 +19,13 @@ export function registerLibRuler() {
   libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.drawLine", dragRulerDrawLine, "MIXED");
   libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.highlightPosition", dragRulerHighlightPosition, "MIXED");
 
-  // Wrappers for event handlers for testing
-  // see what is happening with the various events
-  libWrapper.register(settingsKey, "Ruler.prototype._onDragStart", dragRulerOnDragStart, "WRAPPER");
-  libWrapper.register(settingsKey, "Ruler.prototype._onClickLeft", dragRulerOnClickLeft, "WRAPPER");
-  libWrapper.register(settingsKey, "Ruler.prototype._onClickRight", dragRulerOnClickRight, "WRAPPER");
-  libWrapper.register(settingsKey, "Ruler.prototype._onMouseUp", dragRulerOnMouseUp, "WRAPPER");
-  libWrapper.register(settingsKey, "KeyboardManager.prototype._onSpace", dragRulerOnSpace, "WRAPPER");
-
   addRulerProperties();
 
   // tell libWrapper that it can ignore the conflict warning from drag ruler not always calling
-  // the underlying method for Ruler.moveToken. (i.e., drag ruler interrupts it 
+  // the underlying method for Ruler.moveToken. (i.e., drag ruler interrupts it
   // if just adding or deleting a waypoint)
   libWrapper.ignore_conflicts(settingsKey, "libruler", "Ruler.prototype.moveToken");
 
-}
-
-// Wrappers for event handlers for testing
-function dragRulerOnDragStart(wrapped, event) {
-  log(`Ruler._onDragStart`, event);
-  wrapped(event);
-}
-
-function dragRulerOnClickLeft(wrapped, event) {
-  log(`Ruler._onClickLeft`, event);
-  wrapped(event);
-}
-
-function dragRulerOnClickRight(wrapped, event) {
-  log(`Ruler._onClickRight`, event);
-  wrapped(event);
-}
-
-/*
- * Defined below
-function dragRulerOnMouseMove(wrapper, event) {
-  log(`Ruler._onMouseMove`, event);
-  wrapper(event);
-}
-*/
-
-function dragRulerOnMouseUp(wrapped, event) {
-  log(`Ruler._onMouseUp`, event);
-  wrapped(event);
-}
-
-function dragRulerOnSpace(wrapped, event, up, modifiers) {
-  log(`Keyboard._onSpace. up: ${up}`);
-  return wrapped(event, up, modifiers);
 }
 
 export function log(...args) {
@@ -180,7 +138,7 @@ async function dragRulerMoveToken(wrapped) {
       log(`Deleting waypoint`);
       this.dragRulerDeleteWaypoint(event, options);
     }
-  } 
+  }
 }
 
 /*
