@@ -30,7 +30,7 @@ export function registerLibRuler() {
 
   // Wrappers for libRuler RulerSegment methods
   libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.addProperties", dragRulerAddProperties, "WRAPPER");
-  libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.highlightPosition", dragRulerHighlightPosition, "MIXED");
+//  libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.highlightPosition", dragRulerHighlightPosition, "MIXED");
 
   addRulerProperties();
 
@@ -271,7 +271,7 @@ function dragRulerAddProperties(wrapped) {
   // TO-DO: Is there any need to store the original ray? What about when drawing lines (see original drag ruler measure function)
 }
 
-
+/*
 function dragRulerHighlightPosition(wrapped, position) {
   log(`dragRulerHighlightPosition position ${position.x}, ${position.y}`, position);
   if(!this.ruler.isDragRuler) return wrapped(position);
@@ -292,6 +292,7 @@ function dragRulerHighlightPosition(wrapped, position) {
 	}
 
 }
+*/
 
 
 // Additions to Ruler class
