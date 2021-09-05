@@ -23,6 +23,7 @@ export function registerLibRuler() {
 	libWrapper.register(settingsKey, "Ruler.prototype.deferMeasurement", dragRulerDeferMeasurement, "WRAPPER");
 	libWrapper.register(settingsKey, "Ruler.prototype.cancelScheduledMeasurement", dragRulerCancelScheduledMeasurement, "WRAPPER");
 	libWrapper.register(settingsKey, "Ruler.prototype.doDeferredMeasurements", dragRulerDoDeferredMeasurements, "WRAPPER");
+  libWrapper.register(settingsKey, "Ruler.prototype.testForCollision", dragRulerTestForCollision, "MIXED");
 
 	// Wrappers for libRuler RulerSegment methods
 	libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.addProperties", dragRulerAddProperties, "WRAPPER");
@@ -125,6 +126,15 @@ function dragRulerCancelScheduledMeasurement(wrapped) {
 async function dragRulerDoDeferredMeasurements() {
 	if(this.isDragRuler) { await this.deferredMeasurementPromise; }
 	return wrapped();
+}
+
+/*
+ * Wrapper for libRuler Ruler.testForCollision
+ * Don't check for collisions if GM, so that GM can drag tokens through walls.
+ */
+function dragRulerTestForCollision(wrapped, ...args) {
+ if(this.isDragRuler && game.user.isGM) return false;
+ return wrapped(...args);
 }
 
 /*
