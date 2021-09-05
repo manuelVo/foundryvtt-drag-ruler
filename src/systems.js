@@ -8,7 +8,7 @@ export function getDefaultSpeedAttribute() {
 		case "dnd5e":
 			return "actor.data.data.attributes.movement.walk"
 		case "lancer":
-			return "actor.data.data.mech.speed"
+			return "actor.data.data.derived.speed"
 		case "pf1":
 		case "D35E":
 			return "actor.data.data.attributes.speed.land.total"		
