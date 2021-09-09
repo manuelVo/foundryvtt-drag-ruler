@@ -235,14 +235,15 @@ function dragRulerGetMovementToken(wrapped) {
  * Wrap animate token to adjust ray for multiple tokens
  */
 function dragRulerAnimateToken(wrapped, token, ray, dx, dy, segment_num) {
-  const selectedEntities = canvas.tokens.controlled; // should include the dragged entity, right?
-  const draggedEntity = this._getMovementToken();
-  const isToken = draggedEntity instanceof Token;
+  let selectedEntities = canvas.tokens.controlled; // should include the dragged entity, right?
+  const isToken = token instanceof Token;
   const animate = isToken && !game.keyboard.isDown("Alt");
-  console.log(`drag-ruler|${animate ? "animating" : "not animating"} ${selectedEntities.length} selected tokens`, draggedEntity, selectedEntities)
+  selectedEntities = selectedEntities.filter(e => e.id !== token.id);
+
+  console.log(`drag-ruler|${animate ? "animating" : "not animating"} ${selectedEntities.length} selected tokens`, token, selectedEntities)
 
 	const entityAnimationData = selectedEntities.map(entity => {
-		const entityOffset = calculateEntityOffset(entity, draggedEntity);
+		const entityOffset = calculateEntityOffset(entity, token);
 		const offsetRay = applyOffsetToRay(ray, entityOffset)
 
 		return {entity, ray: offsetRay, entityOffset};
@@ -251,15 +252,15 @@ function dragRulerAnimateToken(wrapped, token, ray, dx, dy, segment_num) {
 	// probably don't want to do this b/c (1) need path from the wrapped function and (2) wrapped function has an update
 	// await draggedEntity.scene.updateEmbeddedDocuments(draggedEntity.constructor.embeddedName, updates, {animate});
 
-
+  // animate the selected additional tokens
   console.log(`drag-ruler|Animating ${selectedEntities.length} entities.`, entityAnimationData);
   entityAnimationData.forEach(({entity, ray, entityOffset}) => {
     console.log(`drag-ruler|Animating entity ${entity.name} with offset ${entityOffset.x}, ${entityOffset.y}`, entity, ray);
     //wrapped(entity, ray, dx, dy, segment_num);
-    //wrapped(entity, ray, dx + entityOffset.x, dy + entityOffset.y, segment_num);
+    wrapped(entity, ray, dx + entityOffset.x, dy + entityOffset.y, segment_num);
   });
 
-  wrapped(token, ray, dx, dy, segment_num);
+  return wrapped(token, ray, dx, dy, segment_num);
 }
 
 // Wrappers for libRuler RulerSegment methods
