@@ -234,25 +234,32 @@ function dragRulerGetMovementToken(wrapped) {
 /*
  * Wrap animate token to adjust ray for multiple tokens
  */
-function dragRulerAnimateToken(wrapped, token, ray, ...args) {
-  console.log(`drag-ruler|animating`);
+function dragRulerAnimateToken(wrapped, token, ray, dx, dy, segment_num) {
   const selectedEntities = canvas.tokens.controlled; // should include the dragged entity, right?
-  console.log(`drag-ruler|${selectedEntities.length} selected tokens`, selectedEntities);
   const draggedEntity = this._getMovementToken();
-  console.log(`drag-ruler|draggedEntity`, draggedEntity);
+  const isToken = draggedEntity instanceof Token;
+  const animate = isToken && !game.keyboard.isDown("Alt");
+  console.log(`drag-ruler|${animate ? "animating" : "not animating"} ${selectedEntities.length} selected tokens`, draggedEntity, selectedEntities)
 
 	const entityAnimationData = selectedEntities.map(entity => {
 		const entityOffset = calculateEntityOffset(entity, draggedEntity);
 		const offsetRay = applyOffsetToRay(ray, entityOffset)
 
-		return {entity, ray: offsetRay};
+		return {entity, ray: offsetRay, entityOffset};
 	});
 
+	// probably don't want to do this b/c (1) need path from the wrapped function and (2) wrapped function has an update
+	// await draggedEntity.scene.updateEmbeddedDocuments(draggedEntity.constructor.embeddedName, updates, {animate});
+
+
   console.log(`drag-ruler|Animating ${selectedEntities.length} entities.`, entityAnimationData);
-  entityAnimationData.forEach(({entity, ray}) => {
-    console.log(`drag-ruler|Animating entity`, entity, ray);
-    wrapped(entity, ray, ...args);
+  entityAnimationData.forEach(({entity, ray, entityOffset}) => {
+    console.log(`drag-ruler|Animating entity ${entity.name} with offset ${entityOffset.x}, ${entityOffset.y}`, entity, ray);
+    //wrapped(entity, ray, ...args);
+    wrapped(entity, ray, dx + entityOffset.x, dy + entityOffset.y, segment_num);
   });
+
+  //wrapped(token, ray, ..args);
 }
 
 // Wrappers for libRuler RulerSegment methods
