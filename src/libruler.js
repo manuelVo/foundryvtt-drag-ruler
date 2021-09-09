@@ -6,7 +6,7 @@ import { dragRulerAddWaypointHistory,
 				 dragRulerAbortDrag,
 				 dragRulerRecalculate } from "./ruler.js";
 
-import { cancelScheduledMeasurement } from "./foundry_imports.js";
+import { cancelScheduledMeasurement, calculateEntityOffset } from "./foundry_imports.js";
 
 export function registerLibRuler() {
 	// Wrappers for base Ruler methods
@@ -132,9 +132,24 @@ async function dragRulerDoDeferredMeasurements() {
  * Wrapper for libRuler Ruler.testForCollision
  * Don't check for collisions if GM, so that GM can drag tokens through walls.
  */
-function dragRulerTestForCollision(wrapped, ...args) {
- if(this.isDragRuler && game.user.isGM) return false;
- return wrapped(...args);
+function dragRulerTestForCollision(wrapped, rays) {
+ // taken from foundry_imports.js moveEntities function
+ if(this.isDragRuler) {
+   if(game.user.isGM) return false;
+   draggedEntity = this._getMovementToken();
+
+   if(draggedEntity instanceof Token) {
+     selectedEntities = canvas.tokens.controlled;
+     const hasCollision = selectedEntities.some(token => {
+			 const offset = calculateEntityOffset(token, draggedEntity);
+			 const offsetRays = rays.filter(ray => !ray.isPrevious).map(ray => applyOffsetToRay(ray, offset))
+			 return offsetRays.some(r => canvas.walls.checkCollision(r));
+		 });
+		 return hasCollision;
+   }
+ }
+
+ return wrapped(rays);
 }
 
 /*
