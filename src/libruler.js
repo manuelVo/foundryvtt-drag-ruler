@@ -136,10 +136,10 @@ function dragRulerTestForCollision(wrapped, rays) {
  // taken from foundry_imports.js moveEntities function
  if(this.isDragRuler) {
    if(game.user.isGM) return false;
-   draggedEntity = this._getMovementToken();
+   const draggedEntity = this._getMovementToken();
 
    if(draggedEntity instanceof Token) {
-     selectedEntities = canvas.tokens.controlled;
+     const selectedEntities = canvas.tokens.controlled;
      const hasCollision = selectedEntities.some(token => {
 			 const offset = calculateEntityOffset(token, draggedEntity);
 			 const offsetRays = rays.filter(ray => !ray.isPrevious).map(ray => applyOffsetToRay(ray, offset))
