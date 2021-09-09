@@ -24,6 +24,7 @@ export function registerLibRuler() {
 	libWrapper.register(settingsKey, "Ruler.prototype.cancelScheduledMeasurement", dragRulerCancelScheduledMeasurement, "WRAPPER");
 	libWrapper.register(settingsKey, "Ruler.prototype.doDeferredMeasurements", dragRulerDoDeferredMeasurements, "WRAPPER");
   libWrapper.register(settingsKey, "Ruler.prototype.testForCollision", dragRulerTestForCollision, "MIXED");
+  libWrapper.register(settingsKey, "Ruler.prototype.animateToken", dragRulerAnimateToken, "WRAPPER");
 
 	// Wrappers for libRuler RulerSegment methods
 	libWrapper.register(settingsKey, "window.libRuler.RulerSegment.prototype.addProperties", dragRulerAddProperties, "WRAPPER");
