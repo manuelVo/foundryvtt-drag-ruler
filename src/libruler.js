@@ -240,37 +240,29 @@ async function dragRulerAnimateToken(wrapped, token, ray, dx, dy, segment_num) {
   const animate = isToken && !game.keyboard.isDown("Alt");
   selectedEntities = selectedEntities.filter(e => e.id !== token.id); // pull out the dragged token.
 
-  console.log(`drag-ruler|${animate ? "animating" : "not animating"} ${selectedEntities.length} selected tokens`, token, selectedEntities)
-  /*
-  let t_top_left = canvas.grid.getTopLeft(token.data.x, token.data.y);
-	const entityAnimationData = selectedEntities.map(entity => {
-		const entityOffset = calculateEntityOffset(entity, token);
-		const offsetRay = applyOffsetToRay(ray, entityOffset)
+  console.log(`drag-ruler|${animate ? "animating" : "not animating"} ${selectedEntities.length} selected tokens with dx, dy ${dx}, ${dy}`, token, selectedEntities)
 
-		return {entity, ray: offsetRay, entityOffset};
-	});
-
-	// probably don't want to do this b/c (1) need path from the wrapped function and (2) wrapped function has an update
+	// probably don't want to do the following b/c (1) need path from the wrapped function and (2) wrapped function already does the update
 	// await draggedEntity.scene.updateEmbeddedDocuments(draggedEntity.constructor.embeddedName, updates, {animate});
-  */
-  // animate the selected additional tokens
-  // don't use forEach b/c it does not play nicely with async
+
+  // animate the selected additional tokens using promises so they move as a group.
   const promises = [];
   for(const entity of selectedEntities) {
     //const top_left = canvas.grid.getTopLeft(entity.center.x, entity.center.y);
     const offset = { x: entity.center.x - token.center.x, y: entity.center.y - token.center.y };
-    console.log(`drag-ruler|Animating entity ${entity.name} at ${entity.center.x}, ${entity.center.y}. Token ${token.name} at ${token.center.x}, ${token.center.y}. Offset ${offset.x}, ${offset.y}`, entity, ray);
-    //wrapped(entity, ray, dx, dy, segment_num);
-    //wrapped(entity, ray, dx + entityOffset.x, dy + entityOffset.y, segment_num);
     const offsetRay = new Ray(ray.A, { x: ray.B.x + offset.x, y: ray.B.y + offset.y });
-    // don't await b/c this makes the tokens all move one-by-one
+    console.log(`drag-ruler|Animating entity ${entity.name} from ${entity.center.x}, ${entity.center.y} to ${offsetRay.B.x}, ${offsetRay.B.y}. Token ${token.name} at ${token.center.x}, ${token.center.y}. Offset ${offset.x}, ${offset.y}`);
+
+    // don't await here b/c this makes the tokens all move one-by-one
     promises.push(wrapped(entity, offsetRay, dx, dy, segment_num)); // usually works, but can occassionally fail to keep multiple tokens in original arrangement
     //promises.push(wrapped(entity, ray, dx + offset.x, dy + offset.y, segment_num)); // Fails to keep tokens in original arrangement much of the time
   }
-  // await to avoid confusing move errors if moving repeatedly very quickly
+
+  // use Promise.all to await to avoid confusing move errors if moving repeatedly very quickly
+  console.log(`drag-ruler|Animating ${token.name} from ${token.center.x}, ${token.center.y} to ${ray.B.x}, ${ray.B.y}`);
   promises.push(wrapped(token, ray, dx, dy, segment_num));
-  const res = await Promise.allSettled(promises); 
-  
+  const res = await Promise.allSettled(promises);
+
   // need to return the path from the movement for the token
   console.log("drag-ruler|AnimateToken returns", res);
   return res[res.length -1].value;  // Promise.allSettled returns an array of [{status: , value: }]; Promise.all returns an array
