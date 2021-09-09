@@ -100,7 +100,7 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 		trackRays(entities, entityAnimationData.map(({rays}) => rays)).then(() => recalculate(entities));
 }
 
-function calculateEntityOffset(entityA, entityB) {
+export function calculateEntityOffset(entityA, entityB) {
 	return {x: entityA.data.x - entityB.data.x, y: entityA.data.y - entityB.data.y};
 }
 
