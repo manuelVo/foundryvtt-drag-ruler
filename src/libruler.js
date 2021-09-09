@@ -255,11 +255,11 @@ function dragRulerAnimateToken(wrapped, token, ray, dx, dy, segment_num) {
   console.log(`drag-ruler|Animating ${selectedEntities.length} entities.`, entityAnimationData);
   entityAnimationData.forEach(({entity, ray, entityOffset}) => {
     console.log(`drag-ruler|Animating entity ${entity.name} with offset ${entityOffset.x}, ${entityOffset.y}`, entity, ray);
-    //wrapped(entity, ray, ...args);
-    wrapped(entity, ray, dx + entityOffset.x, dy + entityOffset.y, segment_num);
+    //wrapped(entity, ray, dx, dy, segment_num);
+    //wrapped(entity, ray, dx + entityOffset.x, dy + entityOffset.y, segment_num);
   });
 
-  //wrapped(token, ray, ..args);
+  wrapped(token, ray, dx, dy, segment_num);
 }
 
 // Wrappers for libRuler RulerSegment methods
