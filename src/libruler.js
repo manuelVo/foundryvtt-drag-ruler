@@ -6,7 +6,7 @@ import { dragRulerAddWaypointHistory,
 				 dragRulerAbortDrag,
 				 dragRulerRecalculate } from "./ruler.js";
 
-import { cancelScheduledMeasurement, calculateEntityOffset } from "./foundry_imports.js";
+import { cancelScheduledMeasurement, calculateEntityOffset, applyOffsetToRay } from "./foundry_imports.js";
 
 export function registerLibRuler() {
 	// Wrappers for base Ruler methods
@@ -234,19 +234,25 @@ function dragRulerGetMovementToken(wrapped) {
 /*
  * Wrap animate token to adjust ray for multiple tokens
  */
-function dragRulerAnimateToken(token, ray, ...args) {
+function dragRulerAnimateToken(wrapped, token, ray, ...args) {
+  console.log(`drag-ruler|animating`);
   const selectedEntities = canvas.tokens.controlled; // should include the dragged entity, right?
+  console.log(`drag-ruler|${selectedEntities.length} selected tokens`, selectedEntities);
   const draggedEntity = this._getMovementToken();
-	const entityAnimationData = entities.map(entity => {
+  console.log(`drag-ruler|draggedEntity`, draggedEntity);
+
+	const entityAnimationData = selectedEntities.map(entity => {
 		const entityOffset = calculateEntityOffset(entity, draggedEntity);
 		const offsetRay = applyOffsetToRay(ray, entityOffset)
 
 		return {entity, ray: offsetRay};
 	});
 
-  entityAnimationData.forEach(({entity, ray} => {
+  console.log(`drag-ruler|Animating ${selectedEntities.length} entities.`, entityAnimationData);
+  entityAnimationData.forEach(({entity, ray}) => {
+    console.log(`drag-ruler|Animating entity`, entity, ray);
     wrapped(entity, ray, ...args);
-  }));
+  });
 }
 
 // Wrappers for libRuler RulerSegment methods
