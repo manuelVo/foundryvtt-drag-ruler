@@ -224,15 +224,29 @@ export function dragRulerGetRaysFromWaypoints(waypoints, destination) {
  * Wrap for Ruler._getMovementToken()
  */
 
-
-// TO-DO: Deal with multiple selected tokens
 // See drag ruler original version of moveTokens in foundry_imports.js
 function dragRulerGetMovementToken(wrapped) {
 	if(!this.isDragRuler) return wrapped();
 	return this.draggedEntity;
 }
 
-// TO-DO: Deal with multiple selected token animation
+/*
+ * Wrap animate token to adjust ray for multiple tokens
+ */
+function dragRulerAnimateToken(token, ray, ...args) {
+  const selectedEntities = canvas.tokens.controlled; // should include the dragged entity, right?
+  const draggedEntity = this._getMovementToken();
+	const entityAnimationData = entities.map(entity => {
+		const entityOffset = calculateEntityOffset(entity, draggedEntity);
+		const offsetRay = applyOffsetToRay(ray, entityOffset)
+
+		return {entity, ray: offsetRay};
+	});
+
+  entityAnimationData.forEach(({entity, ray} => {
+    wrapped(entity, ray, ...args);
+  }));
+}
 
 // Wrappers for libRuler RulerSegment methods
 function dragRulerAddProperties(wrapped) {
