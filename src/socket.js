@@ -3,9 +3,11 @@ import {currentSpeedProvider} from "./api.js";
 let socket;
 
 Hooks.once("socketlib.ready", () => {
-	socket = socketlib.registerModule("drag-ruler");
-	socket.register("updateCombatantDragRulerFlags", _socketUpdateCombatantDragRulerFlags);
-	socket.register("recalculate", _socketRecalculate);
+  if(!game.modules.get('libruler')?.active) {
+		socket = socketlib.registerModule("drag-ruler");
+		socket.register("updateCombatantDragRulerFlags", _socketUpdateCombatantDragRulerFlags);
+		socket.register("recalculate", _socketRecalculate);
+	}
 });
 
 export function updateCombatantDragRulerFlags(combat, updates) {
