@@ -181,19 +181,22 @@ function dragRulerSetDestination(wrapped, destination) {
  *				Handle measured template entity
  */
 async function dragRulerMoveToken(wrapped) {
-	if(!this.isDragRuler) return await wrapped();
-	if(this._state === Ruler.STATES.MOVING) {
-		return await wrapped();
-	} else {
-		let options = {};
-		setSnapParameterOnOptions(this, options);
-
-		if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
-			this._addWaypoint(this.destination, options);
-		} else {
-			this.dragRulerDeleteWaypoint(event, options);
-		}
+	if(!this.isDragRuler || this._state === Ruler.STATES.MOVING) {
+		const p1 = wrapped();
+		const res = await p1;
+		return res;
 	}
+
+	let options = {};
+	setSnapParameterOnOptions(this, options);
+
+	if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
+		this._addWaypoint(this.destination, options);
+	} else {
+		this.dragRulerDeleteWaypoint(event, options);
+	}
+
+	return undefined;
 }
 
 /*
