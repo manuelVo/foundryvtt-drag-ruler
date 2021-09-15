@@ -11,7 +11,7 @@ export function getSnapPointForToken(x, y, token) {
 		return new PIXI.Point(x, y);
 	}
 	if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(token)) {
-		if (token.getFlag("hex-size-support", "borderSize") % 2 === 0) {
+		if (token.document.getFlag("hex-size-support", "borderSize") % 2 === 0) {
 			const snapPoint = CONFIG.hexSizeSupport.findVertexSnapPoint(x, y, token, canvas.grid.grid)
 			return new PIXI.Point(snapPoint.x, snapPoint.y)
 		}
