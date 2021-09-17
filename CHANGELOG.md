@@ -1,3 +1,9 @@
+## 1.8.2
+### Compatibility
+- The generic speed provider defaults have been updated for lance 1.0 (thanks to BoltsJ!)
+- Eliminated a deprecation warning when both Drag Ruler and Hex Size Support are enabled (thanks Argonius-Angelus!)
+
+
 ## 1.8.1
 ### Bugfixes
 - Fixed a bug where the function that was bound to the spacebar key wouldn't work correctly when the "Toggle Snap To Grid" module was enabled
