@@ -28,6 +28,7 @@ Hooks.once("init", () => {
 		registerSystem,
 		recalculate,
 		resetMovementHistory,
+		measureDistances
 	}
 })
 
@@ -35,9 +36,6 @@ Hooks.once("ready", () => {
 	performMigrations()
 	checkDependencies();
 	Hooks.callAll("dragRuler.ready", SpeedProvider)
-	Hooks.on("dragRuler.measureDistances", (segments, entity, shape, options={}) => {
-		return measureDistances(segments, entity, shape, options={});
-	})
 })
 
 Hooks.on("canvasReady", () => {
