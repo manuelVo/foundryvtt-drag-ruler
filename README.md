@@ -46,6 +46,7 @@ The game systems that offer Drag Ruler integration are:
 - Starfinder (via the module [Starfinder Drag Ruler Integration](https://foundryvtt.com/packages/starfinder-drag-ruler))
 - Stargate RPG (starting with version 1.6.0)
 - Tagmar RPG (starting with version 1.1.4)
+- TheWitcherTRPG (starting with version 0.0.62)
 - Tormenta20 (starting with version 1.1.37)
 - Shadow of the Demon Lord  (starting with version 1.7.15)
 - Wasteland Ventures (starting with version 0.1.0)
