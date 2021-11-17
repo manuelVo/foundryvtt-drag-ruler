@@ -1,6 +1,6 @@
 "use strict"
 
-import {currentSpeedProvider, getMovedDistanceFromToken, getRangesFromSpeedProvider, getUnreachableColorFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js"
+import {currentSpeedProvider, getColorForDistanceAndToken, getMovedDistanceFromToken, initApi, registerModule, registerSystem} from "./api.js";
 import {checkDependencies, getHexSizeSupportTokenGridCenter} from "./compatibility.js";
 import {moveEntities, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
@@ -22,7 +22,7 @@ Hooks.once("init", () => {
 	Ruler = DragRulerRuler;
 
 	window.dragRuler = {
-		getColorForDistance,
+		getColorForDistanceAndToken,
 		getMovedDistanceFromToken,
 		registerModule,
 		registerSystem,
@@ -264,30 +264,4 @@ function onEntityDragLeftCancel(event) {
 		}
 	}
 	return true
-}
-
-export function getColorForDistance(startDistance, subDistance=0) {
-	if (!this.isDragRuler)
-		return this.color
-	if (!this.draggedEntity.actor) {
-		return this.color;
-	}
-	// Don't apply colors if the current user doesn't have at least observer permissions
-	if (this.draggedEntity.actor.permission < 2) {
-		// If this is a pc and alwaysShowSpeedForPCs is enabled we show the color anyway
-		if (!(this.draggedEntity.actor.data.type === "character" && game.settings.get(settingsKey, "alwaysShowSpeedForPCs")))
-			return this.color
-	}
-	const distance = startDistance + subDistance
-	if (!this.dragRulerRanges)
-		this.dragRulerRanges = getRangesFromSpeedProvider(this.draggedEntity);
-	const ranges = this.dragRulerRanges;
-	if (ranges.length === 0)
-		return this.color
-	const currentRange = ranges.reduce((minRange, currentRange) => {
-		if (distance <= currentRange.range && currentRange.range < minRange.range)
-			return currentRange
-		return minRange
-	}, {range: Infinity, color: getUnreachableColorFromSpeedProvider()})
-	return currentRange.color
 }

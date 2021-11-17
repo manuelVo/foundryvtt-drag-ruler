@@ -1,3 +1,4 @@
+import {getColorForDistanceAndToken, getRangesFromSpeedProvider} from "./api.js";
 import {cancelScheduledMeasurement, measure} from "./foundry_imports.js"
 import {getMovementHistory} from "./movement_tracking.js";
 import {settingsKey} from "./settings.js";
@@ -151,5 +152,22 @@ export class DragRulerRuler extends Ruler {
 			ray.isPrevious = Boolean(waypoints[i].isPrevious);
 			return ray;
 		});
+	}
+
+	dragRulerGetColorForDistance(distance) {
+		if (!this.isDragRuler)
+			return this.color;
+		if (!this.draggedEntity.actor) {
+			return this.color;
+		}
+		// Don't apply colors if the current user doesn't have at least observer permissions
+		if (this.draggedEntity.actor.permission < 2) {
+			// If this is a pc and alwaysShowSpeedForPCs is enabled we show the color anyway
+			if (!(this.draggedEntity.actor.data.type === "character" && game.settings.get(settingsKey, "alwaysShowSpeedForPCs")))
+				return this.color;
+		}
+		if (!this.dragRulerRanges)
+			this.dragRulerRanges = getRangesFromSpeedProvider(this.draggedEntity);
+		return getColorForDistanceAndToken(distance, this.draggedEntity, this.dragRulerRanges);
 	}
 }
