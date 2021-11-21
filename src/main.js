@@ -149,7 +149,8 @@ function onKeyShift(up) {
 
 function onKeySpace(up) {
 	const ruler = canvas.controls.ruler;
-	if (!ruler.draggedEntity)
+	// Ruler can end up being undefined here if no canvas is active
+	if (!ruler?.draggedEntity)
 		return false;
 
 	if (ruler._state !== Ruler.STATES.INACTIVE)
