@@ -131,10 +131,11 @@ export function getColorForDistanceAndToken(distance, token, ranges=null) {
 }
 
 export function getMovedDistanceFromToken(token) {
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active;
 	const history = getMovementHistory(token);
 	const segments = Ruler.dragRulerGetRaysFromWaypoints(history, {x: token.x, y: token.y}).map(ray => {return {ray}});
 	const shape = getTokenShape(token);
-	const distances = measureDistances(segments, token, shape);
+	const distances = measureDistances(segments, token, shape, {enableTerrainRuler: terrainRulerAvailable});
 	// Sum up the distances
 	return distances.reduce((acc, val) => acc + val, 0);
 }
