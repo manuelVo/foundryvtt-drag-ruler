@@ -62,9 +62,6 @@ export function checkDependencies() {
 			if (game.modules.get("enhanced-terrain-layer")?.active) {
 				enabledTerrainModule = game.modules.get("enhanced-terrain-layer").data.title;
 			}
-			else if (game.modules.get("TerrainLayer")?.active) {
-				enabledTerrainModule = game.modules.get("TerrainLayer").data.title;
-			}
 			if (enabledTerrainModule) {
 				new Dialog({
 					title: game.i18n.localize("drag-ruler.dependencies.terrain-ruler.title"),

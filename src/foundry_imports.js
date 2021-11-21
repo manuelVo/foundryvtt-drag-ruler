@@ -168,7 +168,7 @@ export function measure(destination, options={}) {
 		options.ignoreGrid = false;
 	}
 
-	options.enableTerrainRuler = isToken && game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+	options.enableTerrainRuler = isToken && game.modules.get("terrain-ruler")?.active;
 
 	const waypoints = this.waypoints.concat([destination]);
 	// Move the waypoints to the center of the grid if a size is used that measures from edge to edge

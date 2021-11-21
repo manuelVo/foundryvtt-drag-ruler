@@ -49,7 +49,7 @@ function calculateUpdate(combat, token, rays) {
 	}
 
 	// Add the passed waypoints to the combatant
-	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active;
 	const dragRulerFlags = combatant.data.flags.dragRuler;
 	const waypoints = dragRulerFlags.passedWaypoints;
 	for (const ray of rays) {
