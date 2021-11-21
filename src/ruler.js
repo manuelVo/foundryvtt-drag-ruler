@@ -166,6 +166,7 @@ export class DragRulerRuler extends Ruler {
 			if (!(this.draggedEntity.actor.data.type === "character" && game.settings.get(settingsKey, "alwaysShowSpeedForPCs")))
 				return this.color;
 		}
+		distance = Math.round(distance * 100) / 100;
 		if (!this.dragRulerRanges)
 			this.dragRulerRanges = getRangesFromSpeedProvider(this.draggedEntity);
 		return getColorForDistanceAndToken(distance, this.draggedEntity, this.dragRulerRanges);
