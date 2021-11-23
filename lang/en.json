@@ -81,6 +81,10 @@
 			"swapSpacebarRightClick": {
 				"name": "Swap spacebar and right click",
 				"hint": "Swaps the functions of spacebar and right click during dragging. If enabled right click will place waypoints and spacebar will delete them"
+			},
+			"useGridlessRaster": {
+				"name": "Use speed based snapping",
+				"hint": "On Gridless scenes, this makes tokens snap to the token's speed ranges"
 			}
 		}
 	}

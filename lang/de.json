@@ -81,6 +81,10 @@
 			"swapSpacebarRightClick": {
 				"name": "Leertaste und Rechtsklick tauschen",
 				"hint": "Die Funktionen der Leertaste und des Rechtsklicks sind, während eine Spielfigur bewegt wird, vertauscht. Wenn diese Option aktiviert wird können mit Rechtsklick Wegpunkte gesetzt werden und mit der Leertaste werden sie wieder gelöscht."
+			},
+			"useGridlessraster": {
+				"name": "Geschwindigkeitsraster aktivieren",
+				"hint": "Lässt Spielfiguren auf gitterlosen Szenen an deren Geschwindigkeitsgrenzen einrasten."
 			}
 		}
 	}

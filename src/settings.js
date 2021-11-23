@@ -29,6 +29,15 @@ export function registerSettings() {
 		default: false,
 	})
 
+	game.settings.register(settingsKey, "useGridlessRaster", {
+		name: "drag-ruler.settings.useGridlessRaster.name",
+		hint: "drag-ruler.settings.useGridlessRaster.hint",
+		scope: "client",
+		config: true,
+		type: Boolean,
+		default: true,
+	});
+
 	game.settings.register(settingsKey, "alwaysShowSpeedForPCs", {
 		name: "drag-ruler.settings.alwaysShowSpeedForPCs.name",
 		hint: "drag-ruler.settings.alwaysShowSpeedForPCs.hint",

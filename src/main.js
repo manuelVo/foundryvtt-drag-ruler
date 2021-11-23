@@ -1,7 +1,7 @@
 "use strict"
 
-import {currentSpeedProvider, getColorForDistanceAndToken, getMovedDistanceFromToken, initApi, registerModule, registerSystem} from "./api.js";
-import {checkDependencies, getHexSizeSupportTokenGridCenter} from "./compatibility.js";
+import {currentSpeedProvider, getColorForDistanceAndToken, getMovedDistanceFromToken, getRangesFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js";
+import {checkDependencies, getHexSizeSupportTokenGridCenter, highlightMeasurementTerrainRuler} from "./compatibility.js";
 import {moveEntities, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
 import {DragRulerRuler} from "./ruler.js";
@@ -66,6 +66,8 @@ function hookDragHandlers(entityType) {
 
 	const originalDragLeftMoveHandler = entityType.prototype._onDragLeftMove
 	entityType.prototype._onDragLeftMove = function (event) {
+		if (entityType === Token)
+			applyGridlessSnapping.call(this, event);
 		originalDragLeftMoveHandler.call(this, event)
 		onEntityLeftDragMove.call(this, event)
 	}
@@ -265,4 +267,72 @@ function onEntityDragLeftCancel(event) {
 		}
 	}
 	return true
+}
+
+function applyGridlessSnapping(event) {
+	const ruler = canvas.controls.ruler;
+	if (!game.settings.get(settingsKey, "useGridlessRaster"))
+		return;
+	if (!ruler.isDragRuler)
+		return;
+	if (game.keyboard.isDown("Shift"))
+		return;
+	if (canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS)
+		return;
+
+	const rasterWidth = 35 / canvas.stage.scale.x;
+	const tokenX = event.data.destination.x;
+	const tokenY = event.data.destination.y;
+	const destination = {x: tokenX + ruler.rulerOffset.x, y: tokenY + ruler.rulerOffset.y};
+	const ranges = getRangesFromSpeedProvider(ruler.draggedEntity);
+
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active;
+	if (terrainRulerAvailable) {
+		const segments = Ruler.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination).map(ray => {return {ray}});
+		const pinpointDistances = new Map();
+		for (const range of ranges) {
+			pinpointDistances.set(range.range, null);
+		}
+		terrainRuler.measureDistances(segments, {pinpointDistances});
+		const targetDistance = Array.from(pinpointDistances.entries())
+			.filter(([_key, val]) => val)
+			.reduce((value, current) => value[0] > current[0] ? value : current, [0, null]);
+		const rasterLocation = targetDistance[1];
+		if (rasterLocation) {
+			const deltaX = destination.x - rasterLocation.x;
+			const deltaY = destination.y - rasterLocation.y;
+			const rasterDistance = Math.hypot(deltaX, deltaY);
+			if (rasterDistance < rasterWidth) {
+				event.data.destination.x = rasterLocation.x - ruler.rulerOffset.x;
+				event.data.destination.y = rasterLocation.y - ruler.rulerOffset.y;
+			}
+		}
+	}
+	else {
+		let waypointDistance = 0;
+		let origin = event.data.origin;
+		if (ruler.waypoints.length > 1) {
+			const segments = Ruler.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination).map(ray => {return {ray}});
+			origin = segments.pop().ray.A;
+			waypointDistance = canvas.grid.measureDistances(segments).reduce((a, b) => a + b);
+			origin = {x: origin.x - ruler.rulerOffset.x, y: origin.y - ruler.rulerOffset.y};
+		}
+
+		const deltaX = tokenX - origin.x;
+		const deltaY = tokenY - origin.y;
+		const distance = Math.hypot(deltaX, deltaY);
+		// targetRange will be the largest range that's still smaller than distance
+		let targetDistance = ranges
+			.map(range => range.range)
+			.map(range => range - waypointDistance)
+			.map(range => range * canvas.dimensions.size / canvas.dimensions.distance)
+			.filter(range => range < distance)
+			.reduce((a, b) => Math.max(a, b), 0);
+		if (targetDistance) {
+			if (distance < targetDistance + rasterWidth) {
+				event.data.destination.x = origin.x + deltaX * targetDistance / distance;
+				event.data.destination.y = origin.y + deltaY * targetDistance / distance;
+			}
+		}
+	}
 }
