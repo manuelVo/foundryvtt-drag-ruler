@@ -84,7 +84,7 @@
 			},
 			"useGridlessRaster": {
 				"name": "Use speed based snapping",
-				"hint": "On Gridless scenes, this makes tokens snap to the token's speed ranges"
+				"hint": "On Gridless scenes, this makes tokens snap to the token's speed ranges. This can be temporarily disabled by pressing Shift during drag."
 			}
 		}
 	}

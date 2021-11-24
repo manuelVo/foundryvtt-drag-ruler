@@ -84,7 +84,7 @@
 			},
 			"useGridlessraster": {
 				"name": "Geschwindigkeitsraster aktivieren",
-				"hint": "Lässt Spielfiguren auf gitterlosen Szenen an deren Geschwindigkeitsgrenzen einrasten."
+				"hint": "Lässt Spielfiguren auf gitterlosen Szenen an deren Geschwindigkeitsgrenzen einrasten. Dies kann vorübergehend deaktiviert werden, indem während des ziehens die Umschalttaste gedrückt wird."
 			}
 		}
 	}
