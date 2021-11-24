@@ -1,3 +1,16 @@
+## 1.9.0
+### New features
+- On Gridless scenes, tokens can now snap to their speed limits, to make full usage of a token's movement speed easier. This feature can be temporarily disabled by pressing Shift during drag and can be disabled completely in the settings.
+
+### Bugfixes
+- Non-square tokens (e.g. 2x1) now work correctly on square grids
+- When modifying difficult terrain that a token has already moved over, this the movement history of the token won't change anymore (this was a regression introduced in 1.8.0)
+- Fixed a bug that prevented pausing/unpausing the game when no scene was active
+
+### API
+- Added `dragRuler.getColorForDistanceAndToken` API endpoint that allows other modules to receive the highlight color for a specified distance with a given token.
+
+
 ## 1.8.2
 ### Compatibility
 - The generic speed provider defaults have been updated for lance 1.0 (thanks to BoltsJ!)
