@@ -15,7 +15,7 @@ export function registerLibWrapper() {
   libWrapper.register(settingsKey, "Token.prototype._onDragLeftDrop", onDragLeftDropWrap, "MIXED");
   libWrapper.register(settingsKey, "Token.prototype._onDragLeftCancel", onDragLeftCancelWrap, "MIXED");
 
-  libWrapper.register(settingsKey, "KeyboardManager.prototype._handleKeys", handleKeysWrap, "MIXED");
+  libWrapper.register(settingsKey, "KeyboardManager.prototype._handleKeyboardEvent", handleKeysWrap, "MIXED");
 
   libWrapper.register(settingsKey, "TokenLayer.prototype.undoHistory", dragRulerUndoHistory, "WRAPPER");
 }
@@ -45,10 +45,10 @@ function onDragLeftCancelWrap(wrapped, event) {
   }
 }
 
-function handleKeysWrap(wrapped, event, key, up) {
-  const eventHandled = handleKeys.call(this, event, key, up);
+function handleKeysWrap(wrapped, event, up) {
+  const eventHandled = handleKeys.call(this, event, up);
   if(!eventHandled) {
-    wrapped(event, key, up);
+    wrapped(event, up);
   }
 }
 
