@@ -12,7 +12,6 @@ import {SpeedProvider} from "./speed_provider.js"
 import {registerLibWrapper, MODULE_ID} from "./libwrapper.js"
 import {isClose, setSnapParameterOnOptions} from "./util.js";
 import {registerLibRuler, log} from "./libruler.js"
-import {isClose, setSnapParameterOnOptions} from "./util.js";
 
 Hooks.once("init", () => {
 	registerSettings()
@@ -45,16 +44,15 @@ Hooks.once("ready", () => {
 })
 
 Hooks.on("canvasReady", () => {
-  if(!game.modules.get('libruler')?.active)) {
-	canvas.controls.rulers.children.forEach(ruler => {
-		ruler.draggedEntity = null;
-		Object.defineProperty(ruler, "isDragRuler", {
-			get: function isDragRuler() {
-				return Boolean(this.draggedEntity) && this._state !== Ruler.STATES.INACTIVE;
-			}
+  if(!game.modules.get('libruler')?.active) {
+		canvas.controls.rulers.children.forEach(ruler => {
+			ruler.draggedEntity = null;
+			Object.defineProperty(ruler, "isDragRuler", {
+				get: function isDragRuler() {
+					return Boolean(this.draggedEntity) && this._state !== Ruler.STATES.INACTIVE;
+				}
 			})
 		})
-	})
   }
 });
 
@@ -230,24 +228,23 @@ export function onEntityLeftDragStart(event) {
 
 export function startDragRuler(options, measureImmediately=true) {
 	const isToken = this instanceof Token;
-	if (isToken && !currentSpeedProvider.usesRuler(this))
-		return;
+	if (isToken && !currentSpeedProvider.usesRuler(this)) return;
 	const ruler = canvas.controls.ruler;
-				// ruler.clear() call _endMeasurement and will wipe set flags.
-				// but the flags may have already been set by onEntityLeftDragStart
-				// so copy over
-				let draggedEntityID;
-				let rulerOffset;
-				if(game.modules.get('libruler')?.active) {
-					draggedEntityID = ruler.getFlag(settingsKey, "draggedEntityID");
-					rulerOffset = ruler.getFlag(settingsKey, "rulerOffset");
-				}
+	// ruler.clear() call _endMeasurement and will wipe set flags.
+	// but the flags may have already been set by onEntityLeftDragStart
+	// so copy over
+	let draggedEntityID;
+	let rulerOffset;
+	if(game.modules.get('libruler')?.active) {
+		draggedEntityID = ruler.getFlag(settingsKey, "draggedEntityID");
+		rulerOffset = ruler.getFlag(settingsKey, "rulerOffset");
+	}
 	ruler.clear();
 
-				if(game.modules.get('libruler')?.active) {
-					ruler.setFlag(settingsKey, "draggedEntityID", draggedEntityID);
-					ruler.setFlag(settingsKey, "rulerOffset", rulerOffset);
-				}
+	if(game.modules.get('libruler')?.active) {
+		ruler.setFlag(settingsKey, "draggedEntityID", draggedEntityID);
+		ruler.setFlag(settingsKey, "rulerOffset", rulerOffset);
+	}
 	ruler._state = Ruler.STATES.STARTING;
 	const rulerOffset = {x: tokenCenter.x - event.data.origin.x, y: tokenCenter.y - event.data.origin.y}
 	if(game.modules.get('libruler')?.active) {
@@ -349,7 +346,7 @@ export function onEntityDragLeftCancel(event) {
                         log(`Adding waypoint at ${ruler.destination.x}, ${ruler.destination.y}`);
 			event.preventDefault();
 			const snap = !event.shiftKey
-                        if(game.modules.get('libruler')?.active) { 
+                        if(game.modules.get('libruler')?.active) {
                           log('Adding waypoint');
                           ruler._addWaypoint(ruler.destination, Boolean(options.snap));
                         } else {
