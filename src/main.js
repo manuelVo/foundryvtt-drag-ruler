@@ -97,11 +97,11 @@ function hookDragHandlers(entityType) {
 }
 
 function hookKeyboardManagerFunctions() {
-	const originalHandleKeys = KeyboardManager.prototype._handleKeys
-	KeyboardManager.prototype._handleKeys = function (event, key, up) {
-		const eventHandled = handleKeys.call(this, event, key, up)
+	const originalHandleKeys = KeyboardManager.prototype._handleKeyboardEvent(event, up)
+	KeyboardManager.prototype._handleKeys = function (event, up) {
+		const eventHandled = handleKeys.call(this, event, up)
 		if (!eventHandled)
-			originalHandleKeys.call(this, event, key, up)
+			originalHandleKeys.call(this, event, up)
 	}
 }
 
@@ -121,11 +121,12 @@ function hookLayerFunctions() {
 	}
 }
 
-export function handleKeys(event, key, up) {
+export function handleKeys(event, up) {
 	if (event.repeat || this.hasFocus)
 		return false
 
-	const lowercaseKey = key.toLowerCase();
+  const context = KeyboardManager.getKeyboardEventContext(event, up);
+	const lowercaseKey = context.key.toLowerCase();
 
 	if (lowercaseKey === "x") return onKeyX(up)
 	if (lowercaseKey === "shift") return onKeyShift(up)
