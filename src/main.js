@@ -303,7 +303,6 @@ export function onEntityDragLeftDrop(event) {
 	// When we're dragging a measured template no token will ever be selected,
 	// resulting in only the dragged template to be moved as would be expected
 	const selectedTokens = canvas.tokens.controlled
-	// This can happen if the user presses ESC during drag (maybe there are other ways too)
 	if (selectedTokens.length === 0)
 		selectedTokens.push(ruler.draggedEntity);
 
@@ -326,6 +325,10 @@ export function onEntityDragLeftCancel(event) {
   if (!ruler.draggedEntity || ruler._state === Ruler.STATES.MOVING) {
           return false
         }
+
+	if (!ruler.draggedEntity || ruler._state === Ruler.STATES.MOVING) {
+					return false
+				}
 
 	const swapSpacebarRightClick = game.settings.get(settingsKey, "swapSpacebarRightClick");
 	let options = {};
