@@ -1,7 +1,22 @@
+/* globals
+Hooks,
+game,
+Token,
+MeasuredTemplate,
+Ruler:writable,
+canvas,
+KeyboardManager,
+TokenLayer,
+ui,
+CONFIG,
+terrainRuler,
+CONST
+*/
+
 "use strict"
 
 import {currentSpeedProvider, getColorForDistanceAndToken, getMovedDistanceFromToken, getRangesFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js";
-import {checkDependencies, getHexSizeSupportTokenGridCenter, highlightMeasurementTerrainRuler} from "./compatibility.js";
+import {checkDependencies, getHexSizeSupportTokenGridCenter} from "./compatibility.js";
 import {moveEntities, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
 import {DragRulerRuler} from "./ruler.js";
@@ -9,7 +24,7 @@ import {getMovementHistory, removeLastHistoryEntryIfAt, resetMovementHistory} fr
 import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
-import {isClose, setSnapParameterOnOptions} from "./util.js";
+import {setSnapParameterOnOptions} from "./util.js";
 import {registerLibWrapper} from "./libwrapper.js";
 import {registerLibRuler} from "./libruler.js";
 
@@ -26,9 +41,7 @@ Hooks.once("init", () => {
 		registerLibWrapper();
 	}
 
-
-
-	if(!game.modules.get('lib-wrapper')?.active) { Ruler = DragRulerRuler; }
+	if(!game.modules.get('libruler')?.active) { Ruler = DragRulerRuler; }
 
 	window.dragRuler = {
 		getColorForDistanceAndToken,
@@ -103,7 +116,7 @@ function hookDragHandlers(entityType) {
 }
 
 function hookKeyboardManagerFunctions() {
-	const originalHandleKeys = KeyboardManager.prototype._handleKeyboardEvent(event, up)
+	const originalHandleKeys = KeyboardManager.prototype._handleKeyboardEvent
 	KeyboardManager.prototype._handleKeyboardEvent = function (event, up) {
 		const eventHandled = handleKeys.call(this, event, up)
 		if (!eventHandled)
