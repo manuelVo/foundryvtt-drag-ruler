@@ -100,11 +100,11 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 		trackRays(entities, entityAnimationData.map(({rays}) => rays)).then(() => recalculate(entities));
 }
 
-function calculateEntityOffset(entityA, entityB) {
+export function calculateEntityOffset(entityA, entityB) {
 	return {x: entityA.data.x - entityB.data.x, y: entityA.data.y - entityB.data.y};
 }
 
-function applyOffsetToRay(ray, offset) {
+export function applyOffsetToRay(ray, offset) {
 	const newRay = new Ray({x: ray.A.x + offset.x, y: ray.A.y + offset.y}, {x: ray.B.x + offset.x, y: ray.B.y + offset.y});
 	newRay.isPrevious = ray.isPrevious;
 	return newRay;

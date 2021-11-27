@@ -85,75 +85,6 @@ export class DragRulerRuler extends Ruler {
 		this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
 	}
 
-	dragRulerAddWaypointHistory(waypoints) {
-		waypoints.forEach(waypoint => waypoint.isPrevious = true);
-		this.waypoints = this.waypoints.concat(waypoints);
-		for (const waypoint of waypoints) {
-			this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
-		}
-	}
-
-	dragRulerClearWaypoints() {
-		this.waypoints = [];
-		this.labels.removeChildren().forEach(c => c.destroy());
-	}
-
-	dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={}) {
-		options.snap = options.snap ?? true;
-		if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
-			event.preventDefault();
-			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
-			const rulerOffset = this.rulerOffset;
-
-			// Options are not passed to _removeWaypoint in vanilla Foundry.
-			// Send them in case other modules have overriden that behavior and accept an options parameter (Toggle Snap to Grid)
-			this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}, options);
-			game.user.broadcastActivity({ruler: this});
-		}
-		else {
-			this.dragRulerAbortDrag(event);
-		}
-	}
-
-	dragRulerAbortDrag(event={preventDefault: () => {return}}) {
-		const token = this.draggedEntity;
-		this._endMeasurement();
-
-		// Deactivate the drag workflow in mouse
-		token.mouseInteractionManager._deactivateDragEvents();
-		token.mouseInteractionManager.state = token.mouseInteractionManager.states.HOVER;
-
-		// This will cancel the current drag operation
-		// Pass in a fake event that hopefully is enough to allow other modules to function
-		token._onDragLeftCancel(event);
-	}
-
-	async dragRulerRecalculate(tokenIds) {
-		if (this._state !== Ruler.STATES.MEASURING)
-			return;
-		if (tokenIds && !tokenIds.includes(this.draggedEntity.id))
-			return;
-		const waypoints = this.waypoints.filter(waypoint => !waypoint.isPrevious);
-		this.dragRulerClearWaypoints();
-		if (game.settings.get(settingsKey, "enableMovementHistory"))
-			this.dragRulerAddWaypointHistory(getMovementHistory(this.draggedEntity));
-		for (const waypoint of waypoints) {
-			this.dragRulerAddWaypoint(waypoint, {snap: false});
-		}
-		this.measure(this.destination);
-		game.user.broadcastActivity({ruler: this});
-	}
-
-	static dragRulerGetRaysFromWaypoints(waypoints, destination) {
-		if ( destination )
-			waypoints = waypoints.concat([destination]);
-		return waypoints.slice(1).map((wp, i) => {
-			const ray =  new Ray(waypoints[i], wp);
-			ray.isPrevious = Boolean(waypoints[i].isPrevious);
-			return ray;
-		});
-	}
-
 	dragRulerGetColorForDistance(distance) {
 		if (!this.isDragRuler)
 			return this.color;
@@ -172,3 +103,114 @@ export class DragRulerRuler extends Ruler {
 		return getColorForDistanceAndToken(distance, this.draggedEntity, this.dragRulerRanges);
 	}
 }
+
+// export following for use in libruler code as well as here.
+
+export function dragRulerAddWaypointHistory(waypoints) {
+		waypoints.forEach(waypoint => waypoint.isPrevious = true);
+		this.waypoints = this.waypoints.concat(waypoints);
+		for (const waypoint of waypoints) {
+			this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
+		}
+	}
+
+export function dragRulerClearWaypoints() {
+		this.waypoints = [];
+		this.labels.removeChildren().forEach(c => c.destroy());
+	}
+
+export function dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={}) {
+		options.snap = options.snap ?? true;
+		if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
+			event.preventDefault();
+			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
+			const rulerOffset = game.modules.get('libruler')?.active ? this.getFlag(settingsKey, "rulerOffset") : this.rulerOffset;
+
+			// Options are not passed to _removeWaypoint in vanilla Foundry.
+			// Send them in case other modules have overriden that behavior and accept an options parameter (Toggle Snap to Grid)
+			this._removeWaypoint({x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}, options);
+			game.user.broadcastActivity({ruler: this});
+		}
+		else {
+			this.dragRulerAbortDrag(event);
+		}
+	}
+
+export function dragRulerAbortDrag(event={preventDefault: () => {return}}) {
+		const token = this.draggedEntity;
+		this._endMeasurement();
+
+		// Deactivate the drag workflow in mouse
+		token.mouseInteractionManager._deactivateDragEvents();
+		token.mouseInteractionManager.state = token.mouseInteractionManager.states.HOVER;
+
+		// This will cancel the current drag operation
+		// Pass in a fake event that hopefully is enough to allow other modules to function
+		token._onDragLeftCancel(event);
+	}
+
+export async function dragRulerRecalculate(tokenIds) {
+		if (this._state !== Ruler.STATES.MEASURING)
+			return;
+		if (tokenIds && !tokenIds.includes(this.draggedEntity.id))
+			return;
+		const waypoints = this.waypoints.filter(waypoint => !waypoint.isPrevious);
+		this.dragRulerClearWaypoints();
+		if (game.settings.get(settingsKey, "enableMovementHistory"))
+			this.dragRulerAddWaypointHistory(getMovementHistory(this.draggedEntity));
+		for (const waypoint of waypoints) {
+			if(game.modules.get('libruler')?.active) {
+				this._addWaypoint(waypoint, false);
+			} else {
+				this.dragRulerAddWaypoint(waypoint, {snap: false});
+			}
+		}
+		this.measure(this.destination);
+		game.user.broadcastActivity({ruler: this});
+	}
+
+export function dragRulerGetRaysFromWaypoints(waypoints, destination) {
+		if ( destination )
+			waypoints = waypoints.concat([destination]);
+		return waypoints.slice(1).map((wp, i) => {
+			const ray =  new Ray(waypoints[i], wp);
+			ray.isPrevious = Boolean(waypoints[i].isPrevious);
+			return ray;
+		});
+	}
+
+Object.defineProperty(DragRulerRuler.prototype, "dragRulerAddWaypointHistory", {
+	value: dragRulerAddWaypointHistory,
+	writable: true,
+	configurable: true
+});
+
+Object.defineProperty(DragRulerRuler.prototype, "dragRulerClearWaypoints", {
+	value: dragRulerClearWaypoints,
+	writable: true,
+	configurable: true
+});
+
+Object.defineProperty(DragRulerRuler.prototype, "dragRulerDeleteWaypoint", {
+	value: dragRulerDeleteWaypoint,
+	writable: true,
+	configurable: true
+});
+
+Object.defineProperty(DragRulerRuler.prototype, "dragRulerAbortDrag", {
+	value: dragRulerAbortDrag,
+	writable: true,
+	configurable: true
+});
+
+Object.defineProperty(DragRulerRuler.prototype, "dragRulerRecalculate", {
+	value: dragRulerRecalculate,
+	writable: true,
+	configurable: true
+});
+
+Object.defineProperty(DragRulerRuler, "dragRulerGetRaysFromWaypoints", {
+	value: dragRulerGetRaysFromWaypoints,
+	writable: true,
+	configurable: true
+});

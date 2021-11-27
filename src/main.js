@@ -10,16 +10,25 @@ import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
 import {isClose, setSnapParameterOnOptions} from "./util.js";
+import {registerLibWrapper} from "./libwrapper.js";
+import {registerLibRuler} from "./libruler.js";
 
 Hooks.once("init", () => {
 	registerSettings()
 	initApi()
-	hookDragHandlers(Token);
-	hookDragHandlers(MeasuredTemplate);
-	hookKeyboardManagerFunctions()
-	hookLayerFunctions();
 
-	Ruler = DragRulerRuler;
+	if(!game.modules.get('lib-wrapper')?.active) {
+		hookDragHandlers(Token);
+		hookDragHandlers(MeasuredTemplate);
+		hookKeyboardManagerFunctions()
+		hookLayerFunctions();
+	} else {
+		registerLibWrapper();
+	}
+
+
+
+	if(!game.modules.get('lib-wrapper')?.active) { Ruler = DragRulerRuler; }
 
 	window.dragRuler = {
 		getColorForDistanceAndToken,
@@ -38,6 +47,7 @@ Hooks.once("ready", () => {
 })
 
 Hooks.on("canvasReady", () => {
+	if(!game.modules.get('libruler')?.active) {
 	canvas.controls.rulers.children.forEach(ruler => {
 		ruler.draggedEntity = null;
 		Object.defineProperty(ruler, "isDragRuler", {
@@ -46,6 +56,7 @@ Hooks.on("canvasReady", () => {
 			}
 		})
 	})
+	}
 })
 
 Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
@@ -55,6 +66,10 @@ Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
 		callback: li => resetMovementHistory(ui.combat.viewed, li.data('combatant-id')),
 	};
 	menu.splice(1, 0, entry);
+});
+
+Hooks.once('libRulerReady', async function() {
+	registerLibRuler();
 });
 
 function hookDragHandlers(entityType) {
@@ -88,11 +103,11 @@ function hookDragHandlers(entityType) {
 }
 
 function hookKeyboardManagerFunctions() {
-	const originalHandleKeys = KeyboardManager.prototype._handleKeys
-	KeyboardManager.prototype._handleKeys = function (event, key, up) {
-		const eventHandled = handleKeys.call(this, event, key, up)
+	const originalHandleKeys = KeyboardManager.prototype._handleKeyboardEvent(event, up)
+	KeyboardManager.prototype._handleKeyboardEvent = function (event, up) {
+		const eventHandled = handleKeys.call(this, event, up)
 		if (!eventHandled)
-			originalHandleKeys.call(this, event, key, up)
+			originalHandleKeys.call(this, event, up)
 	}
 }
 
@@ -112,11 +127,12 @@ function hookLayerFunctions() {
 	}
 }
 
-function handleKeys(event, key, up) {
+export function handleKeys(event, up) {
 	if (event.repeat || this.hasFocus)
 		return false
 
-	const lowercaseKey = key.toLowerCase();
+	const context = KeyboardManager.getKeyboardEventContext(event, up);
+	const lowercaseKey = context.key.toLowerCase();
 
 	if (lowercaseKey === "x") return onKeyX(up)
 	if (lowercaseKey === "shift") return onKeyShift(up)
@@ -144,8 +160,11 @@ function onKeyShift(up) {
 		return false;
 
 	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens)
-	const rulerOffset = ruler.rulerOffset
+	const rulerOffset = game.modules.get('libruler')?.active ? ruler.getFlag(settingsKey, "rulerOffset") : ruler.rulerOffset;
 	const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}
+	if(game.modules.get('lib-wrapper')?.active) {
+		ruler.setFlag(settingsKey, "snap", up);
+	}
 	ruler.measure(measurePosition, {snap: up})
 }
 
@@ -180,16 +199,28 @@ function onKeyEscape(up) {
 	return true;
 }
 
-function onEntityLeftDragStart(event) {
+export function onEntityLeftDragStart(event) {
 	const isToken = this instanceof Token;
 	const ruler = canvas.controls.ruler
-	ruler.draggedEntity = this;
+
+	if(game.modules.get('libruler')?.active) {
+		ruler.setFlag(settingsKey, "draggedEntityID", this.id);
+	} else {
+		ruler.draggedEntity = this;
+	}
 	let entityCenter;
 	if (isToken && canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
 		entityCenter = getHexSizeSupportTokenGridCenter(this);
 	else
 		entityCenter = this.center;
-	ruler.rulerOffset = {x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y};
+	const rulerOffset = {x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y};
+
+	if(game.modules.get('libruler')?.active) {
+		ruler.setFlag(settingsKey, "rulerOffset", rulerOffset);
+	} else {
+		ruler.rulerOffset = rulerOffset;
+	}
+
 	if (game.settings.get(settingsKey, "autoStartMeasurement")) {
 		let options = {};
 		setSnapParameterOnOptions(ruler, options);
@@ -197,12 +228,29 @@ function onEntityLeftDragStart(event) {
 	}
 }
 
-function startDragRuler(options, measureImmediately=true) {
+export function startDragRuler(options, measureImmediately=true) {
 	const isToken = this instanceof Token;
 	if (isToken && !currentSpeedProvider.usesRuler(this))
 		return;
 	const ruler = canvas.controls.ruler;
+
+	// ruler.clear() call _endMeasurement and will wipe set flags.
+	// but the flags may have already been set by onEntityLeftDragStart
+	// so copy over
+	let draggedEntityID;
+	let rulerOffset;
+	if(game.modules.get('libruler')?.active) {
+		draggedEntityID = ruler.getFlag(settingsKey, "draggedEntityID");
+		rulerOffset = ruler.getFlag(settingsKey, "rulerOffset");
+	}
+
 	ruler.clear();
+
+	if(game.modules.get('libruler')?.active) {
+		ruler.setFlag(settingsKey, "draggedEntityID", draggedEntityID);
+		ruler.setFlag(settingsKey, "rulerOffset", rulerOffset);
+	}
+
 	ruler._state = Ruler.STATES.STARTING;
 	let entityCenter;
 	if (isToken && canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
@@ -211,20 +259,33 @@ function startDragRuler(options, measureImmediately=true) {
 		entityCenter = this.center;
 	if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
 		ruler.dragRulerAddWaypointHistory(getMovementHistory(this));
-	ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
+
+	if(game.modules.get('libruler')?.active) {
+		ruler._addWaypoint(entityCenter, false);
+	} else {
+		ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
+	}
+
 	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
-	const destination = {x: mousePosition.x + ruler.rulerOffset.x, y: mousePosition.y + ruler.rulerOffset.y};
+
+	rulerOffset = game.modules.get('libruler')?.active ? ruler.getFlag(settingsKey, "rulerOffset") : ruler.rulerOffset;
+	const destination = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y};
 	if (measureImmediately)
 		ruler.measure(destination, options);
 }
 
-function onEntityLeftDragMove(event) {
+export function onEntityLeftDragMove(event) {
 	const ruler = canvas.controls.ruler
-	if (ruler.isDragRuler)
-		onMouseMove.call(ruler, event)
+	if (ruler.isDragRuler) {
+		if(game.modules.get('libruler')?.active) {
+			ruler._onMouseMove(event);
+		} else {
+			onMouseMove.call(ruler, event)
+		}
+	}
 }
 
-function onEntityDragLeftDrop(event) {
+export function onEntityDragLeftDrop(event) {
 	const ruler = canvas.controls.ruler
 	if (!ruler.isDragRuler) {
 		ruler.draggedEntity = undefined;
@@ -237,11 +298,17 @@ function onEntityDragLeftDrop(event) {
 	if (selectedTokens.length === 0)
 		selectedTokens.push(ruler.draggedEntity);
 	ruler._state = Ruler.STATES.MOVING
-	moveEntities.call(ruler, ruler.draggedEntity, selectedTokens);
+
+	if(game.modules.get('libruler')?.active) {
+		ruler.moveToken();
+	} else {
+		const selectedTokens = canvas.tokens.controlled
+		moveEntities.call(ruler, ruler.draggedEntity, selectedTokens);
+	}
 	return true
 }
 
-function onEntityDragLeftCancel(event) {
+export function onEntityDragLeftCancel(event) {
 	// This function is invoked by right clicking
 	const ruler = canvas.controls.ruler
 	if (!ruler.draggedEntity || ruler._state === Ruler.STATES.MOVING)
@@ -263,7 +330,11 @@ function onEntityDragLeftCancel(event) {
 		}
 		else {
 			event.preventDefault();
-			ruler.dragRulerAddWaypoint(ruler.destination, options);
+			if(game.modules.get('libruler')?.active) {
+				ruler._addWaypoint(ruler.destination, Boolean(options.snap));
+			} else {
+				ruler.dragRulerAddWaypoint(ruler.destination, options);
+			}
 		}
 	}
 	return true
@@ -336,3 +407,29 @@ function applyGridlessSnapping(event) {
 		}
 	}
 }
+
+// export function getColorForDistance(startDistance, subDistance=0) {
+// 	if (!this.isDragRuler)
+// 		return this.color
+// 	if (!this.draggedEntity.actor) {
+// 		return this.color;
+// 	}
+// 	// Don't apply colors if the current user doesn't have at least observer permissions
+// 	if (this.draggedEntity.actor.permission < 2) {
+// 		// If this is a pc and alwaysShowSpeedForPCs is enabled we show the color anyway
+// 		if (!(this.draggedEntity.actor.data.type === "character" && game.settings.get(settingsKey, "alwaysShowSpeedForPCs")))
+// 			return this.color
+// 	}
+// 	const distance = startDistance + subDistance
+// 	if (!this.dragRulerRanges)
+// 		this.dragRulerRanges = getRangesFromSpeedProvider(this.draggedEntity);
+// 	const ranges = this.dragRulerRanges;
+// 	if (ranges.length === 0)
+// 		return this.color
+// 	const currentRange = ranges.reduce((minRange, currentRange) => {
+// 		if (distance <= currentRange.range && currentRange.range < minRange.range)
+// 			return currentRange
+// 		return minRange
+// 	}, {range: Infinity, color: getUnreachableColorFromSpeedProvider()})
+// 	return currentRange.color
+// }
