@@ -1,7 +1,7 @@
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/staebchenfisch)
 
 # Drag Ruler
-This module shows a ruler when you drag a token or measurement template to infrom you how far you've dragged it from it's start point. Additionally, if you're using a grid, the spaces the token will travel though will be colored depending on your tokens speed. By default three colors are being used: green for spaces that your token can reach by walking normally are colored green, spaces that can only be reached by dashing will be colored red and spaces that cannot be reached with the token's speed will be colored red. If you're using a gridless map the ruler color will change to convey this information.
+This module shows a ruler when you drag a token or measurement template to inform you how far you've dragged it from its start point. Additionally, if you're using a grid, the spaces the token will travel though will be colored depending on your tokens speed. By default, three colors are being used: green for spaces that your token can reach by walking normally are colored green, spaces that can only be reached by dashing will be colored yellow and spaces that cannot be reached with the token's speed will be colored red. If you're using a gridless map the ruler color will change to convey this information.
 
 ![Drag Ruler being used on a square grids](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/basic_square.webp)
 ![Drag Ruler being used on a gridless scene](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/basic_gridless.webp)
@@ -33,14 +33,20 @@ During combat, Drag Ruler will remember the path a token has taken during it's t
 
 
 ## Game systems with Drag Ruler integration
-Drag Ruler will work with all Foundry VTT game systems. However some game systems offer a special integration via the [Drag Ruler API](#api), that allows Drag Ruler to take the rules of the game system into account when dispaying speeds (such as weight carried or conditions that apply to the character), offering a smoother experience. While some game systems offer this integration natively, for other game systems there are modules providing the integration. If the integration is provided via a module you need to install and activate both Drag Ruler and the integration module to benefit from the integration.
+Drag Ruler will work with all Foundry VTT game systems. However, some game systems offer a special integration via the [Drag Ruler API](#api), that allows Drag Ruler to take the rules of the game system into account when dispaying speeds (such as weight carried or conditions that apply to the character), offering a smoother experience. While some game systems offer this integration natively, for other game systems there are modules providing the integration. If the integration is provided via a module you need to install and activate both Drag Ruler and the integration module to benefit from the integration.
 
 The game systems that offer Drag Ruler integration are:
 - Cypher System (starting with version 1.13.0)
+- GURPS 4th Edition Game Aid (Unofficial) (starting with version 0.9.1)
 - Ironclaw Second Edition (starting with version 0.2.2)
+- Lancer (via the module [Lancer Speed Provider](https://foundryvtt.com/packages/lancer-speed-provider))
 - Pathfinder 1 (starting with version 0.77.3)
 - Pathfinder 2e (via the module [PF2E Drag Ruler Integration](https://foundryvtt.com/packages/pf2e-dragruler/))
+- Shadowrun 5th Edition (via the module [Drag Ruler Integration for Shadowrun 5E](https://foundryvtt.com/packages/drag-ruler-integration-for-shadowrun-5e))
+- Starfinder (via the module [Starfinder Drag Ruler Integration](https://foundryvtt.com/packages/starfinder-drag-ruler))
+- Stargate RPG (starting with version 1.6.0)
 - Tagmar RPG (starting with version 1.1.4)
+- TheWitcherTRPG (starting with version 0.0.62)
 - Tormenta20 (starting with version 1.1.37)
 - Shadow of the Demon Lord  (starting with version 1.7.15)
 - Wasteland Ventures (starting with version 0.1.0)

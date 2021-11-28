@@ -116,11 +116,26 @@ export function getCostFromSpeedProvider(token, area, options) {
 	}
 }
 
+export function getColorForDistanceAndToken(distance, token, ranges=null) {
+	if (!ranges) {
+		ranges = getRangesFromSpeedProvider(token);
+	}
+	if (ranges.length === 0)
+		return this.color;
+	const currentRange = ranges.reduce((minRange, currentRange) => {
+		if (distance <= currentRange.range && currentRange.range < minRange.range)
+			return currentRange;
+		return minRange;
+	}, {range: Infinity, color: getUnreachableColorFromSpeedProvider()});
+	return currentRange.color;
+}
+
 export function getMovedDistanceFromToken(token) {
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active;
 	const history = getMovementHistory(token);
 	const segments = Ruler.dragRulerGetRaysFromWaypoints(history, {x: token.x, y: token.y}).map(ray => {return {ray}});
 	const shape = getTokenShape(token);
-	const distances = measureDistances(segments, token, shape);
+	const distances = measureDistances(segments, token, shape, {enableTerrainRuler: terrainRulerAvailable});
 	// Sum up the distances
 	return distances.reduce((acc, val) => acc + val, 0);
 }

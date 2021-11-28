@@ -1,7 +1,6 @@
 import {highlightMeasurementTerrainRuler, measureDistances} from "./compatibility.js";
 import {getGridPositionFromPixels} from "./foundry_fixes.js";
 import {Line} from "./geometry.js";
-import {getColorForDistance} from "./main.js"
 import {trackRays} from "./movement_tracking.js"
 import {recalculate} from "./socket.js";
 import {applyTokenSizeOffset, getSnapPointForEntity, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
@@ -169,7 +168,7 @@ export function measure(destination, options={}) {
 		options.ignoreGrid = false;
 	}
 
-	options.enableTerrainRuler = isToken && game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+	options.enableTerrainRuler = isToken && game.modules.get("terrain-ruler")?.active;
 
 	const waypoints = this.waypoints.concat([destination]);
 	// Move the waypoints to the center of the grid if a size is used that measures from edge to edge
@@ -229,7 +228,7 @@ export function measure(destination, options={}) {
 	r.clear();
 	let rulerColor
 	if (!options.gridSpaces || canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
-		rulerColor = getColorForDistance.call(this, totalDistance)
+		rulerColor = this.dragRulerGetColorForDistance(totalDistance);
 	else
 		rulerColor = this.color
 	for (const [s, cs] of zip(segments.reverse(), centeredSegments.reverse())) {
@@ -301,7 +300,7 @@ export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0
 		// Highlight the grid position
 		let [xg, yg] = canvas.grid.grid.getPixelsFromGridPosition(x1, y1);
 		const subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xg, y: yg})}], {gridSpaces: true})[0]
-		const color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
+		const color = this.dragRulerGetColorForDistance(startDistance + subDistance);
 		const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedEntity);
 		const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);
 
@@ -314,7 +313,7 @@ export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0
 			let [x1h, y1h] = canvas.grid.grid.getGridPositionFromPixels(x, y);
 			let [xgh, ygh] = canvas.grid.grid.getPixelsFromGridPosition(x1h, y1h);
 			const subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xgh, y: ygh})}], {gridSpaces: true})[0]
-			const color = dragRuler.getColorForDistance.call(this, startDistance, subDistance)
+			const color = this.dragRulerGetColorForDistance(startDistance + subDistance);
 			const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedEntity);
 			const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);
 			highlightTokenShape.call(this, {x: snapX, y: snapY}, tokenShape, color, alpha);

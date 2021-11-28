@@ -49,14 +49,14 @@ function calculateUpdate(combat, token, rays) {
 	}
 
 	// Add the passed waypoints to the combatant
-	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active;
 	const dragRulerFlags = combatant.data.flags.dragRuler;
 	const waypoints = dragRulerFlags.passedWaypoints;
 	for (const ray of rays) {
 		// Ignore rays that have the same start and end coordinates
 		if (ray.A.x !== ray.B.x || ray.A.y !== ray.B.y) {
 			if (terrainRulerAvailable) {
-				measureDistances([{ray}], token, getTokenShape(token), {terrainRulerInitialState: waypoints[waypoints.length - 1]?.dragRulerFinalState});
+				measureDistances([{ray}], token, getTokenShape(token), {terrainRulerInitialState: waypoints[waypoints.length - 1]?.dragRulerFinalState, enableTerrainRuler: terrainRulerAvailable});
 				ray.A.dragRulerVisitedSpaces = ray.terrainRulerVisitedSpaces;
 				ray.A.dragRulerFinalState = ray.terrainRulerFinalState;
 			}
