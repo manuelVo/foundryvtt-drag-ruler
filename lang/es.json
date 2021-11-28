@@ -85,6 +85,10 @@
 			"swapSpacebarRightClick": {
 				"name": "Intercambiar barra espaciadora y clic-derecho",
 				"hint": "Cambia el funcionamiento de la barra espaciadora y el clic-derecho del ratón mientras se arrastra un icono. Si está habilitado, clic-derecho establecerá puntos en la ruta y la barra espaciadora los borrará"
+			},
+			"useGridlessRaster": {
+				"name": "Usar ajuste a la velocidad",
+				"hint": "Cuando no se use rejilla en la escena, este ajuste hace que los iconos se ajusten a sus rangos de velocidad. Se puede deshabilitar temporalmente pulsando la tecla Mayús mientras se arrastra"
 			}
 		}
 	}
