@@ -1,3 +1,11 @@
+## 1.9.1
+### Bugfixes
+- Fixed a bug that caused the ruler to misbehave or not show up at all if the speed provider isn't configured (this was a regression introduced in 1.9.0)
+
+### Translation
+- Updated the spaish translation (thanks to Viriato139ac#342)
+
+
 ## 1.9.0
 ### New features
 - On Gridless scenes, tokens can now snap to their speed limits, to make full usage of a token's movement speed easier. This feature can be temporarily disabled by pressing Shift during drag and can be disabled completely in the settings.
