@@ -121,7 +121,7 @@ export function getColorForDistanceAndToken(distance, token, ranges=null) {
 		ranges = getRangesFromSpeedProvider(token);
 	}
 	if (ranges.length === 0)
-		return this.color;
+		return null;
 	const currentRange = ranges.reduce((minRange, currentRange) => {
 		if (distance <= currentRange.range && currentRange.range < minRange.range)
 			return currentRange;

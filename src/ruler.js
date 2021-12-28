@@ -169,6 +169,6 @@ export class DragRulerRuler extends Ruler {
 		distance = Math.round(distance * 100) / 100;
 		if (!this.dragRulerRanges)
 			this.dragRulerRanges = getRangesFromSpeedProvider(this.draggedEntity);
-		return getColorForDistanceAndToken(distance, this.draggedEntity, this.dragRulerRanges);
+		return getColorForDistanceAndToken(distance, this.draggedEntity, this.dragRulerRanges) ?? this.color;
 	}
 }
