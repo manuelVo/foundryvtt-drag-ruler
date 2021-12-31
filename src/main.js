@@ -4,8 +4,8 @@ import {currentSpeedProvider, getColorForDistanceAndToken, getMovedDistanceFromT
 import {checkDependencies, getHexSizeSupportTokenGridCenter, highlightMeasurementTerrainRuler} from "./compatibility.js";
 import {moveEntities, onMouseMove} from "./foundry_imports.js"
 import {performMigrations} from "./migration.js"
-import {DragRulerRuler} from "./ruler.js";
 import {getMovementHistory, removeLastHistoryEntryIfAt, resetMovementHistory} from "./movement_tracking.js";
+import {extendRuler} from "./ruler.js";
 import {registerSettings, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
@@ -19,7 +19,7 @@ Hooks.once("init", () => {
 	hookKeyboardManagerFunctions()
 	hookLayerFunctions();
 
-	Ruler = DragRulerRuler;
+	extendRuler();
 
 	window.dragRuler = {
 		getColorForDistanceAndToken,
