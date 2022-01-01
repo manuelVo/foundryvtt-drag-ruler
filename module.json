@@ -13,6 +13,7 @@
 		}
 	],
 	"esmodules": [
+		"src/libwrapper_shim.js",
 		"src/main.js",
 		"src/socket.js"
 	],

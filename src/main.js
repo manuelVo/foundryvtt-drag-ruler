@@ -3,6 +3,7 @@
 import {currentSpeedProvider, getColorForDistanceAndToken, getMovedDistanceFromToken, getRangesFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js";
 import {checkDependencies, getHexSizeSupportTokenGridCenter, highlightMeasurementTerrainRuler} from "./compatibility.js";
 import {moveEntities, onMouseMove} from "./foundry_imports.js"
+import {libWrapper} from "./libwrapper_shim.js";
 import {performMigrations} from "./migration.js"
 import {getMovementHistory, removeLastHistoryEntryIfAt, resetMovementHistory} from "./movement_tracking.js";
 import {extendRuler} from "./ruler.js";
@@ -16,8 +17,8 @@ Hooks.once("init", () => {
 	initApi()
 	hookDragHandlers(Token);
 	hookDragHandlers(MeasuredTemplate);
-	hookKeyboardManagerFunctions()
-	hookLayerFunctions();
+	libWrapper.register("drag-ruler", "KeyboardManager.prototype._handleKeys", forwardIfUnahndled(handleKeys), "MIXED");
+	libWrapper.register("drag-ruler", "TokenLayer.prototype.undoHistory", tokenLayerUndoHistory, "WRAPPER");
 
 	extendRuler();
 
@@ -57,59 +58,35 @@ Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
 	menu.splice(1, 0, entry);
 });
 
+function forwardIfUnahndled(newFn) {
+	return function(oldFn, ...args) {
+		const eventHandled = newFn(...args);
+		if (!eventHandled)
+			oldFn(...args);
+	};
+}
+
 function hookDragHandlers(entityType) {
-	const originalDragLeftStartHandler = entityType.prototype._onDragLeftStart
-	entityType.prototype._onDragLeftStart = function(event) {
-		originalDragLeftStartHandler.call(this, event)
-		onEntityLeftDragStart.call(this, event)
-	}
-
-	const originalDragLeftMoveHandler = entityType.prototype._onDragLeftMove
-	entityType.prototype._onDragLeftMove = function (event) {
-		if (entityType === Token)
-			applyGridlessSnapping.call(this, event);
-		originalDragLeftMoveHandler.call(this, event)
-		onEntityLeftDragMove.call(this, event)
-	}
-
-	const originalDragLeftDropHandler = entityType.prototype._onDragLeftDrop
-	entityType.prototype._onDragLeftDrop = function (event) {
-		const eventHandled = onEntityDragLeftDrop.call(this, event)
-		if (!eventHandled)
-			originalDragLeftDropHandler.call(this, event)
-	}
-
-	const originalDragLeftCancelHandler = entityType.prototype._onDragLeftCancel
-	entityType.prototype._onDragLeftCancel = function (event) {
-		const eventHandled = onEntityDragLeftCancel.call(this, event)
-		if (!eventHandled)
-			originalDragLeftCancelHandler.call(this, event)
-	}
+	const entityName = entityType.name
+	libWrapper.register("drag-ruler", `${entityName}.prototype._onDragLeftStart`, onEntityLeftDragStart, "WRAPPER");
+	if (entityType === Token)
+		libWrapper.register("drag-ruler", `${entityName}.prototype._onDragLeftMove`, onEntityLeftDragMoveSnap, "WRAPPER");
+	else
+		libWrapper.register("drag-ruler", `${entityName}.prototype._onDragLeftMove`, onEntityLeftDragMove, "WRAPPER");
+	libWrapper.register("drag-ruler", `${entityName}.prototype._onDragLeftDrop`, forwardIfUnahndled(onEntityDragLeftDrop), "MIXED");
+	libWrapper.register("drag-ruler", `${entityName}.prototype._onDragLeftCancel`, forwardIfUnahndled(onEntityDragLeftCancel), "MIXED");
 }
 
-function hookKeyboardManagerFunctions() {
-	const originalHandleKeys = KeyboardManager.prototype._handleKeys
-	KeyboardManager.prototype._handleKeys = function (event, key, up) {
-		const eventHandled = handleKeys.call(this, event, key, up)
-		if (!eventHandled)
-			originalHandleKeys.call(this, event, key, up)
+async function tokenLayerUndoHistory(wrapped) {
+	const historyEntry = this.history[this.history.length - 1];
+	const returnValue = await wrapped();
+	if (historyEntry.type === "update") {
+		for (const entry of historyEntry.data) {
+			const token = canvas.tokens.get(entry._id);
+			removeLastHistoryEntryIfAt(token, entry.x, entry.y);
+		}
 	}
-}
-
-function hookLayerFunctions() {
-	const originalTokenLayerUndoHistory = TokenLayer.prototype.undoHistory;
-	TokenLayer.prototype.undoHistory = function () {
-		const historyEntry = this.history[this.history.length - 1];
-		return originalTokenLayerUndoHistory.call(this).then((returnValue) => {
-			if (historyEntry.type === "update") {
-				for (const entry of historyEntry.data) {
-					const token = canvas.tokens.get(entry._id);
-					removeLastHistoryEntryIfAt(token, entry.x, entry.y);
-				}
-			}
-			return returnValue;
-		});
-	}
+	return returnValue;
 }
 
 function handleKeys(event, key, up) {
@@ -180,7 +157,8 @@ function onKeyEscape(up) {
 	return true;
 }
 
-function onEntityLeftDragStart(event) {
+function onEntityLeftDragStart(wrapped, event) {
+	wrapped(event);
 	const isToken = this instanceof Token;
 	const ruler = canvas.controls.ruler
 	ruler.draggedEntity = this;
@@ -218,7 +196,13 @@ function startDragRuler(options, measureImmediately=true) {
 		ruler.measure(destination, options);
 }
 
-function onEntityLeftDragMove(event) {
+function onEntityLeftDragMoveSnap(wrapped, event) {
+	applyGridlessSnapping.call(this, event);
+	onEntityLeftDragMove.call(this, wrapped, event);
+}
+
+function onEntityLeftDragMove(wrapped, event) {
+	wrapped(event);
 	const ruler = canvas.controls.ruler
 	if (ruler.isDragRuler)
 		onMouseMove.call(ruler, event)
