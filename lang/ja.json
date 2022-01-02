@@ -1,5 +1,19 @@
 {
+	"Localization Provided By": "touge",
 	"drag-ruler": {
+		"dependencies": {
+			"ok": "OK",
+			"terrain-ruler": {
+				"title": "Drag Rulerで移動困難地形を測定する",
+				"text": "「{moduleName}」モジュールが有効化されました。Drag Rulerは、同モジュールによって設定された移動困難地形を測定できます。これには「Terrain Ruler」モジュールが必要です。有効化すると、自動的に移動困難地形を考慮した測定を行います",
+				"neverShowAgain": "再表示しない"
+			},
+			"socketlib": {
+				"title": "「Socketlib」が見つかりません",
+				"text": "Drag Rulerの正常動作には「Socketlib」モジュールが必要です。このワールドで「Socketlib」を有効にしてください。"
+			}
+		},
+		"resetMovementHistory": "移動履歴のリセット",
 		"genericSpeedProvider": {
 			"settings": {
 				"dashMultiplier": {
@@ -20,6 +34,14 @@
 			"alwaysShowSpeedForPCs": {
 				"name": "プレイヤーキャラクターの移動速度を全員に公開する",
 				"hint": "有効にすると、アクターの観察者（Observer）権限を持たない人にも，移動範囲の色分けが表示されるようになります。"
+			},
+			"autoStartMeasurement": {
+				"name": "自動計測",
+				"hint": "有効化時、Drag Rulerはトークンがドラッグされた時点で計測を初めます。無効化の場合、ドラッグしてもDrag Rulerは起動せず、中間地点をおいたときにのみ起動します。"
+			},
+			"enableMovementHistory": {
+				"name": "戦闘中の移動履歴を有効にする",
+				"hint": "有効にすると、Drag Rulerは戦闘ターン中にコマが辿った経路を記憶するようになります。これはコマの再選択時に再表示されます。"
 			},
 			"showGMRulerToPlayers": {
 				"name": "GMのルーラーをプレイヤーに見せる",
@@ -60,6 +82,10 @@
 			"swapSpacebarRightClick": {
 				"name": "スペースキーと右クリックを入れ替える",
 				"hint": "ドラッグ中のスペースキーと右クリックの機能を入れ替えます。有効にすると右クリックがウェイポイントの配置、スペースキーが削除になります。"
+			},
+				"useGridlessRaster": {
+					"name": "移動速度制限",
+					"hint": "グリッドの無いシーンでは、コマがドラッグできる範囲を移動速度ぶんまで制限します。Shiftキーを押すことで一時的にこの制限を無視できます。"
 			}
 		}
 	}
