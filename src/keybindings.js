@@ -1,5 +1,5 @@
 import {settingsKey} from "./settings.js";
-import { getMeasurePosition, setSnapParameterOnOptions } from "./util.js";
+import {getMeasurePosition, setSnapParameterOnOptions} from "./util.js";
 
 export let disableSnap = false;
 export let moveWithoutAnimation = false;

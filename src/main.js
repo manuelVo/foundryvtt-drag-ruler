@@ -1,7 +1,7 @@
 "use strict"
 
 import {getColorForDistanceAndToken, getMovedDistanceFromToken, getRangesFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js";
-import {checkDependencies, getHexSizeSupportTokenGridCenter, highlightMeasurementTerrainRuler} from "./compatibility.js";
+import {checkDependencies, getHexSizeSupportTokenGridCenter} from "./compatibility.js";
 import {moveEntities, onMouseMove} from "./foundry_imports.js"
 import {disableSnap, registerKeybindings} from "./keybindings.js";
 import {libWrapper} from "./libwrapper_shim.js";
@@ -11,7 +11,7 @@ import {extendRuler} from "./ruler.js";
 import {registerSettings, RightClickAction, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
-import {isClose, setSnapParameterOnOptions} from "./util.js";
+import {setSnapParameterOnOptions} from "./util.js";
 
 Hooks.once("init", () => {
 	registerSettings()

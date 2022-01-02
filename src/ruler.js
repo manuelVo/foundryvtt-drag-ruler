@@ -3,7 +3,7 @@ import {getHexSizeSupportTokenGridCenter} from "./compatibility.js";
 import {cancelScheduledMeasurement, measure} from "./foundry_imports.js"
 import {getMovementHistory} from "./movement_tracking.js";
 import {settingsKey} from "./settings.js";
-import {getSnapPointForEntity, setSnapParameterOnOptions} from "./util.js";
+import {getSnapPointForEntity} from "./util.js";
 
 export function extendRuler() {
 	class DragRulerRuler extends Ruler {

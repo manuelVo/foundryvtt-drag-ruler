@@ -1,4 +1,3 @@
-
 export function getDefaultSpeedAttribute() {
 	switch (game.system.id) {
 		case "CoC7":
@@ -11,7 +10,7 @@ export function getDefaultSpeedAttribute() {
 			return "actor.data.data.derived.speed"
 		case "pf1":
 		case "D35E":
-			return "actor.data.data.attributes.speed.land.total"		
+			return "actor.data.data.attributes.speed.land.total"
 		case "sfrpg":
 			return "actor.data.data.attributes.speed.value";
 		case "shadowrun5e":
