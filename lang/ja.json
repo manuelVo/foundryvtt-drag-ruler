@@ -1,4 +1,5 @@
 {
+	"Localization Provided By": "touge",
 	"drag-ruler": {
 		"dependencies": {
 			"ok": "OK",
@@ -33,6 +34,10 @@
 			"alwaysShowSpeedForPCs": {
 				"name": "プレイヤーキャラクターの移動速度を全員に公開する",
 				"hint": "有効にすると、アクターの観察者（Observer）権限を持たない人にも，移動範囲の色分けが表示されるようになります。"
+			},
+			"autoStartMeasurement": {
+				"name": "自動計測",
+				"hint": "有効化時、Drag Rulerはトークンがドラッグされた時点で計測を初めます。無効化の場合、ドラッグしてもDrag Rulerは起動せず、中間地点をおいたときにのみ起動します。"
 			},
 			"enableMovementHistory": {
 				"name": "戦闘中の移動履歴を有効にする",
@@ -77,6 +82,10 @@
 			"swapSpacebarRightClick": {
 				"name": "スペースキーと右クリックを入れ替える",
 				"hint": "ドラッグ中のスペースキーと右クリックの機能を入れ替えます。有効にすると右クリックがウェイポイントの配置、スペースキーが削除になります。"
+			},
+				"useGridlessRaster": {
+					"name": "移動速度制限",
+					"hint": "グリッドの無いシーンでは、コマがドラッグできる範囲を移動速度ぶんまで制限します。Shiftキーを押すことで一時的にこの制限を無視できます。"
 			}
 		}
 	}
