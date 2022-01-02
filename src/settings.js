@@ -3,6 +3,12 @@ import {SpeedProvider} from "./speed_provider.js"
 
 export const settingsKey = "drag-ruler";
 
+export const RightClickAction = Object.freeze({
+	CREATE_WAYPOINT: 0,
+	DELETE_WAYPOINT: 1,
+	ABORT_DRAG:2,
+});
+
 export function registerSettings() {
 	game.settings.register(settingsKey, "dataVersion", {
 		scope: "world",
@@ -10,6 +16,26 @@ export function registerSettings() {
 		type: String,
 		default: "fresh install"
 	})
+
+	game.settings.register(settingsKey, "clientDataVersion", {
+		scope: "client",
+		config: false,
+		type: String,
+		default: "fresh install"
+	});
+
+	game.settings.register(settingsKey, "rightClickAction", {
+		name: "drag-ruler.settings.rightClickAction.name",
+		hint: "drag-ruler.settings.rightClickAction.hint",
+		config: true,
+		type: Number,
+		default: RightClickAction.DELETE_WAYPOINT,
+		choices: {
+			0: "drag-ruler.settings.rightClickAction.choices.create",
+			1: "drag-ruler.settings.rightClickAction.choices.delete",
+			2: "drag-ruler.settings.rightClickAction.choices.cancel",
+		},
+	});
 
 	game.settings.register(settingsKey, "autoStartMeasurement", {
 		name: "drag-ruler.settings.autoStartMeasurement.name",
@@ -19,15 +45,6 @@ export function registerSettings() {
 		type: Boolean,
 		default: true,
 	});
-
-	game.settings.register(settingsKey, "swapSpacebarRightClick", {
-		name: "drag-ruler.settings.swapSpacebarRightClick.name",
-		hint: "drag-ruler.settings.swapSpacebarRightClick.hint",
-		scope: "client",
-		config: true,
-		type: Boolean,
-		default: false,
-	})
 
 	game.settings.register(settingsKey, "useGridlessRaster", {
 		name: "drag-ruler.settings.useGridlessRaster.name",

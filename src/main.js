@@ -1,23 +1,24 @@
 "use strict"
 
-import {currentSpeedProvider, getColorForDistanceAndToken, getMovedDistanceFromToken, getRangesFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js";
+import {getColorForDistanceAndToken, getMovedDistanceFromToken, getRangesFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js";
 import {checkDependencies, getHexSizeSupportTokenGridCenter, highlightMeasurementTerrainRuler} from "./compatibility.js";
 import {moveEntities, onMouseMove} from "./foundry_imports.js"
+import {disableSnap, registerKeybindings} from "./keybindings.js";
 import {libWrapper} from "./libwrapper_shim.js";
 import {performMigrations} from "./migration.js"
-import {getMovementHistory, removeLastHistoryEntryIfAt, resetMovementHistory} from "./movement_tracking.js";
+import {removeLastHistoryEntryIfAt, resetMovementHistory} from "./movement_tracking.js";
 import {extendRuler} from "./ruler.js";
-import {registerSettings, settingsKey} from "./settings.js"
+import {registerSettings, RightClickAction, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
 import {isClose, setSnapParameterOnOptions} from "./util.js";
 
 Hooks.once("init", () => {
 	registerSettings()
+	registerKeybindings()
 	initApi()
 	hookDragHandlers(Token);
 	hookDragHandlers(MeasuredTemplate);
-	libWrapper.register("drag-ruler", "KeyboardManager.prototype._handleKeys", forwardIfUnahndled(handleKeys), "MIXED");
 	libWrapper.register("drag-ruler", "TokenLayer.prototype.undoHistory", tokenLayerUndoHistory, "WRAPPER");
 
 	extendRuler();
@@ -89,74 +90,6 @@ async function tokenLayerUndoHistory(wrapped) {
 	return returnValue;
 }
 
-function handleKeys(event, key, up) {
-	if (event.repeat || this.hasFocus)
-		return false
-
-	const lowercaseKey = key.toLowerCase();
-
-	if (lowercaseKey === "x") return onKeyX(up)
-	if (lowercaseKey === "shift") return onKeyShift(up)
-	if (lowercaseKey === "space") return onKeySpace(up);
-	if (lowercaseKey === "escape") return onKeyEscape(up);
-	return false
-}
-
-function onKeyX(up) {
-	if (up)
-		return false
-	const ruler = canvas.controls.ruler;
-	if (!ruler.isDragRuler)
-		return false
-
-	ruler.dragRulerDeleteWaypoint();
-	return true
-}
-
-function onKeyShift(up) {
-	const ruler = canvas.controls.ruler
-	if (!ruler.isDragRuler)
-		return false
-	if (ruler._state !== Ruler.STATES.MEASURING)
-		return false;
-
-	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens)
-	const rulerOffset = ruler.rulerOffset
-	const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y}
-	ruler.measure(measurePosition, {snap: up})
-}
-
-function onKeySpace(up) {
-	const ruler = canvas.controls.ruler;
-	// Ruler can end up being undefined here if no canvas is active
-	if (!ruler?.draggedEntity)
-		return false;
-
-	if (ruler._state !== Ruler.STATES.INACTIVE)
-		return false;
-
-	const swapSpacebarRightClick = game.settings.get(settingsKey, "swapSpacebarRightClick");
-	let options = {};
-	setSnapParameterOnOptions(ruler, options);
-
-	if (!up) {
-		if (swapSpacebarRightClick)
-			ruler.dragRulerAbortDrag();
-		else
-			startDragRuler.call(ruler.draggedEntity, options);
-	}
-	return true;
-}
-
-function onKeyEscape(up) {
-	const ruler = canvas.controls.ruler;
-	if (!ruler.draggedEntity)
-		return false;
-	if (!up)
-		ruler.dragRulerAbortDrag();
-	return true;
-}
-
 function onEntityLeftDragStart(wrapped, event) {
 	wrapped(event);
 	const isToken = this instanceof Token;
@@ -171,29 +104,8 @@ function onEntityLeftDragStart(wrapped, event) {
 	if (game.settings.get(settingsKey, "autoStartMeasurement")) {
 		let options = {};
 		setSnapParameterOnOptions(ruler, options);
-		startDragRuler.call(this, options, false);
+		ruler.dragRulerStart(options, false);
 	}
-}
-
-function startDragRuler(options, measureImmediately=true) {
-	const isToken = this instanceof Token;
-	if (isToken && !currentSpeedProvider.usesRuler(this))
-		return;
-	const ruler = canvas.controls.ruler;
-	ruler.clear();
-	ruler._state = Ruler.STATES.STARTING;
-	let entityCenter;
-	if (isToken && canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(this))
-		entityCenter = getHexSizeSupportTokenGridCenter(this);
-	else
-		entityCenter = this.center;
-	if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
-		ruler.dragRulerAddWaypointHistory(getMovementHistory(this));
-	ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
-	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
-	const destination = {x: mousePosition.x + ruler.rulerOffset.x, y: mousePosition.y + ruler.rulerOffset.y};
-	if (measureImmediately)
-		ruler.measure(destination, options);
 }
 
 function onEntityLeftDragMoveSnap(wrapped, event) {
@@ -231,26 +143,31 @@ function onEntityDragLeftCancel(event) {
 	if (!ruler.draggedEntity || ruler._state === Ruler.STATES.MOVING)
 		return false
 
-	const swapSpacebarRightClick = game.settings.get(settingsKey, "swapSpacebarRightClick");
+	const rightClickAction = game.settings.get(settingsKey, "rightClickAction");
 	let options = {};
 	setSnapParameterOnOptions(ruler, options);
 
 	if (ruler._state === Ruler.STATES.INACTIVE) {
-		if (!swapSpacebarRightClick)
+		if (rightClickAction !== RightClickAction.CREATE_WAYPOINT)
 			return false;
-		startDragRuler.call(this, options);
+		ruler.dragRulerStart(options);
 		event.preventDefault();
 	}
 	else if (ruler._state === Ruler.STATES.MEASURING) {
-		if (!swapSpacebarRightClick) {
-			ruler.dragRulerDeleteWaypoint(event, options);
-		}
-		else {
-			event.preventDefault();
-			ruler.dragRulerAddWaypoint(ruler.destination, options);
+		switch (rightClickAction) {
+			case RightClickAction.CREATE_WAYPOINT:
+				event.preventDefault();
+				ruler.dragRulerAddWaypoint(ruler.destination, options);
+				break;
+			case RightClickAction.DELETE_WAYPOINT:
+				ruler.dragRulerDeleteWaypoint(event, options);
+				break;
+			case RightClickAction.ABORT_DRAG:
+				ruler.dragRulerAbortDrag();
+				break;
 		}
 	}
-	return true
+	return true;
 }
 
 function applyGridlessSnapping(event) {
@@ -259,7 +176,7 @@ function applyGridlessSnapping(event) {
 		return;
 	if (!ruler.isDragRuler)
 		return;
-	if (game.keyboard.isDown("Shift"))
+	if (disableSnap)
 		return;
 	if (canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS)
 		return;

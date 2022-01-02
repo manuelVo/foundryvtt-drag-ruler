@@ -1,6 +1,7 @@
 import {highlightMeasurementTerrainRuler, measureDistances} from "./compatibility.js";
 import {getGridPositionFromPixels} from "./foundry_fixes.js";
 import {Line} from "./geometry.js";
+import {disableSnap, moveWithoutAnimation} from "./keybindings.js";
 import {trackRays} from "./movement_tracking.js"
 import {recalculate} from "./socket.js";
 import {applyTokenSizeOffset, getSnapPointForEntity, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
@@ -69,7 +70,7 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 	});
 
 	const isToken = draggedEntity instanceof Token;
-	const animate = isToken && !game.keyboard.isDown("Alt");
+	const animate = isToken && !moveWithoutAnimation;
 	const startWaypoint = animate ? 0 : entityAnimationData[0].rays.length - 1;
 
 	// This is a flag of the "Monk's Active Tile Triggers" module that signals that the movement should be cancelled early
@@ -130,7 +131,7 @@ function scheduleMeasurement(destination, event) {
 	const mt = event._measureTime || 0;
 	const originalEvent = event.data.originalEvent;
 	if (Date.now() - mt > measurementInterval) {
-		this.measure(destination, {snap: !originalEvent.shiftKey});
+		this.measure(destination, {snap: !disableSnap});
 		event._measureTime = Date.now();
 		this._state = Ruler.STATES.MEASURING;
 		cancelScheduledMeasurement.call(this);

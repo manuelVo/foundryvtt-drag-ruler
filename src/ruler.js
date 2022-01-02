@@ -1,4 +1,5 @@
-import {getColorForDistanceAndToken, getRangesFromSpeedProvider} from "./api.js";
+import {currentSpeedProvider, getColorForDistanceAndToken, getRangesFromSpeedProvider} from "./api.js";
+import {getHexSizeSupportTokenGridCenter} from "./compatibility.js";
 import {cancelScheduledMeasurement, measure} from "./foundry_imports.js"
 import {getMovementHistory} from "./movement_tracking.js";
 import {settingsKey} from "./settings.js";
@@ -22,19 +23,9 @@ export function extendRuler() {
 		}
 
 		async moveToken(event) {
-			// This function is invoked by left clicking
+			// Disable moveToken if Drag Ruler is active
 			if (!this.isDragRuler)
 				return await super.moveToken(event);
-
-			let options = {};
-			setSnapParameterOnOptions(this, options);
-
-			if (!game.settings.get(settingsKey, "swapSpacebarRightClick")) {
-				this.dragRulerAddWaypoint(this.destination, options);
-			}
-			else {
-				this.dragRulerDeleteWaypoint(event, options);
-			}
 		}
 
 		toJSON() {
@@ -171,6 +162,28 @@ export function extendRuler() {
 			if (!this.dragRulerRanges)
 				this.dragRulerRanges = getRangesFromSpeedProvider(this.draggedEntity);
 			return getColorForDistanceAndToken(distance, this.draggedEntity, this.dragRulerRanges) ?? this.color;
+		}
+
+		dragRulerStart(options, measureImmediately=true) {
+			const entity = this.draggedEntity;
+			const isToken = entity instanceof Token;
+			if (isToken && !currentSpeedProvider.usesRuler(entity))
+				return;
+			const ruler = canvas.controls.ruler;
+			ruler.clear();
+			ruler._state = Ruler.STATES.STARTING;
+			let entityCenter;
+			if (isToken && canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(entity))
+				entityCenter = getHexSizeSupportTokenGridCenter(entity);
+			else
+				entityCenter = entity.center;
+			if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
+				ruler.dragRulerAddWaypointHistory(getMovementHistory(entity));
+			ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
+			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
+			const destination = {x: mousePosition.x + ruler.rulerOffset.x, y: mousePosition.y + ruler.rulerOffset.y};
+			if (measureImmediately)
+				ruler.measure(destination, options);
 		}
 	}
 

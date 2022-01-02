@@ -1,4 +1,5 @@
 import {getPixelsFromGridPosition} from "./foundry_fixes.js"
+import { disableSnap } from "./keybindings.js";
 
 export function* zip(it1, it2) {
 	for (let i = 0;i < Math.min(it1.length, it2.length);i++) {
@@ -235,10 +236,17 @@ export function setSnapParameterOnOptions(sourceObject, options) {
 		sourceObject.snapOverride = undefined; // remove it to prevent any lingering data issues
 	}
 	else {
-		options.snap = !game.keyboard._downKeys.has("Shift");
+		options.snap = !disableSnap;
 	}
 }
 
 export function isClose(a, b, delta) {
 	return Math.abs(a - b) <= delta;
+}
+
+export function getMeasurePosition() {
+	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(canvas.tokens);
+	const rulerOffset = canvas.controls.ruler.rulerOffset;
+	const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y};
+	return measurePosition;
 }
