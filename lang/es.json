@@ -38,6 +38,10 @@
 				"name": "Mostrar velocidad de los PJs a todo el mundo",
 				"hint": "Si se habilita, se mostrará a todo el mundo los códigos de colores de las rutas de los PJs, incluso si no tienen permisos de observador para ese personaje"
 			},
+			"autoStartMeasurement": {
+				"name": "Comenzar a medir automáticamente",
+				"hint": "Si se habilita, Drag Ruler comenzará a medir en cuanto se comience a arrastrar un icono. Si se deshabilita, Drag Ruler permanecerá inactivo y comenzará a medir únicamente cuando se presione el botón configurado para añadir un nuevo punto de ruta"
+			},
 			"enableMovementHistory": {
 				"name": "Habilitar historial de movimiento durante el combate",
 				"hint": "Si se habilita, Drag Ruler recordará la ruta que ha seguido un icono en su turno y la mostrará al seleccionarlo de nuevo"
@@ -81,6 +85,10 @@
 			"swapSpacebarRightClick": {
 				"name": "Intercambiar barra espaciadora y clic-derecho",
 				"hint": "Cambia el funcionamiento de la barra espaciadora y el clic-derecho del ratón mientras se arrastra un icono. Si está habilitado, clic-derecho establecerá puntos en la ruta y la barra espaciadora los borrará"
+			},
+			"useGridlessRaster": {
+				"name": "Usar ajuste a la velocidad",
+				"hint": "Cuando no se use rejilla en la escena, este ajuste hace que los iconos se ajusten a sus rangos de velocidad. Se puede deshabilitar temporalmente pulsando la tecla Mayús mientras se arrastra"
 			}
 		}
 	}

@@ -1,3 +1,52 @@
+## 1.9.1
+### Bugfixes
+- Fixed a bug that caused the ruler to misbehave or not show up at all if the speed provider isn't configured (this was a regression introduced in 1.9.0)
+
+### Translation
+- Updated the spaish translation (thanks to Viriato139ac#342)
+
+
+## 1.9.0
+### New features
+- On Gridless scenes, tokens can now snap to their speed limits, to make full usage of a token's movement speed easier. This feature can be temporarily disabled by pressing Shift during drag and can be disabled completely in the settings.
+
+### Bugfixes
+- Non-square tokens (e.g. 2x1) now work correctly on square grids
+- When modifying difficult terrain that a token has already moved over, this the movement history of the token won't change anymore (this was a regression introduced in 1.8.0)
+- Fixed a bug that prevented pausing/unpausing the game when no scene was active
+
+### API
+- Added `dragRuler.getColorForDistanceAndToken` API endpoint that allows other modules to receive the highlight color for a specified distance with a given token.
+
+
+## 1.8.2
+### Compatibility
+- The generic speed provider defaults have been updated for lance 1.0 (thanks to BoltsJ!)
+- Eliminated a deprecation warning when both Drag Ruler and Hex Size Support are enabled (thanks Argonius-Angelus!)
+
+
+## 1.8.1
+### Bugfixes
+- Fixed a bug where the function that was bound to the spacebar key wouldn't work correctly when the "Toggle Snap To Grid" module was enabled
+
+### Translation
+- Updated Spanish translation (thanks to Viriato139ac#342)
+
+
+## 1.8.0
+### New features
+- Pressing escape during a drag now cancels the drag
+- Undoing a movement via Ctrl+Z will now also remove that movement from Drag Ruler's movement history
+- Drag Ruler can now configured to stay disabled by default when a Token/Template is being dragged. In that case it will activate once the button to place a waypoint is being pressed.
+
+### Bugfixes
+- Fixed a bug that caused the ruler to snap to grid when a waypoint was deleted while shift was being pressed (thanks to Michael Clavell!)
+- Fixed a bug that could leave behind a single waypoint on the canvas when canceling a dragging operation while moving the mouse
+
+### Compatibility
+- Drag Ruler is now compatible with the "Toggle Snap To Grid" module (thanks to Michael Clavell!)
+
+
 ## 1.7.7
 ### Compatibility
 - Updated the default settings for the swade game system. The new default speed attribute points to a speed value that gets adjusted for wounds.

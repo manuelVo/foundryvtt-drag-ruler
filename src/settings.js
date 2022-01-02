@@ -11,6 +11,15 @@ export function registerSettings() {
 		default: "fresh install"
 	})
 
+	game.settings.register(settingsKey, "autoStartMeasurement", {
+		name: "drag-ruler.settings.autoStartMeasurement.name",
+		hint: "drag-ruler.settings.autoStartMeasurement.hint",
+		scope: "client",
+		config: true,
+		type: Boolean,
+		default: true,
+	});
+
 	game.settings.register(settingsKey, "swapSpacebarRightClick", {
 		name: "drag-ruler.settings.swapSpacebarRightClick.name",
 		hint: "drag-ruler.settings.swapSpacebarRightClick.hint",
@@ -19,6 +28,15 @@ export function registerSettings() {
 		type: Boolean,
 		default: false,
 	})
+
+	game.settings.register(settingsKey, "useGridlessRaster", {
+		name: "drag-ruler.settings.useGridlessRaster.name",
+		hint: "drag-ruler.settings.useGridlessRaster.hint",
+		scope: "client",
+		config: true,
+		type: Boolean,
+		default: true,
+	});
 
 	game.settings.register(settingsKey, "alwaysShowSpeedForPCs", {
 		name: "drag-ruler.settings.alwaysShowSpeedForPCs.name",

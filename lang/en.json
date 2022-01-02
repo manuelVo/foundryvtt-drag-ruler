@@ -34,6 +34,10 @@
 				"name": "Show PC speed to everyone",
 				"hint": "If enabled the coloring based on actor speed for player characters will shown to everyone, even if they don't have observer permission for the character sheet."
 			},
+			"autoStartMeasurement": {
+				"name": "Automatically start measuring",
+				"hint": "If enabled, Drag Ruler will start measuring as soon as the token is being dragged. If disabled, Drag Ruler will remain inactive and will only start measuring once the button to add a waypoint is being pressed."
+			},
 			"enableMovementHistory": {
 				"name": "Enable movement history during combat",
 				"hint": "If enabled, Drag Ruler will remember the path a token took during it's turn in combat and will display it when you pick the token back up."
@@ -77,6 +81,10 @@
 			"swapSpacebarRightClick": {
 				"name": "Swap spacebar and right click",
 				"hint": "Swaps the functions of spacebar and right click during dragging. If enabled right click will place waypoints and spacebar will delete them"
+			},
+			"useGridlessRaster": {
+				"name": "Use speed based snapping",
+				"hint": "On Gridless scenes, this makes tokens snap to the token's speed ranges. This can be temporarily disabled by pressing Shift during drag."
 			}
 		}
 	}

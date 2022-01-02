@@ -1,6 +1,6 @@
 import {measureDistances} from "./compatibility.js";
 import {recalculate, updateCombatantDragRulerFlags} from "./socket.js";
-import {getTokenShape, zip} from "./util.js";
+import {getTokenShape, isClose, zip} from "./util.js";
 
 function initTrackingFlag(combatant) {
 	const initialFlag = {passedWaypoints: [], trackedRound: 0};
@@ -49,14 +49,14 @@ function calculateUpdate(combat, token, rays) {
 	}
 
 	// Add the passed waypoints to the combatant
-	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active && (!game.modules.get("TerrainLayer")?.active || canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS);
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active;
 	const dragRulerFlags = combatant.data.flags.dragRuler;
 	const waypoints = dragRulerFlags.passedWaypoints;
 	for (const ray of rays) {
 		// Ignore rays that have the same start and end coordinates
 		if (ray.A.x !== ray.B.x || ray.A.y !== ray.B.y) {
 			if (terrainRulerAvailable) {
-				measureDistances([{ray}], token, getTokenShape(token), {terrainRulerInitialState: waypoints[waypoints.length - 1]?.dragRulerFinalState});
+				measureDistances([{ray}], token, getTokenShape(token), {terrainRulerInitialState: waypoints[waypoints.length - 1]?.dragRulerFinalState, enableTerrainRuler: terrainRulerAvailable});
 				ray.A.dragRulerVisitedSpaces = ray.terrainRulerVisitedSpaces;
 				ray.A.dragRulerFinalState = ray.terrainRulerFinalState;
 			}
@@ -79,6 +79,20 @@ export function getMovementHistory(token) {
 	if (combat.data.round > dragRulerFlags.trackedRound)
 		return [];
 	return dragRulerFlags.passedWaypoints ?? [];
+}
+
+export async function removeLastHistoryEntryIfAt(token, x, y) {
+	const history = getMovementHistory(token);
+	if (history.length === 0)
+		return;
+	const entry = history[history.length - 1];
+	if (!isClose(x + token.w / 2, entry.x, 0.1) || !isClose(y + token.h / 2, entry.y, 0.1)) {
+		return;
+	}
+	history.pop();
+	const combat = game.combat;
+	const combatant = combat.getCombatantByToken(token.id);
+	await updateCombatantDragRulerFlags(combat, [{_id: combatant.id, dragRulerFlags: combatant.data.flags.dragRuler}]);
 }
 
 export async function resetMovementHistory(combat, combatantId) {

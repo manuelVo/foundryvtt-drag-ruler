@@ -103,12 +103,12 @@ export function getUnreachableColorFromSpeedProvider() {
 	}
 }
 
-export function getCostFromSpeedProvider(token, area) {
+export function getCostFromSpeedProvider(token, area, options) {
 	try {
 		if (currentSpeedProvider instanceof Function) {
-			return SpeedProvider.prototype.getCostForStep.call(undefined, token, area);
+			return SpeedProvider.prototype.getCostForStep.call(undefined, token, area, options);
 		}
-		return currentSpeedProvider.getCostForStep(token, area);
+		return currentSpeedProvider.getCostForStep(token, area, options);
 	}
 	catch (e) {
 		console.error(e);
@@ -116,11 +116,26 @@ export function getCostFromSpeedProvider(token, area) {
 	}
 }
 
+export function getColorForDistanceAndToken(distance, token, ranges=null) {
+	if (!ranges) {
+		ranges = getRangesFromSpeedProvider(token);
+	}
+	if (ranges.length === 0)
+		return null;
+	const currentRange = ranges.reduce((minRange, currentRange) => {
+		if (distance <= currentRange.range && currentRange.range < minRange.range)
+			return currentRange;
+		return minRange;
+	}, {range: Infinity, color: getUnreachableColorFromSpeedProvider()});
+	return currentRange.color;
+}
+
 export function getMovedDistanceFromToken(token) {
+	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active;
 	const history = getMovementHistory(token);
 	const segments = Ruler.dragRulerGetRaysFromWaypoints(history, {x: token.x, y: token.y}).map(ray => {return {ray}});
 	const shape = getTokenShape(token);
-	const distances = measureDistances(segments, token, shape);
+	const distances = measureDistances(segments, token, shape, {enableTerrainRuler: terrainRulerAvailable});
 	// Sum up the distances
 	return distances.reduce((acc, val) => acc + val, 0);
 }
