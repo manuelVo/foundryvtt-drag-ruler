@@ -16,7 +16,10 @@ export function highlightMeasurementTerrainRuler(ray, startDistance, tokenShape=
 
 export function measureDistances(segments, entity, shape, options={}) {
 	const opts = duplicate(options)
-
+	if (canvas.grid.diagonalRule === "EUCL") {
+		opts.ignoreGrid = true;
+		opts.gridSpaes = false;
+	}
 	if (opts.enableTerrainRuler) {
 		opts.gridSpaces = true;
 		const firstNewSegmentIndex = segments.findIndex(segment => !segment.ray.dragRulerVisitedSpaces);

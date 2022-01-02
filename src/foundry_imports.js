@@ -165,6 +165,11 @@ export function measure(destination, options={}) {
 		options.gridSpaces = canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS;
 	}
 
+	if (canvas.grid.diagonalRule === "EUCL") {
+		options.gridSpaces = false;
+		options.ignoreGrid = true;
+	}
+
 	if(options.ignoreGrid === undefined) {
 		options.ignoreGrid = false;
 	}
