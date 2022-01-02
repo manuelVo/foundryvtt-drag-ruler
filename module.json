@@ -32,6 +32,11 @@
 			"path": "lang/en.json"
 		},
 		{
+			"lang": "es",
+			"name": "Español",
+			"path": "lang/es.json"
+		},
+		{
 			"lang": "fr",
 			"name": "Français",
 			"path": "lang/fr.json"
@@ -50,11 +55,6 @@
 			"lang": "zh-tw",
 			"name": "正體中文",
 			"path": "lang/zh-tw.json"
-		},
-		{
-			"lang": "es",
-			"name": "Español",
-			"path": "lang/es.json"
 		}
 	],
 	"dependencies": [
