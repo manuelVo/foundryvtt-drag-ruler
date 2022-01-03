@@ -45,6 +45,7 @@ The game systems that offer Drag Ruler integration are:
 - Shadowrun 5th Edition (via the module [Drag Ruler Integration for Shadowrun 5E](https://foundryvtt.com/packages/drag-ruler-integration-for-shadowrun-5e))
 - Starfinder (via the module [Starfinder Drag Ruler Integration](https://foundryvtt.com/packages/starfinder-drag-ruler))
 - Stargate RPG (starting with version 1.6.0)
+- Symbaroum (via the module [Symbaroum drag ruler integration](https://foundryvtt.com/packages/symbaroum-drag-ruler-integration))
 - Tagmar RPG (starting with version 1.1.4)
 - TheWitcherTRPG (starting with version 0.0.62)
 - Tormenta20 (starting with version 1.1.37)
