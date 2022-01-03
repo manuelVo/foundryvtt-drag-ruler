@@ -1,3 +1,19 @@
+## 1.10.0
+**BREAKING** Drag Ruler 1.10.0 and onward cannot update directly from Drag Ruler versions older than 1.3.0. If you've been using Drag Ruler 1.2.2 or earlier in your world make sure to update to any Version between (inclusive) Drag Ruler 1.3.0 and 1.9.1, launch your world and log in as GM at least once. After doing so you can safely update to v1.10.0 or newer versions. Updating directly from 1.2.2 or older to 1.10.0 or newer will cause Drag Ruler to forget your Speed Prover Settings.
+
+### New features
+- Drag Ruler's key bindings can now be assigned to custom keys by the user
+- Measuring difficult terrain on gridded maps with euclidean grid rule is now supported (for this to work the `Terrain Ruler` module needs to be enabled)
+
+### Compatibility
+- Drag Ruler now supports Foundry v9
+- Drag Ruler now utilizes libwrapper to increase interoperability with other modules
+
+### Translation
+- Added french translation (thanks to Elfenduli)
+- Updated japanese translation (thanks to touge)
+
+
 ## 1.9.1
 ### Bugfixes
 - Fixed a bug that caused the ruler to misbehave or not show up at all if the speed provider isn't configured (this was a regression introduced in 1.9.0)
