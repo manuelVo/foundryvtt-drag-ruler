@@ -54,7 +54,7 @@ export function registerKeybindings() {
 
 function handleDeleteWaypoint() {
 	const ruler = canvas.controls.ruler;
-	if (!ruler.draggedEntity)
+	if (!ruler?.draggedEntity)
 		return false;
 	ruler.dragRulerDeleteWaypoint();
 	return true;
@@ -81,7 +81,7 @@ function handleCreateWaypoint() {
 
 function cancelDrag() {
 	const ruler = canvas.controls.ruler;
-	if (!ruler.draggedEntity)
+	if (!ruler?.draggedEntity)
 		return false;
 	ruler.dragRulerAbortDrag();
 	return true;
@@ -91,7 +91,7 @@ function handleDisableSnap(event) {
 	disableSnap = !event.up;
 
 	const ruler = canvas.controls.ruler;
-	if (!ruler.isDragRuler)
+	if (!ruler?.isDragRuler)
 		return false;
 	if (ruler._state !== Ruler.STATES.MEASURING)
 		return false;
