@@ -33,6 +33,19 @@
 				"dash": "correr"
 			}
 		},
+		"keybindings": {
+			"cancelDrag": "Cancelar arrastre",
+			"createWaypoint": "Crear punto de ruta",
+			"deleteWaypoint": "Borrar punto de ruta",
+			"disableSnap": {
+				"name": "Deshabilitar ajuste",
+				"hint": "El ajuste a la rejilla se deshabilitará temporalmente mientras se presione esta tecla"
+			},
+			"moveWithoutAnimation": {
+				"name": "Deshabilitar animación de icono",
+				"hint": "Si al soltar un icono se presiona esta tecla, se deshabilitará la animación del icono al moverse al destino"
+			}
+		},
 		"settings": {
 			"alwaysShowSpeedForPCs": {
 				"name": "Mostrar velocidad de los PJs a todo el mundo",
@@ -45,6 +58,15 @@
 			"enableMovementHistory": {
 				"name": "Habilitar historial de movimiento durante el combate",
 				"hint": "Si se habilita, Drag Ruler recordará la ruta que ha seguido un icono en su turno y la mostrará al seleccionarlo de nuevo"
+			},
+			"rightClickAction": {
+				"name": "Acción del botón derecho",
+				"hint": "Qué acción se llevará a cabo cuando se haga clic derecho mientras se arrastra un icono",
+				"choices": {
+					"create": "Crear punto de ruta",
+					"delete": "Borrar punto de ruta",
+					"cancel": "Cancelar arrastre"
+				}
 			},
 			"showGMRulerToPlayers": {
 				"name": "Mostrar regla del GM a los jugadores",
