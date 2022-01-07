@@ -1,3 +1,11 @@
+## 1.10.1
+### Bugfixes
+- Fixed a bug that caused keybindings to break if no scene is active
+
+### Translation
+- Updated Spanish translation (thanks to Viriato139ac#342)
+
+
 ## 1.10.0
 **BREAKING** Drag Ruler 1.10.0 and onward cannot update directly from Drag Ruler versions older than 1.3.0. If you've been using Drag Ruler 1.2.2 or earlier in your world make sure to update to any Version between (inclusive) Drag Ruler 1.3.0 and 1.9.1, launch your world and log in as GM at least once. After doing so you can safely update to v1.10.0 or newer versions. Updating directly from 1.2.2 or older to 1.10.0 or newer will cause Drag Ruler to forget your Speed Prover Settings.
 
