@@ -4,7 +4,7 @@ import {Line} from "./geometry.js";
 import {disableSnap, moveWithoutAnimation} from "./keybindings.js";
 import {trackRays} from "./movement_tracking.js"
 import {recalculate} from "./socket.js";
-import {applyTokenSizeOffset, getSnapPointForEntity, getSnapPointForToken, getTokenShape, highlightTokenShape, zip} from "./util.js";
+import {applyTokenSizeOffset, enumeratedZip, getSnapPointForEntity, getSnapPointForToken, getTokenShape, highlightTokenShape, sum} from "./util.js";
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
 export async function moveEntities(draggedEntity, selectedEntities) {
@@ -237,7 +237,7 @@ export function measure(destination, options={}) {
 		rulerColor = this.dragRulerGetColorForDistance(totalDistance);
 	else
 		rulerColor = this.color
-	for (const [s, cs] of zip(segments.reverse(), centeredSegments.reverse())) {
+	for (const [i, s, cs] of enumeratedZip([...segments].reverse(), [...centeredSegments].reverse())) {
 		const { label, text, last } = cs;
 
 		// Draw line segment
@@ -270,10 +270,13 @@ export function measure(destination, options={}) {
 
 		// Highlight grid positions
 		if (isToken && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS && options.gridSpaces) {
-			if (options.enableTerrainRuler)
+			if (options.enableTerrainRuler) {
 				highlightMeasurementTerrainRuler.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier)
-			else
-				highlightMeasurementNative.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier);
+			}
+			else {
+				const previousSegments = centeredSegments.slice(0, segments.length - 1 - i);
+				highlightMeasurementNative.call(this, cs.ray, previousSegments, shape, opacityMultiplier);
+			}
 		}
 	}
 
@@ -286,7 +289,7 @@ export function measure(destination, options={}) {
 	return segments;
 }
 
-export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0, y: 0}], alpha=1) {
+export function highlightMeasurementNative(ray, previousSegments, tokenShape=[{x: 0, y: 0}], alpha=1) {
 	const spacer = canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ? 1.41 : 1;
 	const nMax = Math.max(Math.floor(ray.distance / (spacer * Math.min(canvas.grid.w, canvas.grid.h))), 1);
 	const tMax = Array.fromRange(nMax+1).map(t => t / nMax);
@@ -305,8 +308,9 @@ export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0
 
 		// Highlight the grid position
 		let [xg, yg] = canvas.grid.grid.getPixelsFromGridPosition(x1, y1);
-		const subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xg, y: yg})}], {gridSpaces: true})[0]
-		const color = this.dragRulerGetColorForDistance(startDistance + subDistance);
+		const pathUntilSpace = previousSegments.concat([{ray: new Ray(ray.A, {x: xg, y: yg})}]);
+		const distance = sum(canvas.grid.measureDistances(pathUntilSpace, {gridSpaces: true}));
+		const color = this.dragRulerGetColorForDistance(distance);
 		const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedEntity);
 		const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);
 
@@ -318,8 +322,9 @@ export function highlightMeasurementNative(ray, startDistance, tokenShape=[{x: 0
 			let {x, y} = ray.project(th);
 			let [x1h, y1h] = canvas.grid.grid.getGridPositionFromPixels(x, y);
 			let [xgh, ygh] = canvas.grid.grid.getPixelsFromGridPosition(x1h, y1h);
-			const subDistance = canvas.grid.measureDistances([{ray: new Ray(ray.A, {x: xgh, y: ygh})}], {gridSpaces: true})[0]
-			const color = this.dragRulerGetColorForDistance(startDistance + subDistance);
+			const pathUntilSpace = previousSegments.concat([{ray: new Ray(ray.A, {x: xgh, y: ygh})}]);
+			const distance = sum(canvas.grid.measureDistances(pathUntilSpace, {gridSpaces: true}));
+			const color = this.dragRulerGetColorForDistance(distance);
 			const snapPoint = getSnapPointForToken(...canvas.grid.getTopLeft(x, y), this.draggedEntity);
 			const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);
 			highlightTokenShape.call(this, {x: snapX, y: snapY}, tokenShape, color, alpha);

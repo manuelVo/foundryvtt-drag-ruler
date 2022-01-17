@@ -7,6 +7,18 @@ export function* zip(it1, it2) {
 	}
 }
 
+export function* enumeratedZip(it1, it2) {
+	let i = 0;
+	for (const [v1, v2] of zip(it1, it2)) {
+		yield [i, v1, v2];
+		i++;
+	}
+}
+
+export function sum(arr) {
+	return arr.reduce((a, b) => a + b, 0);
+}
+
 export function getSnapPointForToken(x, y, token) {
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		return new PIXI.Point(x, y);
