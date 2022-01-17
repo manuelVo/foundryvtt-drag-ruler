@@ -1,3 +1,9 @@
+## 1.10.2
+### Bugfixes
+- Fixed a bug that could cause squares to be highlighted in the wrong color when using waypoints on a 5/10/5 gird
+- When using Token Drag Vision, the temporary vision is now correctly cleaned up when dropping the token (resolves a conflict with the "Perfect Vision" module)
+
+
 ## 1.10.1
 ### Bugfixes
 - Fixed a bug that caused keybindings to break if no scene is active
