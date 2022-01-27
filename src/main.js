@@ -133,9 +133,6 @@ function onEntityDragLeftDrop(event) {
 	if (selectedTokens.length === 0)
 		selectedTokens.push(ruler.draggedEntity);
 	ruler._state = Ruler.STATES.MOVING
-	if (ruler.draggedEntity instanceof Token && game.settings.get("core", "tokenDragPreview")) {
-		event.data.clones.forEach(c => c._original.updateSource({skipUpdateFog: true, defer: true}));
-	}
 	moveEntities.call(ruler, ruler.draggedEntity, selectedTokens);
 	return true
 }
