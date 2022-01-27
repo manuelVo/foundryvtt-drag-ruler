@@ -40,6 +40,10 @@
 			"moveWithoutAnimation": {
 				"name": "Token animation deaktivieren",
 				"hint": "Wenn diese Taste gedrückt wird, während ein Token fallen gelassen wird, bewegt es sich ohne Animation zum Zielort."
+			},
+			"togglePathfinding": {
+				"name": "Wegfindung umschalten",
+				"hint": "Wenn diese Taste gedrückt gehalten wird, während ein Token gezogen wird, wird die Wegfindung vorübergehend aktiviert/deaktiviert"
 			}
 		},
 		"settings": {

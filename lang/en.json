@@ -40,6 +40,10 @@
 			"moveWithoutAnimation": {
 				"name": "Disable token animation",
 				"hint": "When being held while dropping a token, the token will move to the target location without animating"
+			},
+			"togglePathfinding": {
+				"name": "Toggle pathfinding",
+				"hint": "When being held while dragging a token, the pathfinding functionality will be temporarily enabled/disabled"
 			}
 		},
 		"settings": {

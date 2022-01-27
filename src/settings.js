@@ -89,6 +89,7 @@ export function registerSettings() {
 		config: true,
 		type: Boolean,
 		default: false,
+		onChange: () => location.reload(),
 	});
 
 	game.settings.register(settingsKey, "autoPathfinding", {
