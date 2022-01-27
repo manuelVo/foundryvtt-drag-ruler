@@ -1,3 +1,8 @@
+## 1.10.3
+### Compatibility
+- This release contains changes required to be compatible with Foundry 9.245
+
+
 ## 1.10.2
 ### Bugfixes
 - Fixed a bug that could cause squares to be highlighted in the wrong color when using waypoints on a 5/10/5 gird
