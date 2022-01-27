@@ -88,7 +88,7 @@ export function registerSettings() {
 		scpoe: "client",
 		config: true,
 		type: Boolean,
-		defualt: true,
+		defualt: false,
 	});
 
 	game.settings.register(settingsKey, "lastTerrainRulerHintTime", {
