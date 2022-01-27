@@ -1,7 +1,14 @@
 import {getCenterFromGridPositionObj} from "./foundry_fixes.js";
+import {settingsKey} from "./settings.js";
 
 // TODO Wipe cache if walls layer is being modified
 let cached_nodes = undefined;
+
+export function is_pathfinding_enabled() {
+	if (!game.settings.get(settingsKey, "allowPathfinding"))
+		return false;
+	return game.settings.get(settingsKey, "autoPathfinding") != game.keyboard.isDown("y")
+}
 
 function get_node(pos, initialize=true) {
 	if (!cached_nodes)

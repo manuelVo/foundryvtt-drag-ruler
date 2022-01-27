@@ -3,7 +3,7 @@ import {getCenterFromGridPositionObj, getGridPositionFromPixels, getGridPosition
 import {Line} from "./geometry.js";
 import {disableSnap, moveWithoutAnimation} from "./keybindings.js";
 import {trackRays} from "./movement_tracking.js"
-import {find_path} from "./pathfinding.js";
+import {find_path, is_pathfinding_enabled} from "./pathfinding.js";
 import {settingsKey} from "./settings.js";
 import {recalculate} from "./socket.js";
 import {applyTokenSizeOffset, enumeratedZip, getSnapPointForEntity, getSnapPointForToken, getTokenShape, highlightTokenShape, sum} from "./util.js";
@@ -133,7 +133,7 @@ function scheduleMeasurement(destination, event) {
 	const mt = event._measureTime || 0;
 	const originalEvent = event.data.originalEvent;
 	if (Date.now() - mt > measurementInterval) {
-		this.measure(destination, {snap: !disableSnap, pathfinding: game.settings.get(settingsKey, "autoPathfinding") != game.keyboard.isDown("y")});
+		this.measure(destination, {snap: !disableSnap, pathfinding: is_pathfinding_enabled()});
 		event._measureTime = Date.now();
 		this._state = Ruler.STATES.MEASURING;
 		cancelScheduledMeasurement.call(this);

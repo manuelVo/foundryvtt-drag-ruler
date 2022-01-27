@@ -82,6 +82,15 @@ export function registerSettings() {
 		default: true,
 	});
 
+	game.settings.register(settingsKey, "allowPathfinding", {
+		name: "drag-ruler.settings.allowPathfinding.name",
+		hint: "drag-ruler.settings.allowPathfinding.hint",
+		scope: "world",
+		config: true,
+		type: Boolean,
+		default: false,
+	});
+
 	game.settings.register(settingsKey, "autoPathfinding", {
 		name: "drag-ruler.settings.autoPathfinding.name",
 		hint: "drag-ruler.settings.autoPathfinding.hint",
