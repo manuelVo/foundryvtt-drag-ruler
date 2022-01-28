@@ -13,6 +13,8 @@ export function initializePathfinding() {
 }
 
 export function isPathfindingEnabled() {
+	if (canvas.grid.type !== CONST.GRID_TYPES.SQUARE)
+		return false;
 	if (!game.settings.get(settingsKey, "allowPathfinding"))
 		return false;
 	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
