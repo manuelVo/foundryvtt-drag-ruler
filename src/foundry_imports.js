@@ -133,7 +133,7 @@ function scheduleMeasurement(destination, event) {
 	const mt = event._measureTime || 0;
 	const originalEvent = event.data.originalEvent;
 	if (Date.now() - mt > measurementInterval) {
-		this.measure(destination, {snap: !disableSnap, pathfinding: isPathfindingEnabled()});
+		this.measure(destination, {snap: !disableSnap});
 		event._measureTime = Date.now();
 		this._state = Ruler.STATES.MEASURING;
 		cancelScheduledMeasurement.call(this);
@@ -160,7 +160,6 @@ export function measure(destination, options={}) {
 	if (isToken && !this.draggedEntity.isVisible)
 		return []
 
-	options.pathfinding = options.pathfinding ?? false;
 	if (options.snap) {
 		destination = getSnapPointForEntity(destination.x, destination.y, this.draggedEntity);
 	}
@@ -169,7 +168,7 @@ export function measure(destination, options={}) {
 	this.waypoints.filter(waypoint => waypoint.isPathfinding).forEach(_ => this.labels.removeChild(this.labels.children.pop()));
 	this.waypoints = this.waypoints.filter(waypoint => !waypoint.isPathfinding);
 
-	if (isToken && options.pathfinding) {
+	if (isToken && isPathfindingEnabled()) {
 		let path = findPath(getGridPositionFromPixelsObj(this.waypoints[this.waypoints.length - 1]), getGridPositionFromPixelsObj(destination));
 		if (path) {
 			path = path.map(point => getCenterFromGridPositionObj(point));
