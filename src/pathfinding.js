@@ -61,7 +61,7 @@ function calculate_path(from, to) {
 			if (previousNodes.has(neighborNode))
 				continue;
 			// TODO We currently assume a cost of one for all transitions. Change this for 5/10/5 or difficult terrain support
-			// We charge an extra 0.0001 for diagonals
+			// We charge an extra 0.0001 for diagonals to unnecessary diagonal steps
 			const isDiagonal = currentNode.node.x !== neighborNode.x && currentNode.node.y !== neighborNode.y;
 			const edgeCost = isDiagonal ? 1.0001 : 1;
 			const neighbor = {node: neighborNode, cost: currentNode.cost + edgeCost, estimated: currentNode.cost + edgeCost + estimate_cost(neighborNode, from), previous: currentNode};
