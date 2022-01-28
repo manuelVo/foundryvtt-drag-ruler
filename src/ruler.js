@@ -81,6 +81,7 @@ export function extendRuler() {
 			}
 			this.waypoints.push(new PIXI.Point(point.x, point.y));
 			this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
+			this.waypoints.filter(waypoint => waypoint.isPathfinding).forEach(waypoint => waypoint.isPathfinding = false);
 		}
 
 		dragRulerAddWaypointHistory(waypoints) {
