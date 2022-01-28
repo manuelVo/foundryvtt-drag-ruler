@@ -7,6 +7,7 @@ import {disableSnap, registerKeybindings} from "./keybindings.js";
 import {libWrapper} from "./libwrapper_shim.js";
 import {performMigrations} from "./migration.js"
 import {removeLastHistoryEntryIfAt, resetMovementHistory} from "./movement_tracking.js";
+import { initializePathfinding } from "./pathfinding.js";
 import {extendRuler} from "./ruler.js";
 import {registerSettings, RightClickAction, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
@@ -34,6 +35,7 @@ Hooks.once("init", () => {
 })
 
 Hooks.once("ready", () => {
+	initializePathfinding();
 	performMigrations()
 	checkDependencies();
 	Hooks.callAll("dragRuler.ready", SpeedProvider)

@@ -2,8 +2,15 @@ import {getCenterFromGridPositionObj} from "./foundry_fixes.js";
 import {togglePathfinding} from "./keybindings.js";
 import {settingsKey} from "./settings.js";
 
-// TODO Wipe cache if walls layer is being modified
 let cachedNodes = undefined;
+let use5105 = false;
+
+export function initializePathfinding() {
+	if (game.system.id === "pf2e")
+		use5105 = true;
+	if (canvas.grid.diagonalRule === "5105")
+		use5105 = true;
+}
 
 export function isPathfindingEnabled() {
 	if (!game.settings.get(settingsKey, "allowPathfinding"))
@@ -36,26 +43,36 @@ export function wipePathfindingCache() {
 function getNode(pos, layer=0, initialize=true) {
 	if (!cachedNodes)
 		cachedNodes = new Map();
-	if (!cachedNodes[layer])
+	let cachedLayer = cachedNodes.get(layer);
+	if (!cachedLayer) {
 		// TODO Check if ceil is the right thing to do here
-		cachedNodes.set(layer, new Array(Math.ceil(canvas.dimensions.sceneHeight / canvas.dimensions.size)));
-	if (!cachedNodes[layer][pos.y])
-		cachedNodes[layer][pos.y] = new Array(Math.ceil(canvas.dimensions.sceneWidth / canvas.dimensions.size));
-	if (!cachedNodes[layer][pos.y][pos.x]) {
-		cachedNodes[layer][pos.y][pos.x] = {x: pos.x, y: pos.y, layer: layer};
+		cachedLayer = new Array(Math.ceil(canvas.dimensions.sceneHeight / canvas.dimensions.size));
+		cachedNodes.set(layer, cachedLayer);
+	}
+	if (!cachedLayer[pos.y])
+		cachedLayer[pos.y] = new Array(Math.ceil(canvas.dimensions.sceneWidth / canvas.dimensions.size));
+	if (!cachedLayer[pos.y][pos.x]) {
+		cachedLayer[pos.y][pos.x] = {x: pos.x, y: pos.y, layer: layer};
 	}
 
-	const node = cachedNodes[layer][pos.y][pos.x];
+	const node = cachedLayer[pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
 		for (const neighborPos of neighbors(pos)) {
 			// TODO Work with pixels instead of grid locations
 			if (!canvas.walls.checkCollision(new Ray(getCenterFromGridPositionObj(pos), getCenterFromGridPositionObj(neighborPos)))) {
-				const neighbor = getNode(neighborPos, layer, false);
-				// TODO We currently assume a cost of one for all transitions. Change this for 5/10/5 or difficult terrain support
-				// We charge an extra 0.0001 for diagonals to unnecessary diagonal steps
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y;
-				const edgeCost = isDiagonal ? 1.0001 : 1;
+				let targetLayer = layer;
+				if (use5105 && isDiagonal)
+					targetLayer = 1 - targetLayer;
+				const neighbor = getNode(neighborPos, targetLayer, false);
+				// TODO We currently assume a cost of one for all transitions. Change this for 5/10/5 or difficult terrain support
+
+				let edgeCost = 1;
+				if (isDiagonal) {
+					// We charge 0.0001 more for edges to avoid unnecessary diagonal steps
+					edgeCost = layer === 0 ? 1.0001 : 2;
+				}
 				node.edges.push({target: neighbor, cost: edgeCost});
 			}
 		}
