@@ -3,7 +3,7 @@ import {getCenterFromGridPositionObj, getGridPositionFromPixels, getGridPosition
 import {Line} from "./geometry.js";
 import {disableSnap, moveWithoutAnimation} from "./keybindings.js";
 import {trackRays} from "./movement_tracking.js"
-import {find_path, is_pathfinding_enabled} from "./pathfinding.js";
+import {findPath, isPathfindingEnabled} from "./pathfinding.js";
 import {settingsKey} from "./settings.js";
 import {recalculate} from "./socket.js";
 import {applyTokenSizeOffset, enumeratedZip, getSnapPointForEntity, getSnapPointForToken, getTokenShape, highlightTokenShape, sum} from "./util.js";
@@ -133,7 +133,7 @@ function scheduleMeasurement(destination, event) {
 	const mt = event._measureTime || 0;
 	const originalEvent = event.data.originalEvent;
 	if (Date.now() - mt > measurementInterval) {
-		this.measure(destination, {snap: !disableSnap, pathfinding: is_pathfinding_enabled()});
+		this.measure(destination, {snap: !disableSnap, pathfinding: isPathfindingEnabled()});
 		event._measureTime = Date.now();
 		this._state = Ruler.STATES.MEASURING;
 		cancelScheduledMeasurement.call(this);
@@ -169,7 +169,7 @@ export function measure(destination, options={}) {
 	this.waypoints = this.waypoints.filter(waypoint => !waypoint.isPathfinding);
 
 	if (isToken && options.pathfinding) {
-		let path = find_path(getGridPositionFromPixelsObj(this.waypoints[this.waypoints.length - 1]), getGridPositionFromPixelsObj(destination));
+		let path = findPath(getGridPositionFromPixelsObj(this.waypoints[this.waypoints.length - 1]), getGridPositionFromPixelsObj(destination));
 		if (path) {
 			path = path.map(point => getCenterFromGridPositionObj(point));
 			path.forEach(point => point.isPathfinding = true);

@@ -1,35 +1,57 @@
 import {getCenterFromGridPositionObj} from "./foundry_fixes.js";
-import { togglePathfinding } from "./keybindings.js";
+import {togglePathfinding} from "./keybindings.js";
 import {settingsKey} from "./settings.js";
 
 // TODO Wipe cache if walls layer is being modified
-let cached_nodes = undefined;
+let cachedNodes = undefined;
 
-export function is_pathfinding_enabled() {
+export function isPathfindingEnabled() {
 	if (!game.settings.get(settingsKey, "allowPathfinding"))
 		return false;
 	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
 }
 
-function get_node(pos, layer=0, initialize=true) {
-	if (!cached_nodes)
-		cached_nodes = new Map();
+export function findPath(from, to) {
+	const lastNode = calculatePath(from, to);
+	if (!lastNode)
+		return null;
+	const path = [];
+	let currentNode = lastNode;
+	while (currentNode) {
+		// TODO Check if the distance doesn't change
+		if (path.length >= 2 && !canvas.walls.checkCollision(new Ray(getCenterFromGridPositionObj(currentNode.node), getCenterFromGridPositionObj(path[path.length - 2]))))
+			// Replace last waypoint if the current waypoint leads to a valid path
+			path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
+		else
+			path.push({x: currentNode.node.x, y: currentNode.node.y});
+		currentNode = currentNode.previous;
+	}
+	return path;
+}
+
+export function wipePathfindingCache() {
+	cachedNodes = undefined;
+}
+
+function getNode(pos, layer=0, initialize=true) {
+	if (!cachedNodes)
+		cachedNodes = new Map();
 	if (!cachedNodes[layer])
 		// TODO Check if ceil is the right thing to do here
-		cached_nodes.set(layer, new Array(Math.ceil(canvas.dimensions.sceneHeight / canvas.dimensions.size)));
-	if (!cached_nodes[layer][pos.y])
-		cached_nodes[layer][pos.y] = new Array(Math.ceil(canvas.dimensions.sceneWidth / canvas.dimensions.size));
-	if (!cached_nodes[layer][pos.y][pos.x]) {
-		cached_nodes[layer][pos.y][pos.x] = {x: pos.x, y: pos.y, layer: layer};
+		cachedNodes.set(layer, new Array(Math.ceil(canvas.dimensions.sceneHeight / canvas.dimensions.size)));
+	if (!cachedNodes[layer][pos.y])
+		cachedNodes[layer][pos.y] = new Array(Math.ceil(canvas.dimensions.sceneWidth / canvas.dimensions.size));
+	if (!cachedNodes[layer][pos.y][pos.x]) {
+		cachedNodes[layer][pos.y][pos.x] = {x: pos.x, y: pos.y, layer: layer};
 	}
 
-	const node = cached_nodes[layer][pos.y][pos.x];
+	const node = cachedNodes[layer][pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
 		for (const neighborPos of neighbors(pos)) {
 			// TODO Work with pixels instead of grid locations
 			if (!canvas.walls.checkCollision(new Ray(getCenterFromGridPositionObj(pos), getCenterFromGridPositionObj(neighborPos)))) {
-				const neighbor = get_node(neighborPos, layer, false);
+				const neighbor = getNode(neighborPos, layer, false);
 				// TODO We currently assume a cost of one for all transitions. Change this for 5/10/5 or difficult terrain support
 				// We charge an extra 0.0001 for diagonals to unnecessary diagonal steps
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y;
@@ -50,8 +72,8 @@ function* neighbors(pos) {
 	}
 }
 
-function calculate_path(from, to) {
-	const nextNodes = [{node: get_node(to), cost: 0, estimated: estimate_cost(to, from), previous: null}];
+function calculatePath(from, to) {
+	const nextNodes = [{node: getNode(to), cost: 0, estimated: estimateCost(to, from), previous: null}];
 	const previousNodes = new Set();
 	while (nextNodes.length > 0) {
 		// Sort by estimated cost, high to low
@@ -63,10 +85,10 @@ function calculate_path(from, to) {
 			return currentNode;
 		previousNodes.add(currentNode.node);
 		for (const edge of currentNode.node.edges) {
-			const neighborNode = get_node(edge.target);
+			const neighborNode = getNode(edge.target);
 			if (previousNodes.has(neighborNode))
 				continue;
-			const neighbor = {node: neighborNode, cost: currentNode.cost + edge.cost, estimated: currentNode.cost + edge.cost + estimate_cost(neighborNode, from), previous: currentNode};
+			const neighbor = {node: neighborNode, cost: currentNode.cost + edge.cost, estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, from), previous: currentNode};
 			const neighborIndex = nextNodes.findIndex(node => node.node === neighbor.node);
 			if (neighborIndex >= 0) {
 				// If the neighbor is cheaper to reach via the current route than through previously discovered routes, replace it
@@ -81,28 +103,6 @@ function calculate_path(from, to) {
 	}
 }
 
-function estimate_cost(pos, target) {
+function estimateCost(pos, target) {
 	return Math.max(Math.abs(pos.x - target.x), Math.abs(pos.y - target.y));
-}
-
-export function find_path(from, to) {
-	const lastNode = calculate_path(from, to);
-	if (!lastNode)
-		return null;
-	const path = [];
-	let currentNode = lastNode;
-	while (currentNode) {
-		// TODO Check if the distance doesn't change
-		if (path.length >= 2 && !canvas.walls.checkCollision(new Ray(getCenterFromGridPositionObj(currentNode.node), getCenterFromGridPositionObj(path[path.length - 2]))))
-			// Replace last waypoint if the current waypoint leads to a valid path
-			path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
-		else
-			path.push({x: currentNode.node.x, y: currentNode.node.y});
-		currentNode = currentNode.previous;
-	}
-	return path;
-}
-
-export function wipe_cache() {
-	cached_nodes = undefined;
 }
