@@ -11,24 +11,30 @@ export function is_pathfinding_enabled() {
 	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
 }
 
-function get_node(pos, initialize=true) {
+function get_node(pos, layer=0, initialize=true) {
 	if (!cached_nodes)
+		cached_nodes = new Map();
+	if (!cachedNodes[layer])
 		// TODO Check if ceil is the right thing to do here
-		cached_nodes = new Array(Math.ceil(canvas.dimensions.sceneHeight / canvas.dimensions.size));
-	if (!cached_nodes[pos.y])
-		cached_nodes[pos.y] = new Array(Math.ceil(canvas.dimensions.sceneWidth / canvas.dimensions.size));
-	if (!cached_nodes[pos.y][pos.x]) {
-		cached_nodes[pos.y][pos.x] = {x: pos.x, y: pos.y};
+		cached_nodes.set(layer, new Array(Math.ceil(canvas.dimensions.sceneHeight / canvas.dimensions.size)));
+	if (!cached_nodes[layer][pos.y])
+		cached_nodes[layer][pos.y] = new Array(Math.ceil(canvas.dimensions.sceneWidth / canvas.dimensions.size));
+	if (!cached_nodes[layer][pos.y][pos.x]) {
+		cached_nodes[layer][pos.y][pos.x] = {x: pos.x, y: pos.y, layer: layer};
 	}
 
-	const node = cached_nodes[pos.y][pos.x];
+	const node = cached_nodes[layer][pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
 		for (const neighborPos of neighbors(pos)) {
 			// TODO Work with pixels instead of grid locations
 			if (!canvas.walls.checkCollision(new Ray(getCenterFromGridPositionObj(pos), getCenterFromGridPositionObj(neighborPos)))) {
-				const neighbor = get_node(neighborPos, false);
-				node.edges.push({target: neighbor, cost: 1});
+				const neighbor = get_node(neighborPos, layer, false);
+				// TODO We currently assume a cost of one for all transitions. Change this for 5/10/5 or difficult terrain support
+				// We charge an extra 0.0001 for diagonals to unnecessary diagonal steps
+				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y;
+				const edgeCost = isDiagonal ? 1.0001 : 1;
+				node.edges.push({target: neighbor, cost: edgeCost});
 			}
 		}
 	}
@@ -60,11 +66,7 @@ function calculate_path(from, to) {
 			const neighborNode = get_node(edge.target);
 			if (previousNodes.has(neighborNode))
 				continue;
-			// TODO We currently assume a cost of one for all transitions. Change this for 5/10/5 or difficult terrain support
-			// We charge an extra 0.0001 for diagonals to unnecessary diagonal steps
-			const isDiagonal = currentNode.node.x !== neighborNode.x && currentNode.node.y !== neighborNode.y;
-			const edgeCost = isDiagonal ? 1.0001 : 1;
-			const neighbor = {node: neighborNode, cost: currentNode.cost + edgeCost, estimated: currentNode.cost + edgeCost + estimate_cost(neighborNode, from), previous: currentNode};
+			const neighbor = {node: neighborNode, cost: currentNode.cost + edge.cost, estimated: currentNode.cost + edge.cost + estimate_cost(neighborNode, from), previous: currentNode};
 			const neighborIndex = nextNodes.findIndex(node => node.node === neighbor.node);
 			if (neighborIndex >= 0) {
 				// If the neighbor is cheaper to reach via the current route than through previously discovered routes, replace it
