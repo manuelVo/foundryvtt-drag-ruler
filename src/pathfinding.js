@@ -8,7 +8,7 @@ let cachedNodes = undefined;
 let use5105 = false;
 
 export function isPathfindingEnabled() {
-	if (canvas.grid.type !== CONST.GRID_TYPES.SQUARE)
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
 		return false;
 	if (!game.settings.get(settingsKey, "allowPathfinding"))
 		return false;
@@ -53,12 +53,12 @@ function getNode(pos, initialize=true) {
 	const node = cachedNodes[pos.layer][pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
-		for (const neighborPos of neighbors(pos)) {
+		for (const neighborPos of canvas.grid.grid.getNeighbors(pos.y, pos.x).map(([y, x]) => {return {x, y};})) {
 			if (neighborPos.x < 0 || neighborPos.y < 0)
 				continue;
 			// TODO Work with pixels instead of grid locations
 			if (!canvas.walls.checkCollision(new Ray(getCenterFromGridPositionObj(pos), getCenterFromGridPositionObj(neighborPos)))) {
-				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y;
+				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
 				let targetLayer = pos.layer;
 				if (use5105 && isDiagonal)
 					targetLayer = 1 - targetLayer;
@@ -75,15 +75,6 @@ function getNode(pos, initialize=true) {
 		}
 	}
 	return node;
-}
-
-function* neighbors(pos) {
-	for (let y = -1;y < 2;y++) {
-		for (let x = -1;x < 2;x++) {
-			if (x != 0 || y != 0)
-				yield {x: pos.x + x, y: pos.y + y};
-		}
-	}
 }
 
 function calculatePath(from, to, previousWaypoints) {
