@@ -41,23 +41,23 @@ export function wipePathfindingCache() {
 function getNode(pos, initialize=true) {
 	pos = {layer: 0, ...pos}; // Copy pos and set pos.layer to the default value if it's unset
 	if (!cachedNodes)
-		cachedNodes = new Map();
-	let cachedLayer = cachedNodes.get(pos.layer);
-	if (!cachedLayer) {
+		cachedNodes = new Array(2);
+	if (!cachedNodes[pos.layer]) {
 		// TODO Check if ceil is the right thing to do here
-		cachedLayer = new Array(Math.ceil(canvas.dimensions.sceneHeight / canvas.dimensions.size));
-		cachedNodes.set(pos.layer, cachedLayer);
+		cachedNodes[pos.layer] = new Array(Math.ceil(canvas.dimensions.sceneHeight / canvas.dimensions.size));
 	}
-	if (!cachedLayer[pos.y])
-		cachedLayer[pos.y] = new Array(Math.ceil(canvas.dimensions.sceneWidth / canvas.dimensions.size));
-	if (!cachedLayer[pos.y][pos.x]) {
-		cachedLayer[pos.y][pos.x] = pos;
+	if (!cachedLayer[pos.layer][pos.y])
+		cachedLayer[pos.layer][pos.y] = new Array(Math.ceil(canvas.dimensions.sceneWidth / canvas.dimensions.size));
+	if (!cachedLayer[pos.layer][pos.y][pos.x]) {
+		cachedLayer[pos.layer][pos.y][pos.x] = pos;
 	}
 
-	const node = cachedLayer[pos.y][pos.x];
+	const node = cachedLayer[pos.layer][pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
 		for (const neighborPos of neighbors(pos)) {
+			if (neighborPos.x < 0 || neighborPos.y < 0)
+				continue;
 			// TODO Work with pixels instead of grid locations
 			if (!canvas.walls.checkCollision(new Ray(getCenterFromGridPositionObj(pos), getCenterFromGridPositionObj(neighborPos)))) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y;
