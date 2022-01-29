@@ -98,6 +98,7 @@ export function extendRuler() {
 		}
 
 		dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={}) {
+			this.dragRulerRemovePathfindingWaypoints();
 			options.snap = options.snap ?? true;
 			if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 				event.preventDefault();
@@ -112,6 +113,11 @@ export function extendRuler() {
 			else {
 				this.dragRulerAbortDrag(event);
 			}
+		}
+
+		dragRulerRemovePathfindingWaypoints() {
+			this.waypoints.filter(waypoint => waypoint.isPathfinding).forEach(_ => this.labels.removeChild(this.labels.children.pop()));
+			this.waypoints = this.waypoints.filter(waypoint => !waypoint.isPathfinding);
 		}
 
 		dragRulerAbortDrag(event={preventDefault: () => {return}}) {
