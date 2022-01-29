@@ -42,16 +42,15 @@ function getNode(pos, initialize=true) {
 	pos = {layer: 0, ...pos}; // Copy pos and set pos.layer to the default value if it's unset
 	if (!cachedNodes)
 		cachedNodes = new Array(2);
-	if (!cachedNodes[pos.layer]) {
+	if (!cachedNodes[pos.layer])
 		cachedNodes[pos.layer] = new Array(Math.ceil(canvas.dimensions.height / canvas.grid.h));
-	}
-	if (!cachedLayer[pos.layer][pos.y])
-		cachedLayer[pos.layer][pos.y] = new Array(Math.ceil(canvas.dimensions.width / canvas.grid.w));
-	if (!cachedLayer[pos.layer][pos.y][pos.x]) {
-		cachedLayer[pos.layer][pos.y][pos.x] = pos;
+	if (!cachedNodes[pos.layer][pos.y])
+	cachedNodes[pos.layer][pos.y] = new Array(Math.ceil(canvas.dimensions.width / canvas.grid.w));
+	if (!cachedNodes[pos.layer][pos.y][pos.x]) {
+		cachedNodes[pos.layer][pos.y][pos.x] = pos;
 	}
 
-	const node = cachedLayer[pos.layer][pos.y][pos.x];
+	const node = cachedNodes[pos.layer][pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
 		for (const neighborPos of neighbors(pos)) {
