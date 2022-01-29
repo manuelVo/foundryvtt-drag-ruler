@@ -65,12 +65,12 @@ function getNode(pos, initialize=true) {
 				if (use5105 && isDiagonal)
 					targetLayer = 1 - targetLayer;
 				const neighbor = getNode({...neighborPos, layer: targetLayer}, false);
-				// TODO We currently assume a cost of one for all transitions. Change this for 5/10/5 or difficult terrain support
 
+				// TODO We currently assume a cost of one for all transitions. Change this for 5/10/5 or difficult terrain support
 				let edgeCost = 1;
 				if (isDiagonal) {
 					// We charge 0.0001 more for edges to avoid unnecessary diagonal steps
-					edgeCost = targetLayer === 1 ? 1.0001 : 2;
+					edgeCost = pos.layer === 1 && targetLayer === 0 ? 2 : 1.0001;
 				}
 				node.edges.push({target: neighbor, cost: edgeCost});
 			}
