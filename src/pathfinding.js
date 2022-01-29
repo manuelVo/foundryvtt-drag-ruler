@@ -5,13 +5,6 @@ import {settingsKey} from "./settings.js";
 let cachedNodes = undefined;
 let use5105 = false;
 
-export function initializePathfinding() {
-	if (game.system.id === "pf2e")
-		use5105 = true;
-	if (canvas.grid.diagonalRule === "5105")
-		use5105 = true;
-}
-
 export function isPathfindingEnabled() {
 	if (canvas.grid.type !== CONST.GRID_TYPES.SQUARE)
 		return false;
@@ -92,6 +85,10 @@ function* neighbors(pos) {
 }
 
 function calculatePath(from, to) {
+	if (game.system.id === "pf2e")
+		use5105 = true;
+	if (canvas.grid.diagonalRule === "5105")
+		use5105 = true;
 	// On 5/10/5 it's possible that we'd need to start on layer 1 if there is a previous route
 	// However I cannot think of any case where not doing it would lead to a non-optimal path, so I've ommited that
 	const nextNodes = [{node: getNode(to), cost: 0, estimated: estimateCost(to, from), previous: null}];
