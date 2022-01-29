@@ -1,3 +1,11 @@
+## 1.11.0
+### New features
+- Drag Ruler now supports pathfinding. Pressing the assigned button will automatically calculate the shortest route to the point you're dragging your token to and add the necessary waypoints to the ruler.
+ - This feature is only available for gridded maps
+ - This feature can only be used if it's enabled by the GM in the module settings
+ - The routing algorithm *does not* take difficult terrain into account
+
+
 ## 1.10.3
 ### Compatibility
 - This release contains changes required to be compatible with Foundry 9.245
