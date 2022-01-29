@@ -1,6 +1,8 @@
-import {getCenterFromGridPositionObj} from "./foundry_fixes.js";
+import {getCenterFromGridPositionObj, getGridPositionFromPixelsObj} from "./foundry_fixes.js";
 import {togglePathfinding} from "./keybindings.js";
+import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
+import {iterPairs} from "./util.js";
 
 let cachedNodes = undefined;
 let use5105 = false;
@@ -13,10 +15,11 @@ export function isPathfindingEnabled() {
 	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
 }
 
-export function findPath(from, to) {
-	const lastNode = calculatePath(from, to);
+export function findPath(from, to, previousWaypoints) {
+	const lastNode = calculatePath(from, to, previousWaypoints);
 	if (!lastNode)
 		return null;
+	paintPathfindingDebug(lastNode);
 	const path = [];
 	let currentNode = lastNode;
 	while (currentNode) {
@@ -35,19 +38,20 @@ export function wipePathfindingCache() {
 	cachedNodes = undefined;
 }
 
-function getNode(pos, layer=0, initialize=true) {
+function getNode(pos, initialize=true) {
+	pos = {layer: 0, ...pos}; // Copy pos and set pos.layer to the default value if it's unset
 	if (!cachedNodes)
 		cachedNodes = new Map();
-	let cachedLayer = cachedNodes.get(layer);
+	let cachedLayer = cachedNodes.get(pos.layer);
 	if (!cachedLayer) {
 		// TODO Check if ceil is the right thing to do here
 		cachedLayer = new Array(Math.ceil(canvas.dimensions.sceneHeight / canvas.dimensions.size));
-		cachedNodes.set(layer, cachedLayer);
+		cachedNodes.set(pos.layer, cachedLayer);
 	}
 	if (!cachedLayer[pos.y])
 		cachedLayer[pos.y] = new Array(Math.ceil(canvas.dimensions.sceneWidth / canvas.dimensions.size));
 	if (!cachedLayer[pos.y][pos.x]) {
-		cachedLayer[pos.y][pos.x] = {x: pos.x, y: pos.y, layer: layer};
+		cachedLayer[pos.y][pos.x] = pos;
 	}
 
 	const node = cachedLayer[pos.y][pos.x];
@@ -57,16 +61,16 @@ function getNode(pos, layer=0, initialize=true) {
 			// TODO Work with pixels instead of grid locations
 			if (!canvas.walls.checkCollision(new Ray(getCenterFromGridPositionObj(pos), getCenterFromGridPositionObj(neighborPos)))) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y;
-				let targetLayer = layer;
+				let targetLayer = pos.layer;
 				if (use5105 && isDiagonal)
 					targetLayer = 1 - targetLayer;
-				const neighbor = getNode(neighborPos, targetLayer, false);
+				const neighbor = getNode({...neighborPos, layer: targetLayer}, false);
 				// TODO We currently assume a cost of one for all transitions. Change this for 5/10/5 or difficult terrain support
 
 				let edgeCost = 1;
 				if (isDiagonal) {
 					// We charge 0.0001 more for edges to avoid unnecessary diagonal steps
-					edgeCost = layer === 0 ? 1.0001 : 2;
+					edgeCost = targetLayer === 1 ? 1.0001 : 2;
 				}
 				node.edges.push({target: neighbor, cost: edgeCost});
 			}
@@ -84,14 +88,17 @@ function* neighbors(pos) {
 	}
 }
 
-function calculatePath(from, to) {
+function calculatePath(from, to, previousWaypoints) {
 	if (game.system.id === "pf2e")
 		use5105 = true;
 	if (canvas.grid.diagonalRule === "5105")
 		use5105 = true;
-	// On 5/10/5 it's possible that we'd need to start on layer 1 if there is a previous route
-	// However I cannot think of any case where not doing it would lead to a non-optimal path, so I've ommited that
-	const nextNodes = [{node: getNode(to), cost: 0, estimated: estimateCost(to, from), previous: null}];
+	let startLayer = 0;
+	if (use5105) {
+		previousWaypoints = previousWaypoints.map(w => getGridPositionFromPixelsObj(w));
+		startLayer = calcNoDiagonals(previousWaypoints) % 2;
+	}
+	const nextNodes = [{node: getNode({...to, layer: startLayer}), cost: 0, estimated: estimateCost(to, from), previous: null}];
 	const previousNodes = new Set();
 	while (nextNodes.length > 0) {
 		// Sort by estimated cost, high to low
@@ -121,6 +128,30 @@ function calculatePath(from, to) {
 	}
 }
 
+function calcNoDiagonals(waypoints) {
+	let diagonals = 0;
+	for (const [p1, p2] of iterPairs(waypoints)) {
+		diagonals += Math.min(Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));
+	}
+	return diagonals;
+}
+
 function estimateCost(pos, target) {
 	return Math.max(Math.abs(pos.x - target.x), Math.abs(pos.y - target.y));
+}
+
+function paintPathfindingDebug(lastNode) {
+	if (CONFIG.debug.dragRuler) {
+		debugGraphics.removeChildren();
+	}
+	let currentNode = lastNode;
+	while (currentNode) {
+		let text = new PIXI.Text(currentNode.cost.toFixed(0));
+		let pixels = getCenterFromGridPositionObj(currentNode.node);
+		text.anchor.set(0.5, 1.0);
+		text.x = pixels.x;
+		text.y = pixels.y;
+		debugGraphics.addChild(text);
+		currentNode = currentNode.previous;
+	}
 }

@@ -15,6 +15,12 @@ export function* enumeratedZip(it1, it2) {
 	}
 }
 
+export function* iterPairs(l) {
+	for (let i = 1;i < l.length;i++) {
+		yield [l[i - 1], l[i]];
+	}
+}
+
 export function sum(arr) {
 	return arr.reduce((a, b) => a + b, 0);
 }
