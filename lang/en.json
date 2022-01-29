@@ -40,9 +40,17 @@
 			"moveWithoutAnimation": {
 				"name": "Disable token animation",
 				"hint": "When being held while dropping a token, the token will move to the target location without animating"
+			},
+			"togglePathfinding": {
+				"name": "Toggle pathfinding",
+				"hint": "When being held while dragging a token, the pathfinding functionality will be temporarily enabled/disabled"
 			}
 		},
 		"settings": {
+			"allowPathfinding": {
+				"name": "Enable pathfinding feature",
+				"hint": "Enables Drag Ruler's pathfinding functionality in this world. Be aware that pathfinding can route through unexplored fog of war and Ethereal Walls, which might reveal secrets to your players ahead of time."
+			},
 			"alwaysShowSpeedForPCs": {
 				"name": "Show PC speed to everyone",
 				"hint": "If enabled the coloring based on actor speed for player characters will shown to everyone, even if they don't have observer permission for the character sheet."
@@ -50,6 +58,10 @@
 			"autoStartMeasurement": {
 				"name": "Automatically start measuring",
 				"hint": "If enabled, Drag Ruler will start measuring as soon as the token is being dragged. If disabled, Drag Ruler will remain inactive and will only start measuring once the button to add a waypoint is being pressed."
+			},
+			"autoPathfinding": {
+				"name": "Pathfinding by default",
+				"hint": "If enabled, dragging a token will automatically use a pathfinding ruler"
 			},
 			"enableMovementHistory": {
 				"name": "Enable movement history during combat",

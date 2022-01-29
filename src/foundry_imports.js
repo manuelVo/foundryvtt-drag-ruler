@@ -1,8 +1,10 @@
 import {highlightMeasurementTerrainRuler, measureDistances} from "./compatibility.js";
-import {getGridPositionFromPixels} from "./foundry_fixes.js";
+import {getCenterFromGridPositionObj, getGridPositionFromPixels, getGridPositionFromPixelsObj} from "./foundry_fixes.js";
 import {Line} from "./geometry.js";
 import {disableSnap, moveWithoutAnimation} from "./keybindings.js";
 import {trackRays} from "./movement_tracking.js"
+import {findPath, isPathfindingEnabled} from "./pathfinding.js";
+import {settingsKey} from "./settings.js";
 import {recalculate} from "./socket.js";
 import {applyTokenSizeOffset, enumeratedZip, getSnapPointForEntity, getSnapPointForToken, getTokenShape, highlightTokenShape, sum} from "./util.js";
 
@@ -153,12 +155,42 @@ export function cancelScheduledMeasurement() {
 
 // This is a modified version of Ruler.measure form foundry 0.7.9
 export function measure(destination, options={}) {
+
 	const isToken = this.draggedEntity instanceof Token;
 	if (isToken && !this.draggedEntity.isVisible)
 		return []
 
+	options.snap = options.snap ?? !disableSnap;
+
 	if (options.snap) {
 		destination = getSnapPointForEntity(destination.x, destination.y, this.draggedEntity);
+	}
+
+	this.dragRulerRemovePathfindingWaypoints();
+
+	if (isToken && isPathfindingEnabled()) {
+		let path = findPath(getGridPositionFromPixelsObj(this.waypoints[this.waypoints.length - 1]), getGridPositionFromPixelsObj(destination), this.waypoints);
+		if (path) {
+			path = path.map(point => getCenterFromGridPositionObj(point))
+
+			// If the token is snapped to the grid, the first point of the path is already handled by the ruler
+			if (path[0].x === this.waypoints[this.waypoints.length - 1].x && path[0].y === this.waypoints[this.waypoints.length - 1].y)
+				path = path.slice(1);
+
+			// If snapping is enabled, the last point of the path is already handled by the ruler
+			if (options.snap)
+				path = path.slice(0, path.length - 1);
+
+			for (const point of path) {
+				point.isPathfinding = true;
+				this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
+			}
+			this.waypoints = this.waypoints.concat(path);
+		}
+		else {
+			// Don't show a path if the pathfinding yields no result to show the user that the destination is unreachable
+			destination = this.waypoints[this.waypoints.length - 1];
+		}
 	}
 
 	if(options.gridSpaces === undefined) {

@@ -13,6 +13,9 @@ import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
 import {setSnapParameterOnOptions} from "./util.js";
 
+CONFIG.debug.dragRuler = false;
+export let debugGraphics = undefined;
+
 Hooks.once("init", () => {
 	registerSettings()
 	registerKeybindings()
@@ -37,6 +40,8 @@ Hooks.once("ready", () => {
 	performMigrations()
 	checkDependencies();
 	Hooks.callAll("dragRuler.ready", SpeedProvider)
+	if (CONFIG.debug.dragRuler)
+		debugGraphics = canvas.controls.addChild(new PIXI.Container());
 })
 
 Hooks.on("canvasReady", () => {

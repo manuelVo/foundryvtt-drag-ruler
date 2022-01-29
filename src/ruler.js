@@ -2,6 +2,7 @@ import {currentSpeedProvider, getColorForDistanceAndToken, getRangesFromSpeedPro
 import {getHexSizeSupportTokenGridCenter} from "./compatibility.js";
 import {cancelScheduledMeasurement, measure} from "./foundry_imports.js"
 import {getMovementHistory} from "./movement_tracking.js";
+import {wipePathfindingCache} from "./pathfinding.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForEntity} from "./util.js";
 
@@ -32,8 +33,13 @@ export function extendRuler() {
 			const json = super.toJSON();
 			if (this.draggedEntity) {
 				const isToken = this.draggedEntity instanceof Token;
-				json["draggedEntityIsToken"] = isToken;
-				json["draggedEntity"] = this.draggedEntity.id;
+				json.draggedEntityIsToken = isToken;
+				json.draggedEntity = this.draggedEntity.id;
+				json.waypoints = json.waypoints.map(old => {
+					let w = duplicate(old);
+					w.isPathfinding = undefined;
+					return w;
+				});
 			}
 			return json;
 		}
@@ -75,6 +81,7 @@ export function extendRuler() {
 			}
 			this.waypoints.push(new PIXI.Point(point.x, point.y));
 			this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
+			this.waypoints.filter(waypoint => waypoint.isPathfinding).forEach(waypoint => waypoint.isPathfinding = false);
 		}
 
 		dragRulerAddWaypointHistory(waypoints) {
@@ -91,6 +98,7 @@ export function extendRuler() {
 		}
 
 		dragRulerDeleteWaypoint(event={preventDefault: () => {return}}, options={}) {
+			this.dragRulerRemovePathfindingWaypoints();
 			options.snap = options.snap ?? true;
 			if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 				event.preventDefault();
@@ -105,6 +113,11 @@ export function extendRuler() {
 			else {
 				this.dragRulerAbortDrag(event);
 			}
+		}
+
+		dragRulerRemovePathfindingWaypoints() {
+			this.waypoints.filter(waypoint => waypoint.isPathfinding).forEach(_ => this.labels.removeChild(this.labels.children.pop()));
+			this.waypoints = this.waypoints.filter(waypoint => !waypoint.isPathfinding);
 		}
 
 		dragRulerAbortDrag(event={preventDefault: () => {return}}) {
@@ -171,6 +184,7 @@ export function extendRuler() {
 				return;
 			const ruler = canvas.controls.ruler;
 			ruler.clear();
+			wipePathfindingCache();
 			ruler._state = Ruler.STATES.STARTING;
 			let entityCenter;
 			if (isToken && canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(entity))

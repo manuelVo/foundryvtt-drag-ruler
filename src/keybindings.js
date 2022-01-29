@@ -3,6 +3,7 @@ import {getMeasurePosition, setSnapParameterOnOptions} from "./util.js";
 
 export let disableSnap = false;
 export let moveWithoutAnimation = false;
+export let togglePathfinding = false;
 
 export function registerKeybindings() {
 	game.keybindings.register(settingsKey, "cancelDrag", {
@@ -50,6 +51,16 @@ export function registerKeybindings() {
 		}],
 		precedence: -1,
 	});
+
+	if (game.settings.get(settingsKey, "allowPathfinding")) {
+		game.keybindings.register(settingsKey, "togglePathfinding", {
+			name: "drag-ruler.keybindings.togglePathfinding.name",
+			hint: "drag-ruler.keybindings.togglePathfinding.hint",
+			onDown: handleTogglePathfinding,
+			onUp: handleTogglePathfinding,
+			precedence: -1,
+		});
+	}
 }
 
 function handleDeleteWaypoint() {
@@ -102,4 +113,17 @@ function handleDisableSnap(event) {
 
 function handleMoveWithoutAnimation(event) {
 	moveWithoutAnimation = !event.up;
+}
+
+function handleTogglePathfinding(event) {
+	togglePathfinding = !event.up;
+
+	const ruler = canvas.controls.ruler;
+	if (!ruler?.isDragRuler)
+		return false;
+	if (ruler._state !== Ruler.STATES.MEASURING)
+		return false;
+
+	ruler.measure(getMeasurePosition(), {snap: !disableSnap});
+	return false;
 }
