@@ -117,4 +117,13 @@ function handleMoveWithoutAnimation(event) {
 
 function handleTogglePathfinding(event) {
 	togglePathfinding = !event.up;
+
+	const ruler = canvas.controls.ruler;
+	if (!ruler?.isDragRuler)
+		return false;
+	if (ruler._state !== Ruler.STATES.MEASURING)
+		return false;
+
+	ruler.measure(getMeasurePosition(), {snap: !disableSnap});
+	return false;
 }
