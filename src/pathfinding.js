@@ -43,11 +43,10 @@ function getNode(pos, initialize=true) {
 	if (!cachedNodes)
 		cachedNodes = new Array(2);
 	if (!cachedNodes[pos.layer]) {
-		// TODO Check if ceil is the right thing to do here
-		cachedNodes[pos.layer] = new Array(Math.ceil(canvas.dimensions.sceneHeight / canvas.dimensions.size));
+		cachedNodes[pos.layer] = new Array(Math.ceil(canvas.dimensions.height / canvas.grid.h));
 	}
 	if (!cachedLayer[pos.layer][pos.y])
-		cachedLayer[pos.layer][pos.y] = new Array(Math.ceil(canvas.dimensions.sceneWidth / canvas.dimensions.size));
+		cachedLayer[pos.layer][pos.y] = new Array(Math.ceil(canvas.dimensions.width / canvas.grid.w));
 	if (!cachedLayer[pos.layer][pos.y][pos.x]) {
 		cachedLayer[pos.layer][pos.y][pos.x] = pos;
 	}
