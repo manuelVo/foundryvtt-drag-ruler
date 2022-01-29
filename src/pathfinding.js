@@ -92,6 +92,8 @@ function* neighbors(pos) {
 }
 
 function calculatePath(from, to) {
+	// On 5/10/5 it's possible that we'd need to start on layer 1 if there is a previous route
+	// However I cannot think of any case where not doing it would lead to a non-optimal path, so I've ommited that
 	const nextNodes = [{node: getNode(to), cost: 0, estimated: estimateCost(to, from), previous: null}];
 	const previousNodes = new Set();
 	while (nextNodes.length > 0) {
