@@ -130,9 +130,10 @@ function estimateCost(pos, target) {
 }
 
 function paintPathfindingDebug(lastNode) {
-	if (CONFIG.debug.dragRuler) {
-		debugGraphics.removeChildren();
-	}
+	if (!CONFIG.debug.dragRuler)
+		return;
+
+	debugGraphics.removeChildren();
 	let currentNode = lastNode;
 	while (currentNode) {
 		let text = new PIXI.Text(currentNode.cost.toFixed(0));
