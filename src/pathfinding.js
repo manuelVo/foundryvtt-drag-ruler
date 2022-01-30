@@ -83,7 +83,7 @@ function calculatePath(from, to, previousWaypoints) {
 	if (canvas.grid.diagonalRule === "5105")
 		use5105 = true;
 	let startLayer = 0;
-	if (use5105) {
+	if (use5105 && canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
 		previousWaypoints = previousWaypoints.map(w => getGridPositionFromPixelsObj(w));
 		startLayer = calcNoDiagonals(previousWaypoints) % 2;
 	}
