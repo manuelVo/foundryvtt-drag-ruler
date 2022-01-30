@@ -1,3 +1,8 @@
+## 1.11.1
+### Bugfixes
+- Fixed a bug that would cause the pathfinding algorithm to make tokens of size 2 and 4 to take an unnecessary step
+
+
 ## 1.11.0
 ### New features
 - Drag Ruler now supports pathfinding. Pressing the assigned button will automatically calculate the shortest route to the point you're dragging your token to and add the necessary waypoints to the ruler.
