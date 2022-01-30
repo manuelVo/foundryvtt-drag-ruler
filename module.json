@@ -13,9 +13,9 @@
 		}
 	],
 	"esmodules": [
-		"src/libwrapper_shim.js",
-		"src/main.js",
-		"src/socket.js"
+		"js/libwrapper_shim.js",
+		"js/main.js",
+		"js/socket.js"
 	],
 	"templates": [
 		"speed_provider_settings.html"
