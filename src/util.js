@@ -86,6 +86,10 @@ export function getSnapPointForToken(x, y, token) {
 	return new PIXI.Point(snapX, snapY);
 }
 
+export function getSnapPointForTokenObj(pos, token) {
+	return getSnapPointForToken(pos.x, pos.y, token);
+}
+
 export function getSnapPointForMeasuredTemplate(x, y) {
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		return new PIXI.Point(x, y);

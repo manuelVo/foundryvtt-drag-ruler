@@ -1,8 +1,8 @@
-import {getCenterFromGridPositionObj, getGridPositionFromPixelsObj} from "./foundry_fixes.js";
+import {getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
 import {togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
-import {iterPairs} from "./util.js";
+import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 
 let cachedNodes = undefined;
 let use5105 = false;
@@ -15,16 +15,16 @@ export function isPathfindingEnabled() {
 	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
 }
 
-export function findPath(from, to, previousWaypoints) {
-	const lastNode = calculatePath(from, to, previousWaypoints);
+export function findPath(from, to, token, previousWaypoints) {
+	const lastNode = calculatePath(from, to, token, previousWaypoints);
 	if (!lastNode)
 		return null;
-	paintPathfindingDebug(lastNode);
+	paintPathfindingDebug(lastNode, token);
 	const path = [];
 	let currentNode = lastNode;
 	while (currentNode) {
 		// TODO Check if the distance doesn't change
-		if (path.length >= 2 && !canvas.walls.checkCollision(new Ray(getCenterFromGridPositionObj(currentNode.node), getCenterFromGridPositionObj(path[path.length - 2]))))
+		if (path.length >= 2 && !stepCollidesWithWall(currentNode.node, path[path.length - 2], token))
 			// Replace last waypoint if the current waypoint leads to a valid path
 			path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
 		else
@@ -38,7 +38,7 @@ export function wipePathfindingCache() {
 	cachedNodes = undefined;
 }
 
-function getNode(pos, initialize=true) {
+function getNode(pos, token, initialize=true) {
 	pos = {layer: 0, ...pos}; // Copy pos and set pos.layer to the default value if it's unset
 	if (!cachedNodes)
 		cachedNodes = new Array(2);
@@ -57,12 +57,12 @@ function getNode(pos, initialize=true) {
 			if (neighborPos.x < 0 || neighborPos.y < 0)
 				continue;
 			// TODO Work with pixels instead of grid locations
-			if (!canvas.walls.checkCollision(new Ray(getCenterFromGridPositionObj(pos), getCenterFromGridPositionObj(neighborPos)))) {
+			if (!stepCollidesWithWall(pos, neighborPos, token)) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
 				let targetLayer = pos.layer;
 				if (use5105 && isDiagonal)
 					targetLayer = 1 - targetLayer;
-				const neighbor = getNode({...neighborPos, layer: targetLayer}, false);
+				const neighbor = getNode({...neighborPos, layer: targetLayer}, token, false);
 
 				// TODO We currently assume a cost of one or two for all transitions. Change this for difficult terrain support
 				let edgeCost = 1;
@@ -77,17 +77,17 @@ function getNode(pos, initialize=true) {
 	return node;
 }
 
-function calculatePath(from, to, previousWaypoints) {
+function calculatePath(from, to, token, previousWaypoints) {
 	if (game.system.id === "pf2e")
 		use5105 = true;
 	if (canvas.grid.diagonalRule === "5105")
 		use5105 = true;
 	let startLayer = 0;
-	if (use5105) {
+	if (use5105 && canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
 		previousWaypoints = previousWaypoints.map(w => getGridPositionFromPixelsObj(w));
 		startLayer = calcNoDiagonals(previousWaypoints) % 2;
 	}
-	const nextNodes = [{node: getNode({...to, layer: startLayer}), cost: 0, estimated: estimateCost(to, from), previous: null}];
+	const nextNodes = [{node: getNode({...to, layer: startLayer}, token), cost: 0, estimated: estimateCost(to, from), previous: null}];
 	const previousNodes = new Set();
 	while (nextNodes.length > 0) {
 		// Sort by estimated cost, high to low
@@ -99,7 +99,7 @@ function calculatePath(from, to, previousWaypoints) {
 			return currentNode;
 		previousNodes.add(currentNode.node);
 		for (const edge of currentNode.node.edges) {
-			const neighborNode = getNode(edge.target);
+			const neighborNode = getNode(edge.target, token);
 			if (previousNodes.has(neighborNode))
 				continue;
 			const neighbor = {node: neighborNode, cost: currentNode.cost + edge.cost, estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, from), previous: currentNode};
@@ -129,7 +129,13 @@ function estimateCost(pos, target) {
 	return Math.max(Math.abs(pos.x - target.x), Math.abs(pos.y - target.y));
 }
 
-function paintPathfindingDebug(lastNode) {
+function stepCollidesWithWall(from, to, token) {
+	const stepStart = getSnapPointForTokenObj(getPixelsFromGridPositionObj(from), token);
+	const stepEnd = getSnapPointForTokenObj(getPixelsFromGridPositionObj(to), token);
+	return canvas.walls.checkCollision(new Ray(stepStart, stepEnd));
+}
+
+function paintPathfindingDebug(lastNode, token) {
 	if (!CONFIG.debug.dragRuler)
 		return;
 
@@ -137,7 +143,7 @@ function paintPathfindingDebug(lastNode) {
 	let currentNode = lastNode;
 	while (currentNode) {
 		let text = new PIXI.Text(currentNode.cost.toFixed(0));
-		let pixels = getCenterFromGridPositionObj(currentNode.node);
+		let pixels = getSnapPointForTokenObj(getPixelsFromGridPositionObj(currentNode.node), token);
 		text.anchor.set(0.5, 1.0);
 		text.x = pixels.x;
 		text.y = pixels.y;

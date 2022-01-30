@@ -1,12 +1,12 @@
 import {highlightMeasurementTerrainRuler, measureDistances} from "./compatibility.js";
-import {getCenterFromGridPositionObj, getGridPositionFromPixels, getGridPositionFromPixelsObj} from "./foundry_fixes.js";
+import {getGridPositionFromPixels, getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
 import {Line} from "./geometry.js";
 import {disableSnap, moveWithoutAnimation} from "./keybindings.js";
 import {trackRays} from "./movement_tracking.js"
 import {findPath, isPathfindingEnabled} from "./pathfinding.js";
 import {settingsKey} from "./settings.js";
 import {recalculate} from "./socket.js";
-import {applyTokenSizeOffset, enumeratedZip, getSnapPointForEntity, getSnapPointForToken, getTokenShape, highlightTokenShape, sum} from "./util.js";
+import {applyTokenSizeOffset, enumeratedZip, getSnapPointForEntity, getSnapPointForToken, getSnapPointForTokenObj, getTokenShape, highlightTokenShape, sum} from "./util.js";
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
 export async function moveEntities(draggedEntity, selectedEntities) {
@@ -169,9 +169,11 @@ export function measure(destination, options={}) {
 	this.dragRulerRemovePathfindingWaypoints();
 
 	if (isToken && isPathfindingEnabled()) {
-		let path = findPath(getGridPositionFromPixelsObj(this.waypoints[this.waypoints.length - 1]), getGridPositionFromPixelsObj(destination), this.waypoints);
+		const from = getGridPositionFromPixelsObj(this.waypoints[this.waypoints.length - 1]);
+		const to = getGridPositionFromPixelsObj(destination);
+		let path = findPath(from, to, this.draggedEntity, this.waypoints);
 		if (path) {
-			path = path.map(point => getCenterFromGridPositionObj(point))
+			path = path.map(point => getSnapPointForTokenObj(getPixelsFromGridPositionObj(point), this.draggedEntity));
 
 			// If the token is snapped to the grid, the first point of the path is already handled by the ruler
 			if (path[0].x === this.waypoints[this.waypoints.length - 1].x && path[0].y === this.waypoints[this.waypoints.length - 1].y)
