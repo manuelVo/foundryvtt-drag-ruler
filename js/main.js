@@ -13,12 +13,12 @@ import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
 import {setSnapParameterOnOptions} from "./util.js";
 
-import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
+import initGridlessPathfinding, * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
 
 CONFIG.debug.dragRuler = false;
 export let debugGraphics = undefined;
 
-GridlessPathfinding.init();
+initGridlessPathfinding();
 
 Hooks.once("init", () => {
 	registerSettings()
