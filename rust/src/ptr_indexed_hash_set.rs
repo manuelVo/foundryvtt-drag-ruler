@@ -3,6 +3,7 @@ use std::collections::hash_set;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
+#[derive(Default)]
 pub struct PtrIndexedHashSet<T>(FxHashSet<PtrIndexedRc<T>>);
 
 impl<T> PtrIndexedHashSet<T> {

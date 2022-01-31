@@ -14,7 +14,7 @@ extern "C" {
 }
 
 #[wasm_bindgen]
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone)]
 pub struct Point {
 	pub x: f64,
 	pub y: f64,
@@ -36,6 +36,12 @@ impl Point {
 }
 
 impl Eq for Point {}
+
+impl PartialEq for Point {
+	fn eq(&self, other: &Self) -> bool {
+		self.x == other.x && self.y == other.y
+	}
+}
 
 impl Hash for Point {
 	fn hash<H: Hasher>(&self, hasher: &mut H) {
