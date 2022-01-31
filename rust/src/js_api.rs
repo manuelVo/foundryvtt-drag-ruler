@@ -20,7 +20,7 @@ extern "C" {
 }
 
 #[wasm_bindgen(
-	inline_js = "export function collidesWithWall(p1, p2) { return canvas.walls.checkCollision(new Ray(p1, p2)); }"
+	inline_js = "export function collidesWithWall(p1, p2) { return canvas.walls.checkCollision(new Ray(p1, p2));}"
 )]
 extern "C" {
 	#[wasm_bindgen(js_name=collidesWithWall)]
@@ -37,6 +37,26 @@ extern "C" {
 
 	#[wasm_bindgen(method, getter)]
 	fn c(this: &JsWallData) -> Vec<f64>;
+}
+
+#[wasm_bindgen]
+extern "C" {
+	pub type JsPoint;
+
+	#[wasm_bindgen(method, getter)]
+	fn x(this: &JsPoint) -> f64;
+
+	#[wasm_bindgen(method, getter)]
+	fn y(this: &JsPoint) -> f64;
+}
+
+impl From<JsPoint> for Point {
+	fn from(point: JsPoint) -> Self {
+		Point {
+			x: point.x(),
+			y: point.y(),
+		}
+	}
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -61,7 +81,7 @@ impl Wall {
 }
 
 #[allow(dead_code)]
-#[wasm_bindgen(js_name=buildCache)]
+#[wasm_bindgen]
 pub fn initialize(js_walls: Vec<JsValue>) -> Pathfinder {
 	let mut walls = Vec::with_capacity(js_walls.len());
 	for wall in js_walls {
@@ -79,12 +99,23 @@ pub fn free(pathfinder: Pathfinder) {
 
 #[allow(dead_code)]
 #[wasm_bindgen(js_name=findPath)]
-pub fn find_path(pathfinder: &mut Pathfinder, from: Point, to: Point) -> Option<Array> {
-	if let Some(first_node) = pathfinder.find_path(from, to) {
+pub fn find_path(pathfinder: &mut Pathfinder, from: JsPoint, to: JsPoint) -> Option<Array> {
+	if let Some(first_node) = pathfinder.find_path(from.into(), to.into()) {
 		Some(first_node.iter_path().map(JsValue::from).collect())
 	} else {
 		None
 	}
+}
+
+#[allow(dead_code)]
+#[wasm_bindgen(js_name=debugGetPathfindingPoints)]
+pub fn debug_get_pathfinding_points(pathfinder: &Pathfinder) -> Array {
+	pathfinder
+		.nodes
+		.iter()
+		.map(|node| node.borrow().point)
+		.map(JsValue::from)
+		.collect()
 }
 
 trait IteratePath {

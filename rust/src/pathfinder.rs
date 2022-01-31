@@ -83,6 +83,10 @@ impl NodeStorage {
 
 		node.borrow_mut().edges = Some(edges);
 	}
+
+	pub fn iter(&self) -> std::slice::Iter<'_, NodePtr> {
+		self.0.iter()
+	}
 }
 
 #[wasm_bindgen]

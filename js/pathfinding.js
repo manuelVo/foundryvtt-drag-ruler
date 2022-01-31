@@ -4,34 +4,45 @@ import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 
+import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
+
 let cachedNodes = undefined;
 let use5105 = false;
+let gridlessPathfinder = undefined;
 
 export function isPathfindingEnabled() {
-	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
-		return false;
 	if (!game.settings.get(settingsKey, "allowPathfinding"))
 		return false;
 	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
 }
 
 export function findPath(from, to, token, previousWaypoints) {
-	const lastNode = calculatePath(from, to, token, previousWaypoints);
-	if (!lastNode)
-		return null;
-	paintPathfindingDebug(lastNode, token);
-	const path = [];
-	let currentNode = lastNode;
-	while (currentNode) {
-		// TODO Check if the distance doesn't change
-		if (path.length >= 2 && !stepCollidesWithWall(currentNode.node, path[path.length - 2], token))
-			// Replace last waypoint if the current waypoint leads to a valid path
-			path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
-		else
-			path.push({x: currentNode.node.x, y: currentNode.node.y});
-		currentNode = currentNode.previous;
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+		if (!gridlessPathfinder)
+			gridlessPathfinder = GridlessPathfinding.initialize(canvas.walls.placeables);
+		paintGridlessPathfindingDebug(gridlessPathfinder);
+		const path = GridlessPathfinding.findPath(gridlessPathfinder, from, to);
+		console.warn(path);
+		return path;
 	}
-	return path;
+	else {
+		const lastNode = calculatePath(from, to, token, previousWaypoints);
+		if (!lastNode)
+			return null;
+		paintGriddedPathfindingDebug(lastNode, token);
+		const path = [];
+		let currentNode = lastNode;
+		while (currentNode) {
+			// TODO Check if the distance doesn't change
+			if (path.length >= 2 && !stepCollidesWithWall(currentNode.node, path[path.length - 2], token))
+				// Replace last waypoint if the current waypoint leads to a valid path
+				path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
+			else
+				path.push({x: currentNode.node.x, y: currentNode.node.y});
+			currentNode = currentNode.previous;
+		}
+		return path;
+	}
 }
 
 export function wipePathfindingCache() {
@@ -135,7 +146,7 @@ function stepCollidesWithWall(from, to, token) {
 	return canvas.walls.checkCollision(new Ray(stepStart, stepEnd));
 }
 
-function paintPathfindingDebug(lastNode, token) {
+function paintGriddedPathfindingDebug(lastNode, token) {
 	if (!CONFIG.debug.dragRuler)
 		return;
 
@@ -150,4 +161,17 @@ function paintPathfindingDebug(lastNode, token) {
 		debugGraphics.addChild(text);
 		currentNode = currentNode.previous;
 	}
+}
+
+function paintGridlessPathfindingDebug(pathfinder) {
+	if (!CONFIG.debug.dragRuler)
+		return;
+
+	debugGraphics.removeChildren();
+	let graphic = new PIXI.Graphics();
+	graphic.lineStyle(2, 0x440000);
+	for (const point of GridlessPathfinding.debugGetPathfindingPoints(pathfinder)) {
+		graphic.drawCircle(point.x, point.y, 5);
+	}
+	debugGraphics.addChild(graphic);
 }
