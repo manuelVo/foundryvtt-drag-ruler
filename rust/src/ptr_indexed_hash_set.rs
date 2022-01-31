@@ -62,6 +62,6 @@ impl<'a, T> IntoIterator for &'a PtrIndexedHashSet<T> {
 	type Item = &'a Rc<T>;
 	type IntoIter = PtrIndexedHashSetIterator<'a, T>;
 	fn into_iter(self) -> Self::IntoIter {
-		PtrIndexedHashSetIterator::<T>((&self.0).into_iter())
+		PtrIndexedHashSetIterator::<T>((&self.0).iter())
 	}
 }

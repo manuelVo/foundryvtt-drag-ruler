@@ -100,11 +100,7 @@ pub fn free(pathfinder: Pathfinder) {
 #[allow(dead_code)]
 #[wasm_bindgen(js_name=findPath)]
 pub fn find_path(pathfinder: &mut Pathfinder, from: JsPoint, to: JsPoint) -> Option<Array> {
-	if let Some(first_node) = pathfinder.find_path(from.into(), to.into()) {
-		Some(first_node.iter_path().map(JsValue::from).collect())
-	} else {
-		None
-	}
+	pathfinder.find_path(from.into(), to.into()).map(|first_node| first_node.iter_path().map(JsValue::from).collect())
 }
 
 #[allow(dead_code)]

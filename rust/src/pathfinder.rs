@@ -68,7 +68,7 @@ impl NodeStorage {
 		let point = node.borrow().point;
 		let mut edges = Vec::new();
 		for neighbor in &self.0 {
-			if Rc::ptr_eq(neighbor, &node) {
+			if Rc::ptr_eq(neighbor, node) {
 				continue;
 			}
 			let neighbor_point = neighbor.borrow().point;
@@ -107,7 +107,7 @@ impl Pathfinder {
 			let p1_angle = y_diff.atan2(x_diff);
 			let p2_angle = (p1_angle + PI).rem_euclid(2.0 * PI);
 			for (point, angle) in [(wall.p1, p1_angle), (wall.p2, p2_angle)] {
-				let angles = endpoints.entry(point).or_insert_with(|| Vec::new());
+				let angles = endpoints.entry(point).or_insert_with(Vec::new);
 				angles.push(angle);
 			}
 		}
@@ -116,7 +116,7 @@ impl Pathfinder {
 			.for_each(|angles| angles.sort_by(|a, b| a.partial_cmp(b).unwrap()));
 		let mut nodes = NodeStorage::new();
 		for (point, angles) in endpoints {
-			assert!(angles.len() > 0);
+			assert!(!angles.is_empty());
 			for i in 1..angles.len() {
 				let angle1 = angles[i - 1];
 				let angle2 = angles[i];
@@ -151,7 +151,7 @@ impl Pathfinder {
 		// TODO Use a sorted set for next_nodes for better performance
 		let mut next_nodes = vec![DiscoveredNodePtr::from(to)];
 		let mut previous_nodes = PtrIndexedHashSet::new();
-		while next_nodes.len() > 0 {
+		while !next_nodes.is_empty() {
 			// Sort by estimated cost, high to low
 			// TODO Maybe tere's a faster way to do this than re-sorting every iteration?
 			next_nodes.sort_by(|a, b| {
