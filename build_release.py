@@ -11,7 +11,7 @@ wasm_pack = Path("~/.cargo/bin/wasm-pack").expanduser()
 root_files = ["module.json", "README.md", "CHANGELOG.md", "LICENSE"]
 wasm_files = ["gridless_pathfinding_bg.wasm", "gridless_pathfinding.js"]
 output_dir = Path("artifact")
-copy_everything_directories = ["js", "lang", "templates"]
+copy_everything_directories = ["js", "lang", "templates", "wasm/snippets"]
 wasm_dir = Path("wasm")
 root_dir = Path(".")
 rust_dir = Path("rust")
@@ -31,13 +31,19 @@ if result.returncode != 0:
 
 output_dir.mkdir(parents=True, exist_ok=True)
 
+def write_directory(archive, d):
+	for f in (root_dir / d).iterdir():
+		if f.is_dir():
+			write_directory(archive, f)
+		else:
+			assert(f.is_file())
+			archive.write(f, arcname=zip_root / d / f.name)
+
 with zipfile.ZipFile(output_dir / filename, mode="w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
 	for f in root_files:
 		archive.write(root_dir / f, arcname=zip_root / f)
 	for d in copy_everything_directories:
-		for f in (root_dir / d).iterdir():
-			assert(f.is_file())
-			archive.write(f, arcname=zip_root / d / f.name)
+		write_directory(archive, d)
 	for f in wasm_files:
 		archive.write(build_dir / f, arcname=zip_root / wasm_dir / f)
 
