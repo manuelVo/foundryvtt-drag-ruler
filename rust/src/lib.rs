@@ -1,4 +1,5 @@
 mod geometry;
+#[macro_use]
 mod js_api;
 mod pathfinder;
 mod ptr_indexed_hash_set;

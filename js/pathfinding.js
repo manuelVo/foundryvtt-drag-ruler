@@ -21,9 +21,7 @@ export function findPath(from, to, token, previousWaypoints) {
 		if (!gridlessPathfinder)
 			gridlessPathfinder = GridlessPathfinding.initialize(canvas.walls.placeables);
 		paintGridlessPathfindingDebug(gridlessPathfinder);
-		const path = GridlessPathfinding.findPath(gridlessPathfinder, from, to);
-		console.warn(path);
-		return path;
+		return GridlessPathfinding.findPath(gridlessPathfinder, from, to);
 	}
 	else {
 		const lastNode = calculatePath(from, to, token, previousWaypoints);

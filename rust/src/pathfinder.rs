@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, f64::consts::PI, rc::Rc};
 
 use wasm_bindgen::prelude::*;
 
@@ -105,7 +105,7 @@ impl Pathfinder {
 			let x_diff = wall.p2.x - wall.p1.x;
 			let y_diff = wall.p2.y - wall.p1.y;
 			let p1_angle = y_diff.atan2(x_diff);
-			let p2_angle = (y_diff + 180.0).rem_euclid(360.0);
+			let p2_angle = (p1_angle + PI).rem_euclid(2.0 * PI);
 			for (point, angle) in [(wall.p1, p1_angle), (wall.p2, p2_angle)] {
 				let angles = endpoints.entry(point).or_insert_with(|| Vec::new());
 				angles.push(angle);
@@ -119,14 +119,17 @@ impl Pathfinder {
 			assert!(angles.len() > 0);
 			for i in 1..angles.len() {
 				let angle1 = angles[i - 1];
-				let angle2 = angles[i - 1];
+				let angle2 = angles[i];
+				if angle1 == angle2 {
+					continue;
+				}
 				let angle_between = (angle2 - angle1) / 2.0 + angle1;
 				nodes.push(calc_pathfinding_node(point, angle_between));
 			}
 			let angle1 = angles.last().unwrap();
-			let angle2 = angles.first().unwrap() + 360.0;
+			let angle2 = angles.first().unwrap() + 2.0 * PI;
 			let angle_between = (angle2 - angle1) / 2.0 + angle1;
-			let angle_between = angle_between.rem_euclid(360.0);
+			let angle_between = angle_between.rem_euclid(2.0 * PI);
 			nodes.push(calc_pathfinding_node(point, angle_between));
 		}
 		// TODO Eliminating nodes close to each other may improve performance
