@@ -176,12 +176,20 @@ impl Pathfinder {
 				if angle1 == angle2 {
 					continue;
 				}
-				let angle_between = (angle2 - angle1) / 2.0 + angle1;
+				let angle_diff = angle2 - angle1;
+				if angle_diff < PI {
+					continue;
+				}
+				let angle_between = angle_diff / 2.0 + angle1;
 				nodes.push(calc_pathfinding_node(point, angle_between));
 			}
 			let angle1 = angles.last().unwrap();
 			let angle2 = angles.first().unwrap() + 2.0 * PI;
-			let angle_between = (angle2 - angle1) / 2.0 + angle1;
+			let angle_diff = angle2 - angle1;
+			if angle_diff < PI {
+				continue;
+			}
+			let angle_between = angle_diff / 2.0 + angle1;
 			let angle_between = angle_between.rem_euclid(2.0 * PI);
 			nodes.push(calc_pathfinding_node(point, angle_between));
 		}
