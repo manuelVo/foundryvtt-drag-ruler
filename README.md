@@ -37,6 +37,7 @@ Drag Ruler will work with all Foundry VTT game systems. However, some game syste
 
 The game systems that offer Drag Ruler integration are:
 - Cypher System (starting with version 1.13.0)
+- DnD5e (via the module [DnD5e Drag Ruler Integration](https://foundryvtt.com/packages/elevation-drag-ruler))
 - GURPS 4th Edition Game Aid (Unofficial) (starting with version 0.9.1)
 - Ironclaw Second Edition (starting with version 0.2.2)
 - Lancer (via the module [Lancer Speed Provider](https://foundryvtt.com/packages/lancer-speed-provider))
@@ -44,6 +45,7 @@ The game systems that offer Drag Ruler integration are:
 - Pathfinder 1 (starting with version 0.77.3)
 - Pathfinder 2e (via the module [PF2E Drag Ruler Integration](https://foundryvtt.com/packages/pf2e-dragruler/))
 - Shadowrun 5th Edition (via the module [Drag Ruler Integration for Shadowrun 5E](https://foundryvtt.com/packages/drag-ruler-integration-for-shadowrun-5e))
+- Shadow of the Demon Lord (starting with version 1.7.15)
 - Starfinder (via the module [Starfinder Drag Ruler Integration](https://foundryvtt.com/packages/starfinder-drag-ruler))
 - Stargate RPG (starting with version 1.6.0)
 - Symbaroum (via the module [Symbaroum drag ruler integration](https://foundryvtt.com/packages/symbaroum-drag-ruler-integration))
