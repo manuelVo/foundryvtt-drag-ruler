@@ -48,8 +48,8 @@
 		},
 		"settings": {
 			"allowPathfinding": {
-				"name": "Enable pathfinding feature",
-				"hint": "Enables Drag Ruler's pathfinding functionality in this world. Be aware that pathfinding can route through unexplored fog of war and Ethereal Walls, which might reveal secrets to your players ahead of time."
+				"name": "Allow pathfinding for players",
+				"hint": "Allows players to use Drag Ruler's pathfinding functionality in this world. Be aware that pathfinding can route through unexplored fog of war and Ethereal Walls, which might reveal secrets to your players ahead of time."
 			},
 			"alwaysShowSpeedForPCs": {
 				"name": "Show PC speed to everyone",

@@ -1,3 +1,14 @@
+## 1.11.2
+### Bugfixes
+- Fixed a memory leak that could cause the rule to slow down after using the pathfinding functionality for a while
+
+### Misc
+- GMs are now always allowed to use the pathfinding tool. The setting now only prevents players from using it.
+
+### Compatibility
+- Drag Ruler's generic speed provider is now aware of good defaults for Dungeonslayers 4
+
+
 ## 1.11.1
 ### Bugfixes
 - Fixed a bug that would cause the pathfinding algorithm to make tokens of size 2 and 4 to take an unnecessary step

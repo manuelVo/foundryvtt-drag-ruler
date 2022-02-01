@@ -11,7 +11,7 @@ let use5105 = false;
 let gridlessPathfinder = undefined;
 
 export function isPathfindingEnabled() {
-	if (!game.settings.get(settingsKey, "allowPathfinding"))
+	if (!game.user.isGM && !game.settings.get(settingsKey, "allowPathfinding"))
 		return false;
 	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
 }
