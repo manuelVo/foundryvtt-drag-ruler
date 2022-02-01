@@ -30,8 +30,14 @@ impl Node {
 		}
 	}
 
-	fn iter_edges(&self) -> std::iter::Chain<std::slice::Iter<'_, Edge>, std::option::Iter<'_, Edge>> {
-		self.edges.as_ref().unwrap().iter().chain(self.final_edge.as_ref().unwrap().iter())
+	fn iter_edges(
+		&self,
+	) -> std::iter::Chain<std::slice::Iter<'_, Edge>, std::option::Iter<'_, Edge>> {
+		self.edges
+			.as_ref()
+			.unwrap()
+			.iter()
+			.chain(self.final_edge.as_ref().unwrap().iter())
 	}
 }
 
