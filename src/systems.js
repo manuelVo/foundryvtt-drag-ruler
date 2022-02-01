@@ -17,6 +17,8 @@ export function getDefaultSpeedAttribute() {
 			return "actor.data.data.movement.walk.value";
 		case "swade":
 			return "actor.data.data.stats.speed.adjusted";
+		case "ds4":
+			return "actor.data.data.combatValues.movement.total";
 	}
 	return ""
 }
@@ -32,6 +34,7 @@ export function getDefaultDashMultiplier() {
 		case "D35E":
 		case "sfrpg":
 		case "shadowrun5e":
+		case "ds4":
 			return 2
 		case "CoC7":
 			return 5;
