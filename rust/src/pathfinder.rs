@@ -18,11 +18,20 @@ pub struct Edge {
 pub struct Node {
 	pub point: Point,
 	edges: Option<Vec<Edge>>,
+	final_edge: Option<Option<Edge>>,
 }
 
 impl Node {
 	pub fn new(point: Point) -> Self {
-		Self { point, edges: None }
+		Self {
+			point,
+			edges: None,
+			final_edge: None,
+		}
+	}
+
+	fn iter_edges(&self) -> std::iter::Chain<std::slice::Iter<'_, Edge>, std::option::Iter<'_, Edge>> {
+		self.edges.as_ref().unwrap().iter().chain(self.final_edge.as_ref().unwrap().iter())
 	}
 }
 
@@ -50,7 +59,10 @@ impl From<DiscoveredNode> for DiscoveredNodePtr {
 }
 
 #[derive(Default, Clone)]
-pub struct NodeStorage(Vec<NodePtr>);
+pub struct NodeStorage {
+	regular_nodes: Vec<NodePtr>,
+	final_node: Option<NodePtr>,
+}
 
 impl NodeStorage {
 	fn new() -> Self {
@@ -58,16 +70,30 @@ impl NodeStorage {
 	}
 
 	fn push(&mut self, node: NodePtr) {
-		self.0.push(node);
+		self.regular_nodes.push(node);
 	}
 
-	fn initialize_edges(&self, node: &NodePtr) {
+	fn initialize_edges(&mut self, node: &NodePtr) {
+		if node.borrow().final_edge.is_none() {
+			let final_edge = self
+				.final_node
+				.as_ref()
+				.filter(|neighbor| {
+					!collides_with_wall(node.borrow().point, neighbor.borrow().point)
+				})
+				.map(|neighbor| Edge {
+					target: neighbor.clone(),
+					cost: node.borrow().point.distance_to(neighbor.borrow().point),
+				});
+			node.borrow_mut().final_edge = Some(final_edge);
+		}
+
 		if node.borrow().edges.is_some() {
 			return;
 		}
 		let point = node.borrow().point;
 		let mut edges = Vec::new();
-		for neighbor in &self.0 {
+		for neighbor in &self.regular_nodes {
 			if Rc::ptr_eq(neighbor, node) {
 				continue;
 			}
@@ -80,12 +106,22 @@ impl NodeStorage {
 				});
 			}
 		}
-
 		node.borrow_mut().edges = Some(edges);
 	}
 
-	pub fn iter(&self) -> std::slice::Iter<'_, NodePtr> {
-		self.0.iter()
+	pub fn cleanup_final_edges(&mut self) {
+		for node in &self.regular_nodes {
+			node.borrow_mut().final_edge = None;
+		}
+	}
+
+	pub fn iter(
+		&self,
+	) -> std::iter::Chain<
+		std::slice::Iter<'_, Rc<RefCell<Node>>>,
+		std::option::Iter<'_, Rc<RefCell<Node>>>,
+	> {
+		self.regular_nodes.iter().chain(self.final_node.iter())
 	}
 }
 
@@ -137,9 +173,9 @@ impl Pathfinder {
 	}
 
 	pub fn find_path(&mut self, from: Point, to: Point) -> Option<DiscoveredNodePtr> {
+		self.nodes.cleanup_final_edges();
 		let mut nodes = self.nodes.clone();
-		nodes.push(NodePtr::from(Node::new(from)));
-		let nodes = nodes;
+		nodes.final_node = Some(NodePtr::from(Node::new(from)));
 		let to_node = NodePtr::from(Node::new(to));
 		nodes.initialize_edges(&to_node);
 		let to = DiscoveredNode {
@@ -169,7 +205,7 @@ impl Pathfinder {
 				return Some(current_node);
 			}
 			previous_nodes.insert(current_node.borrow().node.clone());
-			for edge in current_node.borrow().node.borrow().edges.as_ref().unwrap() {
+			for edge in current_node.borrow().node.borrow().iter_edges() {
 				let neighbor = &edge.target;
 				if previous_nodes.contains(neighbor) {
 					continue;
