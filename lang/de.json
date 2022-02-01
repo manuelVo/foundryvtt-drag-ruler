@@ -48,8 +48,8 @@
 		},
 		"settings": {
 			"allowPathfinding": {
-				"name": "Wegfindung aktivieren",
-				"hint": "Aktiviert Drag Ruler's Wegfindungsfunktion. Bitte beachte, dass die Wegfindung Wege durch unerkundeten Nebel des Kriegs und Ätherische Wände berechnen kann. Dies kann deinen Spielern Geheimnisse lüften, von denen sie noch nicht erfahren sollten."
+				"name": "Wegfindung für Spieler erlauben",
+				"hint": "Erlaubt es Spielern die Wegfindungs zu benutzen. Bitte beachte, dass die Wegfindung Wege durch unerkundeten Nebel des Kriegs und Ätherische Wände berechnen kann. Dies kann deinen Spielern Geheimnisse lüften, von denen sie noch nicht erfahren sollten."
 			},
 			"alwaysShowSpeedForPCs": {
 				"name": "Geschwindigkeit von Spielercharakteren für jeden anzeigen",

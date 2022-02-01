@@ -10,7 +10,7 @@ let use5105 = false;
 export function isPathfindingEnabled() {
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
 		return false;
-	if (!game.settings.get(settingsKey, "allowPathfinding"))
+	if (!game.user.isGM && !game.settings.get(settingsKey, "allowPathfinding"))
 		return false;
 	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
 }

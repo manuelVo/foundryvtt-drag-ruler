@@ -1,5 +1,6 @@
 import {availableSpeedProviders, currentSpeedProvider, getDefaultSpeedProvider, updateSpeedProvider} from "./api.js";
 import {SpeedProvider} from "./speed_provider.js"
+import { early_isGM } from "./util.js";
 
 export const settingsKey = "drag-ruler";
 
@@ -96,7 +97,7 @@ export function registerSettings() {
 		name: "drag-ruler.settings.autoPathfinding.name",
 		hint: "drag-ruler.settings.autoPathfinding.hint",
 		scpoe: "client",
-		config: true,
+		config: early_isGM(),
 		type: Boolean,
 		defualt: false,
 	});
