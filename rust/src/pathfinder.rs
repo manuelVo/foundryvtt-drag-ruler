@@ -5,8 +5,8 @@ use wasm_bindgen::prelude::*;
 use rustc_hash::FxHashMap;
 
 use crate::{
-	geometry::Point,
-	js_api::{collides_with_wall, Wall},
+	geometry::{LineSegment, Point},
+	js_api::Wall,
 	ptr_indexed_hash_set::PtrIndexedHashSet,
 };
 
@@ -79,13 +79,16 @@ impl NodeStorage {
 		self.regular_nodes.push(node);
 	}
 
-	fn initialize_edges(&mut self, node: &NodePtr) {
+	fn initialize_edges(&mut self, node: &NodePtr, walls: &Vec<LineSegment>) {
 		if node.borrow().final_edge.is_none() {
 			let final_edge = self
 				.final_node
 				.as_ref()
 				.filter(|neighbor| {
-					!collides_with_wall(node.borrow().point, neighbor.borrow().point)
+					!self.collides_with_wall(
+						&LineSegment::new(node.borrow().point, neighbor.borrow().point),
+						walls,
+					)
 				})
 				.map(|neighbor| Edge {
 					target: neighbor.clone(),
@@ -104,7 +107,7 @@ impl NodeStorage {
 				continue;
 			}
 			let neighbor_point = neighbor.borrow().point;
-			if !collides_with_wall(point, neighbor_point) {
+			if !self.collides_with_wall(&LineSegment::new(point, neighbor_point), walls) {
 				let cost = point.distance_to(neighbor_point);
 				edges.push(Edge {
 					target: neighbor.clone(),
@@ -113,6 +116,10 @@ impl NodeStorage {
 			}
 		}
 		node.borrow_mut().edges = Some(edges);
+	}
+
+	fn collides_with_wall(&self, line: &LineSegment, walls: &Vec<LineSegment>) -> bool {
+		walls.iter().any(|wall| line.intersection(wall).is_some())
 	}
 
 	pub fn cleanup_final_edges(&mut self) {
@@ -135,6 +142,8 @@ impl NodeStorage {
 pub struct Pathfinder {
 	#[wasm_bindgen(skip)]
 	pub nodes: NodeStorage,
+	#[wasm_bindgen(skip)]
+	pub walls: Vec<LineSegment>,
 }
 
 impl Pathfinder {
@@ -143,6 +152,7 @@ impl Pathfinder {
 		I: IntoIterator<Item = Wall>,
 	{
 		let mut endpoints = FxHashMap::<Point, Vec<f64>>::default();
+		let mut line_segments = Vec::new();
 		for wall in walls {
 			let x_diff = wall.p2.x - wall.p1.x;
 			let y_diff = wall.p2.y - wall.p1.y;
@@ -152,6 +162,7 @@ impl Pathfinder {
 				let angles = endpoints.entry(point).or_insert_with(Vec::new);
 				angles.push(angle);
 			}
+			line_segments.push(LineSegment::new(wall.p1, wall.p2));
 		}
 		endpoints
 			.values_mut()
@@ -175,7 +186,10 @@ impl Pathfinder {
 			nodes.push(calc_pathfinding_node(point, angle_between));
 		}
 		// TODO Eliminating nodes close to each other may improve performance
-		Self { nodes }
+		Self {
+			nodes,
+			walls: line_segments,
+		}
 	}
 
 	pub fn find_path(&mut self, from: Point, to: Point) -> Option<DiscoveredNodePtr> {
@@ -183,7 +197,7 @@ impl Pathfinder {
 		let mut nodes = self.nodes.clone();
 		nodes.final_node = Some(NodePtr::from(Node::new(from)));
 		let to_node = NodePtr::from(Node::new(to));
-		nodes.initialize_edges(&to_node);
+		nodes.initialize_edges(&to_node, &self.walls);
 		let to = DiscoveredNode {
 			node: to_node,
 			cost: 0.0,
@@ -216,7 +230,7 @@ impl Pathfinder {
 				if previous_nodes.contains(neighbor) {
 					continue;
 				}
-				nodes.initialize_edges(neighbor);
+				nodes.initialize_edges(neighbor, &self.walls);
 				let cost = current_node.borrow().cost + edge.cost;
 				let discovered_neighbor = DiscoveredNode {
 					node: neighbor.clone(),

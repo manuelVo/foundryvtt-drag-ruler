@@ -19,14 +19,6 @@ extern "C" {
 	pub fn log(s: &str);
 }
 
-#[wasm_bindgen(
-	inline_js = "export function collidesWithWall(p1, p2) { return canvas.walls.checkCollision(new Ray(p1, p2));}"
-)]
-extern "C" {
-	#[wasm_bindgen(js_name=collidesWithWall)]
-	pub fn collides_with_wall(p1: Point, p2: Point) -> bool;
-}
-
 #[wasm_bindgen]
 extern "C" {
 	pub type JsWall;
