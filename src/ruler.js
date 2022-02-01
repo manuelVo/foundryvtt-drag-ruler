@@ -116,7 +116,7 @@ export function extendRuler() {
 		}
 
 		dragRulerRemovePathfindingWaypoints() {
-			this.waypoints.filter(waypoint => waypoint.isPathfinding).forEach(_ => this.labels.removeChild(this.labels.children.pop()));
+			this.waypoints.filter(waypoint => waypoint.isPathfinding).forEach(_ => this.labels.removeChild(this.labels.children[this.labels.children.length - 1]).destroy());
 			this.waypoints = this.waypoints.filter(waypoint => !waypoint.isPathfinding);
 		}
 
