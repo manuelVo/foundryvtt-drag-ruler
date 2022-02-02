@@ -125,7 +125,7 @@ impl Line {
 				vertical = other;
 				regular = self;
 			}
-			return Some(Point::from_line_x(&regular, vertical.p1.x));
+			return Some(Point::from_line_x(regular, vertical.p1.x));
 		}
 
 		// Calculate x coordinate of intersection point between both lines
@@ -133,9 +133,9 @@ impl Line {
 		// Solve for x: x = (b1 - b2) / (m2 - m1)
 		let x = (self.b - other.b) / (other.m - self.m);
 		if self.m.abs() < other.m.abs() {
-			Some(Point::from_line_x(&self, x))
+			Some(Point::from_line_x(self, x))
 		} else {
-			Some(Point::from_line_x(&other, x))
+			Some(Point::from_line_x(other, x))
 		}
 	}
 

@@ -70,6 +70,11 @@ pub struct NodeStorage {
 	final_node: Option<NodePtr>,
 }
 
+pub type NodeStorageIterator<'a> = std::iter::Chain<
+	std::slice::Iter<'a, Rc<RefCell<Node>>>,
+	std::option::Iter<'a, Rc<RefCell<Node>>>,
+>;
+
 impl NodeStorage {
 	fn new() -> Self {
 		Self::default()
@@ -79,7 +84,7 @@ impl NodeStorage {
 		self.regular_nodes.push(node);
 	}
 
-	fn initialize_edges(&mut self, node: &NodePtr, walls: &Vec<LineSegment>) {
+	fn initialize_edges(&mut self, node: &NodePtr, walls: &[LineSegment]) {
 		if node.borrow().final_edge.is_none() {
 			let final_edge = self
 				.final_node
@@ -118,7 +123,7 @@ impl NodeStorage {
 		node.borrow_mut().edges = Some(edges);
 	}
 
-	fn collides_with_wall(&self, line: &LineSegment, walls: &Vec<LineSegment>) -> bool {
+	fn collides_with_wall(&self, line: &LineSegment, walls: &[LineSegment]) -> bool {
 		walls.iter().any(|wall| line.intersection(wall).is_some())
 	}
 
@@ -128,12 +133,7 @@ impl NodeStorage {
 		}
 	}
 
-	pub fn iter(
-		&self,
-	) -> std::iter::Chain<
-		std::slice::Iter<'_, Rc<RefCell<Node>>>,
-		std::option::Iter<'_, Rc<RefCell<Node>>>,
-	> {
+	pub fn iter(&self) -> NodeStorageIterator {
 		self.regular_nodes.iter().chain(self.final_node.iter())
 	}
 }
