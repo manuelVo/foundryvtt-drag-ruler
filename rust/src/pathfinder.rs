@@ -147,10 +147,11 @@ pub struct Pathfinder {
 }
 
 impl Pathfinder {
-	pub fn initialize<I>(walls: I) -> Self
+	pub fn initialize<I>(walls: I, token_size: f64) -> Self
 	where
 		I: IntoIterator<Item = Wall>,
 	{
+		let distance_from_walls = token_size / 2.0;
 		let mut endpoints = FxHashMap::<Point, Vec<f64>>::default();
 		let mut line_segments = Vec::new();
 		for wall in walls {
@@ -180,8 +181,27 @@ impl Pathfinder {
 				if angle_diff <= PI {
 					continue;
 				}
-				let angle_between = angle_diff / 2.0 + angle1;
-				nodes.push(calc_pathfinding_node(point, angle_between));
+				if angle_diff > 1.5 * PI {
+					let angle_between = angle_diff / 2.0 + angle1;
+					nodes.push(calc_pathfinding_node(
+						point,
+						angle_between,
+						distance_from_walls,
+						&mut line_segments,
+					));
+				}
+				nodes.push(calc_pathfinding_node(
+					point,
+					angle1 + 0.5 * PI,
+					distance_from_walls,
+					&mut line_segments,
+				));
+				nodes.push(calc_pathfinding_node(
+					point,
+					angle2 - 0.5 * PI,
+					distance_from_walls,
+					&mut line_segments,
+				));
 			}
 			let angle1 = angles.last().unwrap();
 			let angle2 = angles.first().unwrap() + 2.0 * PI;
@@ -189,9 +209,27 @@ impl Pathfinder {
 			if angle_diff <= PI {
 				continue;
 			}
-			let angle_between = angle_diff / 2.0 + angle1;
-			let angle_between = angle_between.rem_euclid(2.0 * PI);
-			nodes.push(calc_pathfinding_node(point, angle_between));
+			if angle_diff > 1.5 * PI {
+				let angle_between = angle_diff / 2.0 + angle1;
+				nodes.push(calc_pathfinding_node(
+					point,
+					angle_between,
+					distance_from_walls,
+					&mut line_segments,
+				));
+			}
+			nodes.push(calc_pathfinding_node(
+				point,
+				angle1 + 0.5 * PI,
+				distance_from_walls,
+				&mut line_segments,
+			));
+			nodes.push(calc_pathfinding_node(
+				point,
+				angle2 - 0.5 * PI,
+				distance_from_walls,
+				&mut line_segments,
+			));
 		}
 		// TODO Eliminating nodes close to each other may improve performance
 		Self {
@@ -263,9 +301,23 @@ impl Pathfinder {
 	}
 }
 
-fn calc_pathfinding_node(p: Point, angle: f64) -> NodePtr {
-	let diatance_from_walls = 10.0;
-	let x = p.x + angle.cos() * diatance_from_walls;
-	let y = p.y + angle.sin() * diatance_from_walls;
-	NodePtr::from(Node::new(Point { x, y }))
+fn calc_pathfinding_node(
+	p: Point,
+	angle: f64,
+	distance_from_walls: f64,
+	line_segments: &mut Vec<LineSegment>,
+) -> NodePtr {
+	let offset_x = angle.cos() * distance_from_walls;
+	let offset_y = angle.sin() * distance_from_walls;
+	line_segments.push(LineSegment::new(
+		p,
+		Point {
+			x: p.x + offset_x * 0.99,
+			y: p.y + offset_y * 0.99,
+		},
+	));
+	NodePtr::from(Node::new(Point {
+		x: p.x + offset_x,
+		y: p.y + offset_y,
+	}))
 }

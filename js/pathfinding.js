@@ -18,8 +18,10 @@ export function isPathfindingEnabled() {
 
 export function findPath(from, to, token, previousWaypoints) {
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+		// TODO Store multiple pathfinders for different token sizes
+		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
 		if (!gridlessPathfinder)
-			gridlessPathfinder = GridlessPathfinding.initialize(canvas.walls.placeables);
+			gridlessPathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize);
 		paintGridlessPathfindingDebug(gridlessPathfinder);
 		return GridlessPathfinding.findPath(gridlessPathfinder, from, to);
 	}

@@ -74,13 +74,13 @@ impl Wall {
 
 #[allow(dead_code)]
 #[wasm_bindgen]
-pub fn initialize(js_walls: Vec<JsValue>) -> Pathfinder {
+pub fn initialize(js_walls: Vec<JsValue>, token_size: f64) -> Pathfinder {
 	let mut walls = Vec::with_capacity(js_walls.len());
 	for wall in js_walls {
 		let wall = JsWall::from(wall);
 		walls.push(Wall::from_js(&wall));
 	}
-	Pathfinder::initialize(walls)
+	Pathfinder::initialize(walls, token_size)
 }
 
 #[allow(dead_code)]
