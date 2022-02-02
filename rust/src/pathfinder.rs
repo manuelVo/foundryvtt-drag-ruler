@@ -177,7 +177,7 @@ impl Pathfinder {
 					continue;
 				}
 				let angle_diff = angle2 - angle1;
-				if angle_diff < PI {
+				if angle_diff <= PI {
 					continue;
 				}
 				let angle_between = angle_diff / 2.0 + angle1;
@@ -186,7 +186,7 @@ impl Pathfinder {
 			let angle1 = angles.last().unwrap();
 			let angle2 = angles.first().unwrap() + 2.0 * PI;
 			let angle_diff = angle2 - angle1;
-			if angle_diff < PI {
+			if angle_diff <= PI {
 				continue;
 			}
 			let angle_between = angle_diff / 2.0 + angle1;
