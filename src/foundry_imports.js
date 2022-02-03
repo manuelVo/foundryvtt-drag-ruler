@@ -168,7 +168,7 @@ export function measure(destination, options={}) {
 
 	this.dragRulerRemovePathfindingWaypoints();
 
-	if (isToken && isPathfindingEnabled()) {
+	if (isToken && isPathfindingEnabled.call(this)) {
 		const from = getGridPositionFromPixelsObj(this.waypoints[this.waypoints.length - 1]);
 		const to = getGridPositionFromPixelsObj(destination);
 		let path = findPath(from, to, this.draggedEntity, this.waypoints);

@@ -8,6 +8,8 @@ let cachedNodes = undefined;
 let use5105 = false;
 
 export function isPathfindingEnabled() {
+	if (this.user !== game.user)
+		return false;
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
 		return false;
 	if (!game.user.isGM && !game.settings.get(settingsKey, "allowPathfinding"))
