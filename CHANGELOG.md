@@ -1,3 +1,9 @@
+## 1.11.3
+### Bugfixes
+- The setting to automatically start pathfinding is now visible to players again (this was a regression introduced in 1.11.2)
+- Fixed a bug that would show the measurements of other players as if they were using the pathfinder, even if they were not using it.
+
+
 ## 1.11.2
 ### Bugfixes
 - Fixed a memory leak that could cause the rule to slow down after using the pathfinding functionality for a while

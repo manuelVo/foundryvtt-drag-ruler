@@ -97,7 +97,7 @@ export function registerSettings() {
 		name: "drag-ruler.settings.autoPathfinding.name",
 		hint: "drag-ruler.settings.autoPathfinding.hint",
 		scpoe: "client",
-		config: early_isGM(),
+		config: early_isGM() || game.settings.get(settingsKey, "allowPathfinding"),
 		type: Boolean,
 		defualt: false,
 	});
