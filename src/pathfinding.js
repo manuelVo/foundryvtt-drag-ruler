@@ -45,7 +45,7 @@ function getNode(pos, token, initialize=true) {
 	if (!cachedNodes[pos.layer])
 		cachedNodes[pos.layer] = new Array(Math.ceil(canvas.dimensions.height / canvas.grid.h));
 	if (!cachedNodes[pos.layer][pos.y])
-	cachedNodes[pos.layer][pos.y] = new Array(Math.ceil(canvas.dimensions.width / canvas.grid.w));
+		cachedNodes[pos.layer][pos.y] = new Array(Math.ceil(canvas.dimensions.width / canvas.grid.w));
 	if (!cachedNodes[pos.layer][pos.y][pos.x]) {
 		cachedNodes[pos.layer][pos.y][pos.x] = pos;
 	}
