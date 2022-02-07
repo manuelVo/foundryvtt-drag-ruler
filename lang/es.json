@@ -44,9 +44,17 @@
 			"moveWithoutAnimation": {
 				"name": "Deshabilitar animación de icono",
 				"hint": "Si al soltar un icono se presiona esta tecla, se deshabilitará la animación del icono al moverse al destino"
+			},
+			"togglePathfinding": {
+				"name": "Conmutar búsqueda de camino",
+				"hint": "Cuando se presione al arrastrar un icono, la funcionalidad de búsqueda de camino será temporalmente habilitada/deshabilitada"
 			}
 		},
 		"settings": {
+			"allowPathfinding": {
+				"name": "Permitir búsqueda de camino a los jugadores",
+				"hint": "Permite a los jugadores usar en este mundo la funcionalidad de búsqueda de camino. Tenga cuidado porque la ruta puede transcurrir por lugares con niebla de guerra o muros invisibles, lo que podrá revelar algunos secretos a los jugadores antes de tiempo"
+			},
 			"alwaysShowSpeedForPCs": {
 				"name": "Mostrar velocidad de los PJs a todo el mundo",
 				"hint": "Si se habilita, se mostrará a todo el mundo los códigos de colores de las rutas de los PJs, incluso si no tienen permisos de observador para ese personaje"
@@ -54,6 +62,10 @@
 			"autoStartMeasurement": {
 				"name": "Comenzar a medir automáticamente",
 				"hint": "Si se habilita, Drag Ruler comenzará a medir en cuanto se comience a arrastrar un icono. Si se deshabilita, Drag Ruler permanecerá inactivo y comenzará a medir únicamente cuando se presione el botón configurado para añadir un nuevo punto de ruta"
+			},
+			"autoPathfinding": {
+				"name": "Búsqueda de camino por defecto",
+				"hint": "Si se habilita, al arrastrar un icono se usará automáticamente la regla de búsqueda de camino"
 			},
 			"enableMovementHistory": {
 				"name": "Habilitar historial de movimiento durante el combate",
