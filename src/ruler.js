@@ -61,6 +61,9 @@ export function extendRuler() {
 
 		measure(destination, options={}) {
 			if (this.isDragRuler) {
+				// If this is the ruler of a remote user take the waypoints as they were transmitted and don't apply any additional snapping to them
+				if (this.user !== game.user)
+					options.snap = false;
 				return measure.call(this, destination, options);
 			}
 			else {
