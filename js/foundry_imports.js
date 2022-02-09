@@ -91,7 +91,7 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 		});
 		await draggedEntity.scene.updateEmbeddedDocuments(draggedEntity.constructor.embeddedName, updates, {animate});
 		if (animate)
-			await Promise.all(entityPaths.map(({entity, path}) => entity.animateMovement(path)));
+			await Promise.all(entityPaths.map(({entity}) => CanvasAnimation.getAnimation(entity.movementAnimationName)?.promise));
 
 		// This is a flag of the "Monk's Active Tile Triggers" module that signals that the movement should be cancelled early
 		if (this.cancelMovement) {

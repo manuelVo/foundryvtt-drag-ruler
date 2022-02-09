@@ -101,6 +101,7 @@ async function tokenLayerUndoHistory(wrapped) {
 
 function onEntityLeftDragStart(wrapped, event) {
 	wrapped(event);
+	console.warn("start", Date.now());
 	const isToken = this instanceof Token;
 	const ruler = canvas.controls.ruler
 	ruler.draggedEntity = this;
@@ -131,6 +132,7 @@ function onEntityLeftDragMove(wrapped, event) {
 
 function onEntityDragLeftDrop(event) {
 	const ruler = canvas.controls.ruler
+	console.warn("stop", ruler._state, Date.now());
 	if (!ruler.isDragRuler) {
 		ruler.draggedEntity = undefined;
 		return false
@@ -141,6 +143,9 @@ function onEntityDragLeftDrop(event) {
 	// This can happen if the user presses ESC during drag (maybe there are other ways too)
 	if (selectedTokens.length === 0)
 		selectedTokens.push(ruler.draggedEntity);
+	// This can happen if the ruler is being dragged so rapidly that the drag move handler hasn't been called before dropping
+	if (ruler._state === Ruler.STATES.STARTING)
+		onMouseMove.call(ruler, event);
 	ruler._state = Ruler.STATES.MOVING
 	moveEntities.call(ruler, ruler.draggedEntity, selectedTokens);
 	return true

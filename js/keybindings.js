@@ -107,6 +107,7 @@ function handleDisableSnap(event) {
 		return false;
 
 	ruler.measure(getMeasurePosition(), {snap: !disableSnap});
+	ruler.dragRulerSendState();
 	return false;
 }
 
@@ -124,5 +125,6 @@ function handleTogglePathfinding(event) {
 		return false;
 
 	ruler.measure(getMeasurePosition(), {snap: !disableSnap});
+	ruler.dragRulerSendState();
 	return false;
 }
