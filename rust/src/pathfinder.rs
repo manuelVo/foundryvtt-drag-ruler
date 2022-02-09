@@ -18,6 +18,8 @@ pub struct Edge {
 pub struct Node {
 	pub point: Point,
 	edges: Option<Vec<Edge>>,
+	dynamic_neighbors: Option<Vec<NodePtr>>,
+	dynamic_edges: Option<Vec<Edge>>,
 	final_edge: Option<Option<Edge>>,
 }
 
@@ -26,18 +28,17 @@ impl Node {
 		Self {
 			point,
 			edges: None,
+			dynamic_neighbors: None,
+			dynamic_edges: None,
 			final_edge: None,
 		}
 	}
 
-	fn iter_edges(
-		&self,
-	) -> std::iter::Chain<std::slice::Iter<'_, Edge>, std::option::Iter<'_, Edge>> {
-		self.edges
-			.as_ref()
-			.unwrap()
-			.iter()
-			.chain(self.final_edge.as_ref().unwrap().iter())
+	fn iter_edges(&self) -> impl Iterator<Item = &Edge> {
+		let edge_iter = self.edges.as_ref().unwrap().iter();
+		let dynamic_edges_iter = self.dynamic_edges.as_ref().unwrap().iter();
+		let final_edge_iter = self.final_edge.as_ref().unwrap().iter();
+		edge_iter.chain(dynamic_edges_iter).chain(final_edge_iter)
 	}
 }
 
@@ -84,7 +85,7 @@ impl NodeStorage {
 		self.regular_nodes.push(node);
 	}
 
-	fn initialize_edges(&mut self, node: &NodePtr, walls: &[LineSegment]) {
+	fn initialize_edges(&mut self, node: &NodePtr, walls: &WallStorage) {
 		if node.borrow().final_edge.is_none() {
 			let final_edge = self
 				.final_node
@@ -92,7 +93,7 @@ impl NodeStorage {
 				.filter(|neighbor| {
 					!self.collides_with_wall(
 						&LineSegment::new(node.borrow().point, neighbor.borrow().point),
-						walls,
+						walls.iter_all(),
 					)
 				})
 				.map(|neighbor| Edge {
@@ -102,29 +103,63 @@ impl NodeStorage {
 			node.borrow_mut().final_edge = Some(final_edge);
 		}
 
-		if node.borrow().edges.is_some() {
+		let persistent_initialized = node.borrow().edges.is_some();
+		if persistent_initialized && node.borrow().dynamic_edges.is_some() {
 			return;
 		}
+
 		let point = node.borrow().point;
-		let mut edges = Vec::new();
-		for neighbor in &self.regular_nodes {
-			if Rc::ptr_eq(neighbor, node) {
-				continue;
+		let mut dynamic_edges = Vec::new();
+		if persistent_initialized {
+			for neighbor in node.borrow().dynamic_neighbors.as_ref().unwrap() {
+				let neighbor_point = neighbor.borrow().point;
+				let line = LineSegment::new(point, neighbor_point);
+				if !self.collides_with_wall(&line, walls.iter_dynamic_active()) {
+					let cost = point.distance_to(neighbor_point);
+					let edge = Edge {
+						target: neighbor.clone(),
+						cost,
+					};
+					dynamic_edges.push(edge);
+				}
 			}
-			let neighbor_point = neighbor.borrow().point;
-			if !self.collides_with_wall(&LineSegment::new(point, neighbor_point), walls) {
-				let cost = point.distance_to(neighbor_point);
-				edges.push(Edge {
-					target: neighbor.clone(),
-					cost,
-				});
+		} else {
+			let mut edges = Vec::new();
+			let mut dynamic_neighbors = Vec::new();
+			for neighbor in &self.regular_nodes {
+				if Rc::ptr_eq(neighbor, node) {
+					continue;
+				}
+				let neighbor_point = neighbor.borrow().point;
+				let line = LineSegment::new(point, neighbor_point);
+				if !self.collides_with_wall(&line, &walls.persistent) {
+					let cost = point.distance_to(neighbor_point);
+					let edge = Edge {
+						target: neighbor.clone(),
+						cost,
+					};
+					if self.collides_with_wall(&line, walls.iter_dynamic_active()) {
+						dynamic_neighbors.push(neighbor.clone());
+					} else if self.collides_with_wall(&line, walls.iter_dynamic_inactive()) {
+						dynamic_neighbors.push(neighbor.clone());
+						dynamic_edges.push(edge);
+					} else {
+						edges.push(edge);
+					}
+				}
 			}
+			node.borrow_mut().edges = Some(edges);
 		}
-		node.borrow_mut().edges = Some(edges);
+		node.borrow_mut().dynamic_edges = Some(dynamic_edges);
 	}
 
-	fn collides_with_wall(&self, line: &LineSegment, walls: &[LineSegment]) -> bool {
-		walls.iter().any(|wall| line.intersection(wall).is_some())
+	fn collides_with_wall<'a, I>(&self, line: &LineSegment, walls: I) -> bool
+	where
+		I: IntoIterator<Item = &'a LineSegment>,
+	{
+		walls
+			.into_iter()
+			.any(|wall| line.intersection(wall).is_some())
 	}
 
 	pub fn cleanup_final_edges(&mut self) {
@@ -138,12 +173,50 @@ impl NodeStorage {
 	}
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct DynamicWall {
+	pub line: LineSegment,
+	pub active: bool,
+}
+
+impl DynamicWall {
+	fn new(line: LineSegment, active: bool) -> Self {
+		Self { line, active }
+	}
+}
+
+#[derive(Debug, Default)]
+pub struct WallStorage {
+	pub persistent: Vec<LineSegment>,
+	pub dynamic: FxHashMap<String, DynamicWall>,
+}
+
+impl WallStorage {
+	pub fn iter_dynamic_inactive(&self) -> impl Iterator<Item = &LineSegment> {
+		self.dynamic
+			.values()
+			.filter(|wall| !wall.active)
+			.map(|wall| &wall.line)
+	}
+
+	pub fn iter_dynamic_active(&self) -> impl Iterator<Item = &LineSegment> {
+		self.dynamic
+			.values()
+			.filter(|wall| wall.active)
+			.map(|wall| &wall.line)
+	}
+
+	pub fn iter_all(&self) -> impl Iterator<Item = &LineSegment> {
+		self.persistent.iter().chain(self.iter_dynamic_active())
+	}
+}
+
 #[wasm_bindgen]
 pub struct Pathfinder {
 	#[wasm_bindgen(skip)]
 	pub nodes: NodeStorage,
 	#[wasm_bindgen(skip)]
-	pub walls: Vec<LineSegment>,
+	pub walls: WallStorage,
 }
 
 impl Pathfinder {
@@ -153,7 +226,8 @@ impl Pathfinder {
 	{
 		let distance_from_walls = token_size / 2.0;
 		let mut endpoints = FxHashMap::<Point, Vec<f64>>::default();
-		let mut line_segments = Vec::new();
+		let mut wall_storage = WallStorage::default();
+
 		for wall in walls {
 			let x_diff = wall.p2.x - wall.p1.x;
 			let y_diff = wall.p2.y - wall.p1.y;
@@ -163,7 +237,15 @@ impl Pathfinder {
 				let angles = endpoints.entry(point).or_insert_with(Vec::new);
 				angles.push(angle);
 			}
-			line_segments.push(LineSegment::new(wall.p1, wall.p2));
+			let line = LineSegment::new(wall.p1, wall.p2);
+			if !wall.is_door() {
+				wall_storage.persistent.push(line);
+			} else {
+				let is_open = wall.is_open();
+				wall_storage
+					.dynamic
+					.insert(wall.id, DynamicWall::new(line, !is_open));
+			}
 		}
 		endpoints
 			.values_mut()
@@ -187,20 +269,20 @@ impl Pathfinder {
 						point,
 						angle_between,
 						distance_from_walls,
-						&mut line_segments,
+						&mut wall_storage.persistent,
 					));
 				}
 				nodes.push(calc_pathfinding_node(
 					point,
 					angle1 + 0.5 * PI,
 					distance_from_walls,
-					&mut line_segments,
+					&mut wall_storage.persistent,
 				));
 				nodes.push(calc_pathfinding_node(
 					point,
 					angle2 - 0.5 * PI,
 					distance_from_walls,
-					&mut line_segments,
+					&mut wall_storage.persistent,
 				));
 			}
 			let angle1 = angles.last().unwrap();
@@ -215,26 +297,26 @@ impl Pathfinder {
 					point,
 					angle_between,
 					distance_from_walls,
-					&mut line_segments,
+					&mut wall_storage.persistent,
 				));
 			}
 			nodes.push(calc_pathfinding_node(
 				point,
 				angle1 + 0.5 * PI,
 				distance_from_walls,
-				&mut line_segments,
+				&mut wall_storage.persistent,
 			));
 			nodes.push(calc_pathfinding_node(
 				point,
 				angle2 - 0.5 * PI,
 				distance_from_walls,
-				&mut line_segments,
+				&mut wall_storage.persistent,
 			));
 		}
 		// TODO Eliminating nodes close to each other may improve performance
 		Self {
 			nodes,
-			walls: line_segments,
+			walls: wall_storage,
 		}
 	}
 

@@ -25,10 +25,19 @@ extern "C" {
 	pub type JsWallData;
 
 	#[wasm_bindgen(method, getter)]
+	fn id(this: &JsWall) -> String;
+
+	#[wasm_bindgen(method, getter)]
 	fn data(this: &JsWall) -> JsWallData;
 
 	#[wasm_bindgen(method, getter)]
 	fn c(this: &JsWallData) -> Vec<f64>;
+
+	#[wasm_bindgen(method, getter, js_name = "door")]
+	fn door_type(this: &JsWallData) -> DoorType;
+
+	#[wasm_bindgen(method, getter, js_name = "ds")]
+	fn door_state(this: &JsWallData) -> DoorState;
 }
 
 #[wasm_bindgen]
@@ -51,15 +60,78 @@ impl From<JsPoint> for Point {
 	}
 }
 
-#[derive(Debug, Clone, Copy)]
+#[wasm_bindgen]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum DoorState {
+	CLOSED = 0,
+	OPEN = 1,
+	LOCKED = 2,
+}
+
+impl TryFrom<usize> for DoorState {
+	type Error = ();
+	fn try_from(value: usize) -> Result<Self, Self::Error> {
+		match value {
+			x if x == Self::CLOSED as usize => Ok(Self::CLOSED),
+			x if x == Self::OPEN as usize => Ok(Self::OPEN),
+			x if x == Self::LOCKED as usize => Ok(Self::LOCKED),
+			_ => Err(()),
+		}
+	}
+}
+
+#[wasm_bindgen]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum DoorType {
+	NONE = 0,
+	DOOR = 1,
+	SECRET = 2,
+}
+
+impl TryFrom<usize> for DoorType {
+	type Error = ();
+	fn try_from(value: usize) -> Result<Self, Self::Error> {
+		match value {
+			x if x == Self::NONE as usize => Ok(Self::NONE),
+			x if x == Self::DOOR as usize => Ok(Self::DOOR),
+			x if x == Self::SECRET as usize => Ok(Self::SECRET),
+			_ => Err(()),
+		}
+	}
+}
+
+#[derive(Debug, Clone)]
 pub struct Wall {
+	pub id: String,
 	pub p1: Point,
 	pub p2: Point,
+	pub door_type: DoorType,
+	pub door_state: DoorState,
 }
 
 impl Wall {
-	pub fn new(p1: Point, p2: Point) -> Self {
-		Self { p1, p2 }
+	pub fn new(
+		id: String,
+		p1: Point,
+		p2: Point,
+		door_type: DoorType,
+		door_state: DoorState,
+	) -> Self {
+		Self {
+			id,
+			p1,
+			p2,
+			door_type,
+			door_state,
+		}
+	}
+
+	pub fn is_door(&self) -> bool {
+		self.door_type != DoorType::NONE
+	}
+
+	pub fn is_open(&self) -> bool {
+		self.door_state == DoorState::OPEN
 	}
 }
 
@@ -68,7 +140,13 @@ impl Wall {
 		let data = wall.data();
 		let mut c = data.c();
 		c.iter_mut().for_each(|val| *val = val.round());
-		Self::new(Point::new(c[0], c[1]), Point::new(c[2], c[3]))
+		Self::new(
+			wall.id(),
+			Point::new(c[0], c[1]),
+			Point::new(c[2], c[3]),
+			data.door_type(),
+			data.door_state(),
+		)
 	}
 }
 
