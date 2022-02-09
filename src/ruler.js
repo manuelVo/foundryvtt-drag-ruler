@@ -202,6 +202,12 @@ export function extendRuler() {
 			if (measureImmediately)
 				ruler.measure(destination, options);
 		}
+
+		dragRulerSendState() {
+			game.user.broadcastActivity({
+				ruler: this.toJSON()
+			});
+		}
 	}
 
 	Ruler = DragRulerRuler;
