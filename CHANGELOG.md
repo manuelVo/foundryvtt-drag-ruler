@@ -1,3 +1,14 @@
+## 1.11.4
+### Bugfixes
+- When changing the measurement mode via a keybinding (toggle snaping or toggle pathfinding) the updated ruler will now be sent to other players immediately
+- Fixed a bug that incorrectly showed a ruler to be snapped to other players despite the ruler not being snapped
+- Fixed a bug that could cause a token to move to an incorrect location if the token was being dragged and dropped very rapidly
+- Drag Ruler's token movement animations can now be properly waited for (this improves the interaction with modules like sequencer)
+
+### Translation
+- Updated Spanish translation (thanks to Viriato139ac#342)
+
+
 ## 1.11.3
 ### Bugfixes
 - The setting to automatically start pathfinding is now visible to players again (this was a regression introduced in 1.11.2)
