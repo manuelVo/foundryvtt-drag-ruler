@@ -359,7 +359,8 @@ impl Pathfinder {
 					continue;
 				}
 				nodes.initialize_edges(neighbor, &self.walls);
-				let cost = current_node.borrow().cost + edge.cost;
+				// Add a flat 0.00001 cost per node to discurage creation of unnecessary waypoints
+				let cost = current_node.borrow().cost + edge.cost + 0.00001;
 				let discovered_neighbor = DiscoveredNode {
 					node: neighbor.clone(),
 					cost,
