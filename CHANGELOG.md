@@ -1,3 +1,8 @@
+## 1.11.5
+### Bugfixes
+- Fixed a bug that was causing Drag Ruler to spam useless warnings into the console (this was a regression introduced in 1.11.4)
+
+
 ## 1.11.4
 ### Bugfixes
 - When changing the measurement mode via a keybinding (toggle snaping or toggle pathfinding) the updated ruler will now be sent to other players immediately

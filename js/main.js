@@ -101,7 +101,6 @@ async function tokenLayerUndoHistory(wrapped) {
 
 function onEntityLeftDragStart(wrapped, event) {
 	wrapped(event);
-	console.warn("start", Date.now());
 	const isToken = this instanceof Token;
 	const ruler = canvas.controls.ruler
 	ruler.draggedEntity = this;
@@ -132,7 +131,6 @@ function onEntityLeftDragMove(wrapped, event) {
 
 function onEntityDragLeftDrop(event) {
 	const ruler = canvas.controls.ruler
-	console.warn("stop", ruler._state, Date.now());
 	if (!ruler.isDragRuler) {
 		ruler.draggedEntity = undefined;
 		return false
