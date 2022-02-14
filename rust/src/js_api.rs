@@ -106,12 +106,7 @@ pub struct Wall {
 }
 
 impl Wall {
-	pub fn new(
-		p1: Point,
-		p2: Point,
-		door_type: DoorType,
-		door_state: DoorState,
-	) -> Self {
+	pub fn new(p1: Point, p2: Point, door_type: DoorType, door_state: DoorState) -> Self {
 		Self {
 			p1,
 			p2,

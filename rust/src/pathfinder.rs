@@ -156,6 +156,10 @@ impl Pathfinder {
 		let mut endpoints = FxHashMap::<Point, Vec<f64>>::default();
 		let mut line_segments = Vec::new();
 		for wall in walls {
+			if wall.is_door() && wall.is_open() {
+				continue;
+			}
+			// TODO Check if wall is ethereal
 			let x_diff = wall.p2.x - wall.p1.x;
 			let y_diff = wall.p2.y - wall.p1.y;
 			let p1_angle = y_diff.atan2(x_diff);
