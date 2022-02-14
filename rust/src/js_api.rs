@@ -25,9 +25,6 @@ extern "C" {
 	pub type JsWallData;
 
 	#[wasm_bindgen(method, getter)]
-	fn id(this: &JsWall) -> String;
-
-	#[wasm_bindgen(method, getter)]
 	fn data(this: &JsWall) -> JsWallData;
 
 	#[wasm_bindgen(method, getter)]
@@ -100,9 +97,8 @@ impl TryFrom<usize> for DoorType {
 	}
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Wall {
-	pub id: String,
 	pub p1: Point,
 	pub p2: Point,
 	pub door_type: DoorType,
@@ -111,14 +107,12 @@ pub struct Wall {
 
 impl Wall {
 	pub fn new(
-		id: String,
 		p1: Point,
 		p2: Point,
 		door_type: DoorType,
 		door_state: DoorState,
 	) -> Self {
 		Self {
-			id,
 			p1,
 			p2,
 			door_type,
@@ -141,7 +135,6 @@ impl Wall {
 		let mut c = data.c();
 		c.iter_mut().for_each(|val| *val = val.round());
 		Self::new(
-			wall.id(),
 			Point::new(c[0], c[1]),
 			Point::new(c[2], c[3]),
 			data.door_type(),
