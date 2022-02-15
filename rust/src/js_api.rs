@@ -35,6 +35,9 @@ extern "C" {
 
 	#[wasm_bindgen(method, getter, js_name = "ds")]
 	fn door_state(this: &JsWallData) -> DoorState;
+
+	#[wasm_bindgen(method, getter, js_name = "move")]
+	fn move_type(this: &JsWallData) -> WallSenseType;
 }
 
 #[wasm_bindgen]
@@ -97,21 +100,43 @@ impl TryFrom<usize> for DoorType {
 	}
 }
 
+#[wasm_bindgen]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum WallSenseType {
+	NONE = 0,
+	LIMITED = 10,
+	NORMAL = 20,
+}
+
+impl TryFrom<usize> for WallSenseType {
+	type Error = ();
+	fn try_from(value: usize) -> Result<Self, Self::Error> {
+		match value {
+			x if x == Self::NONE as usize => Ok(Self::NONE),
+			x if x == Self::LIMITED as usize => Ok(Self::LIMITED),
+			x if x == Self::NORMAL as usize => Ok(Self::NORMAL),
+			_ => Err(()),
+		}
+	}
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Wall {
 	pub p1: Point,
 	pub p2: Point,
 	pub door_type: DoorType,
 	pub door_state: DoorState,
+	pub move_type: WallSenseType,
 }
 
 impl Wall {
-	pub fn new(p1: Point, p2: Point, door_type: DoorType, door_state: DoorState) -> Self {
+	pub fn new(p1: Point, p2: Point, door_type: DoorType, door_state: DoorState, move_type: WallSenseType) -> Self {
 		Self {
 			p1,
 			p2,
 			door_type,
 			door_state,
+			move_type,
 		}
 	}
 
@@ -134,6 +159,7 @@ impl Wall {
 			Point::new(c[2], c[3]),
 			data.door_type(),
 			data.door_state(),
+			data.move_type(),
 		)
 	}
 }
