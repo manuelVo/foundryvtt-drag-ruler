@@ -53,6 +53,8 @@ export function wipePathfindingCache() {
 		GridlessPathfinding.free(gridlessPathfinder);
 		gridlessPathfinder = undefined;
 	}
+	if (debugGraphics)
+		debugGraphics.removeChildren().forEach(c => c.destroy());
 }
 
 function getNode(pos, token, initialize=true) {
