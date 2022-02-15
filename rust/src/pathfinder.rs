@@ -164,7 +164,7 @@ impl Pathfinder {
 			}
 			let x_diff = wall.p2.x - wall.p1.x;
 			let y_diff = wall.p2.y - wall.p1.y;
-			let p1_angle = y_diff.atan2(x_diff);
+			let p1_angle = y_diff.atan2(x_diff).rem_euclid(2.0 * PI);
 			let p2_angle = (p1_angle + PI).rem_euclid(2.0 * PI);
 			for (point, angle) in [(wall.p1, p1_angle), (wall.p2, p2_angle)] {
 				let angles = endpoints.entry(point).or_insert_with(Vec::new);
