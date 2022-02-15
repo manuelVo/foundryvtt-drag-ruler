@@ -2,7 +2,6 @@ import {currentSpeedProvider, getColorForDistanceAndToken, getRangesFromSpeedPro
 import {getHexSizeSupportTokenGridCenter} from "./compatibility.js";
 import {cancelScheduledMeasurement, measure} from "./foundry_imports.js"
 import {getMovementHistory} from "./movement_tracking.js";
-import {wipeGriddedPathfindingCache} from "./pathfinding.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForEntity} from "./util.js";
 
@@ -187,7 +186,6 @@ export function extendRuler() {
 				return;
 			const ruler = canvas.controls.ruler;
 			ruler.clear();
-			wipeGriddedPathfindingCache();
 			ruler._state = Ruler.STATES.STARTING;
 			let entityCenter;
 			if (isToken && canvas.grid.isHex && game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(entity))
