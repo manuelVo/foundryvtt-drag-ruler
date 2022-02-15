@@ -156,7 +156,7 @@ function paintGriddedPathfindingDebug(lastNode, token) {
 	if (!CONFIG.debug.dragRuler)
 		return;
 
-	debugGraphics.removeChildren();
+	debugGraphics.removeChildren().forEach(c => c.destroy());
 	let currentNode = lastNode;
 	while (currentNode) {
 		let text = new PIXI.Text(currentNode.cost.toFixed(0));
@@ -173,7 +173,7 @@ function paintGridlessPathfindingDebug(pathfinder) {
 	if (!CONFIG.debug.dragRuler)
 		return;
 
-	debugGraphics.removeChildren();
+	debugGraphics.removeChildren().forEach(c => c.destroy());
 	let graphic = new PIXI.Graphics();
 	graphic.lineStyle(2, 0x440000);
 	for (const point of GridlessPathfinding.debugGetPathfindingPoints(pathfinder)) {
