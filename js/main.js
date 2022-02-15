@@ -7,6 +7,7 @@ import {disableSnap, registerKeybindings} from "./keybindings.js";
 import {libWrapper} from "./libwrapper_shim.js";
 import {performMigrations} from "./migration.js"
 import {removeLastHistoryEntryIfAt, resetMovementHistory} from "./movement_tracking.js";
+import {wipeGridlessPathfindingCache} from "./pathfinding.js";
 import {extendRuler} from "./ruler.js";
 import {registerSettings, RightClickAction, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
@@ -18,7 +19,13 @@ import initGridlessPathfinding, * as GridlessPathfinding from "../wasm/gridless_
 CONFIG.debug.dragRuler = false;
 export let debugGraphics = undefined;
 
-initGridlessPathfinding();
+initGridlessPathfinding().then(() => {
+	Hooks.on("canvasInit", wipeGridlessPathfindingCache);
+	Hooks.on("canvasReady", wipeGridlessPathfindingCache);
+	Hooks.on("createWall", wipeGridlessPathfindingCache);
+	Hooks.on("updateWall", wipeGridlessPathfindingCache);
+	Hooks.on("deleteWall", wipeGridlessPathfindingCache);
+});
 
 Hooks.once("init", () => {
 	registerSettings()

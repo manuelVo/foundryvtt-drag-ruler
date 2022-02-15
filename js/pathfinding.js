@@ -47,8 +47,15 @@ export function findPath(from, to, token, previousWaypoints) {
 	}
 }
 
-export function wipePathfindingCache() {
+export function wipeGriddedPathfindingCache() {
 	cachedNodes = undefined;
+}
+
+export function wipeGridlessPathfindingCache() {
+	if (gridlessPathfinder) {
+		GridlessPathfinding.free(gridlessPathfinder);
+		gridlessPathfinder = undefined;
+	}
 }
 
 function getNode(pos, token, initialize=true) {
