@@ -8,7 +8,7 @@ import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
 
 let cachedNodes = undefined;
 let use5105 = false;
-let gridlessPathfinder = undefined;
+let gridlessPathfinders = new Map();
 
 export function isPathfindingEnabled() {
 	if (this.user !== game.user)
@@ -20,12 +20,14 @@ export function isPathfindingEnabled() {
 
 export function findPath(from, to, token, previousWaypoints) {
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
-		// TODO Store multiple pathfinders for different token sizes
 		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
-		if (!gridlessPathfinder)
-			gridlessPathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize);
-		paintGridlessPathfindingDebug(gridlessPathfinder);
-		return GridlessPathfinding.findPath(gridlessPathfinder, from, to);
+		let pathfinder = gridlessPathfinders.get(tokenSize);
+		if (!pathfinder) {
+			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize);
+			gridlessPathfinders.set(tokenSize, pathfinder);
+		}
+		paintGridlessPathfindingDebug(pathfinder);
+		return GridlessPathfinding.findPath(pathfinder, from, to);
 	}
 	else {
 		const lastNode = calculatePath(from, to, token, previousWaypoints);
@@ -49,10 +51,10 @@ export function findPath(from, to, token, previousWaypoints) {
 
 export function wipePathfindingCache() {
 	cachedNodes = undefined;
-	if (gridlessPathfinder) {
-		GridlessPathfinding.free(gridlessPathfinder);
-		gridlessPathfinder = undefined;
+	for (const pathfinder of gridlessPathfinders.values()) {
+		GridlessPathfinding.free(pathfinder);
 	}
+	gridlessPathfinders.clear();
 	if (debugGraphics)
 		debugGraphics.removeChildren().forEach(c => c.destroy());
 }
