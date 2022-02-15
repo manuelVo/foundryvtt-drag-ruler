@@ -4,13 +4,14 @@ import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 
+import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
+
 let cachedNodes = undefined;
 let use5105 = false;
+let gridlessPathfinders = new Map();
 
 export function isPathfindingEnabled() {
 	if (this.user !== game.user)
-		return false;
-	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
 		return false;
 	if (!game.user.isGM && !game.settings.get(settingsKey, "allowPathfinding"))
 		return false;
@@ -18,26 +19,44 @@ export function isPathfindingEnabled() {
 }
 
 export function findPath(from, to, token, previousWaypoints) {
-	const lastNode = calculatePath(from, to, token, previousWaypoints);
-	if (!lastNode)
-		return null;
-	paintPathfindingDebug(lastNode, token);
-	const path = [];
-	let currentNode = lastNode;
-	while (currentNode) {
-		// TODO Check if the distance doesn't change
-		if (path.length >= 2 && !stepCollidesWithWall(currentNode.node, path[path.length - 2], token))
-			// Replace last waypoint if the current waypoint leads to a valid path
-			path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
-		else
-			path.push({x: currentNode.node.x, y: currentNode.node.y});
-		currentNode = currentNode.previous;
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
+		let pathfinder = gridlessPathfinders.get(tokenSize);
+		if (!pathfinder) {
+			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize);
+			gridlessPathfinders.set(tokenSize, pathfinder);
+		}
+		paintGridlessPathfindingDebug(pathfinder);
+		return GridlessPathfinding.findPath(pathfinder, from, to);
 	}
-	return path;
+	else {
+		const lastNode = calculatePath(from, to, token, previousWaypoints);
+		if (!lastNode)
+			return null;
+		paintGriddedPathfindingDebug(lastNode, token);
+		const path = [];
+		let currentNode = lastNode;
+		while (currentNode) {
+			// TODO Check if the distance doesn't change
+			if (path.length >= 2 && !stepCollidesWithWall(currentNode.node, path[path.length - 2], token))
+				// Replace last waypoint if the current waypoint leads to a valid path
+				path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
+			else
+				path.push({x: currentNode.node.x, y: currentNode.node.y});
+			currentNode = currentNode.previous;
+		}
+		return path;
+	}
 }
 
 export function wipePathfindingCache() {
 	cachedNodes = undefined;
+	for (const pathfinder of gridlessPathfinders.values()) {
+		GridlessPathfinding.free(pathfinder);
+	}
+	gridlessPathfinders.clear();
+	if (debugGraphics)
+		debugGraphics.removeChildren().forEach(c => c.destroy());
 }
 
 function getNode(pos, token, initialize=true) {
@@ -137,11 +156,11 @@ function stepCollidesWithWall(from, to, token) {
 	return canvas.walls.checkCollision(new Ray(stepStart, stepEnd));
 }
 
-function paintPathfindingDebug(lastNode, token) {
+function paintGriddedPathfindingDebug(lastNode, token) {
 	if (!CONFIG.debug.dragRuler)
 		return;
 
-	debugGraphics.removeChildren();
+	debugGraphics.removeChildren().forEach(c => c.destroy());
 	let currentNode = lastNode;
 	while (currentNode) {
 		let text = new PIXI.Text(currentNode.cost.toFixed(0));
@@ -152,4 +171,17 @@ function paintPathfindingDebug(lastNode, token) {
 		debugGraphics.addChild(text);
 		currentNode = currentNode.previous;
 	}
+}
+
+function paintGridlessPathfindingDebug(pathfinder) {
+	if (!CONFIG.debug.dragRuler)
+		return;
+
+	debugGraphics.removeChildren().forEach(c => c.destroy());
+	let graphic = new PIXI.Graphics();
+	graphic.lineStyle(2, 0x440000);
+	for (const point of GridlessPathfinding.debugGetPathfindingPoints(pathfinder)) {
+		graphic.drawCircle(point.x, point.y, 5);
+	}
+	debugGraphics.addChild(graphic);
 }
