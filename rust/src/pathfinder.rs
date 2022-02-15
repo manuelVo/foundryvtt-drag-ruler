@@ -188,14 +188,17 @@ impl Pathfinder {
 				if angle_diff <= PI {
 					continue;
 				}
-				if angle_diff > 1.5 * PI {
+				{
 					let angle_between = angle_diff / 2.0 + angle1;
-					nodes.push(calc_pathfinding_node(
+					let pathfinding_node = calc_pathfinding_node(
 						point,
 						angle_between,
 						distance_from_walls,
 						&mut line_segments,
-					));
+					);
+					if angle_diff > 1.5 * PI {
+						nodes.push(pathfinding_node);
+					}
 				}
 				nodes.push(calc_pathfinding_node(
 					point,
