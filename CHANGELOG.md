@@ -1,3 +1,8 @@
+## 1.12.1
+### Hotfix
+- Version 1.12.0 was incorrectly packaged, which caused it to fail to load
+
+
 ## 1.12.0
 ### New features
 - Pathfinding is now supported on gridless scenes
