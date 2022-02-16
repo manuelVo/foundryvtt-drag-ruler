@@ -1,3 +1,9 @@
+## 1.12.2
+### Bugfixes
+- Fixed a bug where the pathfinder on gridless scenes sometimes wasn't able to find a way around corners with specific angles
+- Pathfinding will now be disabled when the hotkey to move tokens without animation is being pressed, to allow GMs to move their tokens through walls
+
+
 ## 1.12.1
 ### Hotfix
 - Version 1.12.0 was incorrectly packaged, which caused it to fail to load
