@@ -10,6 +10,10 @@ export const RightClickAction = Object.freeze({
 	ABORT_DRAG:2,
 });
 
+function delayedReload() {
+	window.setTimeout(() => location.reload(), 500);
+}
+
 export function registerSettings() {
 	game.settings.register(settingsKey, "dataVersion", {
 		scope: "world",
@@ -90,7 +94,7 @@ export function registerSettings() {
 		config: true,
 		type: Boolean,
 		default: false,
-		onChange: () => location.reload(),
+		onChange: delayedReload,
 	});
 
 	game.settings.register(settingsKey, "autoPathfinding", {
