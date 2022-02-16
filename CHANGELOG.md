@@ -1,3 +1,8 @@
+## 1.12.0
+### New features
+- Pathfinding is now supported on gridless scenes
+
+
 ## 1.11.5
 ### Bugfixes
 - Fixed a bug that was causing Drag Ruler to spam useless warnings into the console (this was a regression introduced in 1.11.4)
