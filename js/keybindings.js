@@ -113,6 +113,16 @@ function handleDisableSnap(event) {
 
 function handleMoveWithoutAnimation(event) {
 	moveWithoutAnimation = !event.up;
+
+	const ruler = canvas.controls.ruler;
+	if (!ruler?.isDragRuler)
+		return false;
+	if (ruler._state !== Ruler.STATES.MEASURING)
+		return false;
+
+	ruler.measure(getMeasurePosition(), {snap: !disableSnap});
+	ruler.dragRulerSendState();
+	return false;
 }
 
 function handleTogglePathfinding(event) {

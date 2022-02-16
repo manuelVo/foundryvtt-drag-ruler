@@ -1,5 +1,5 @@
 import {getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
-import {togglePathfinding} from "./keybindings.js";
+import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
@@ -14,6 +14,8 @@ export function isPathfindingEnabled() {
 	if (this.user !== game.user)
 		return false;
 	if (!game.user.isGM && !game.settings.get(settingsKey, "allowPathfinding"))
+		return false;
+	if (moveWithoutAnimation)
 		return false;
 	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
 }
