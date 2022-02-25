@@ -37,7 +37,7 @@ export function findPath(from, to, token, previousWaypoints) {
 		}
 	}
 	iterationNodesCached = 0;
-	startBackgroundInitialiseCache(token);
+	startBackgroundInitialiseCache(to, token);
 
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
@@ -57,7 +57,7 @@ export function findPath(from, to, token, previousWaypoints) {
 		let currentNode = lastNode;
 		while (currentNode) {
 			// TODO Check if the distance doesn't change
-			if (path.length >= 2 && !stepCollidesWithWall(currentNode.node, path[path.length - 2], token))
+			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, token))
 				// Replace last waypoint if the current waypoint leads to a valid path
 				path[path.length - 1] = { x: currentNode.node.x, y: currentNode.node.y };
 			else
@@ -85,13 +85,10 @@ export function initialisePathfinding() {
 	gridHeight = Math.ceil(canvas.dimensions.height / canvas.grid.h);
 }
 
-function startBackgroundInitialiseCache(token) {
+function startBackgroundInitialiseCache(to, token) {
 	if (!backgroundCacheQueue) {
 		backgroundCacheQueue = new ProcessOnceQueue();
-
-		const tokenPos = getGridPositionFromPixelsObj(token.position);
-		
-		backgroundCacheQueue.push(getNode(tokenPos, token, false));
+		backgroundCacheQueue.push(getNode(to, token, false));
 		window.requestIdleCallback(() => backgroundInitialiseCache(token));
 	}
 }
@@ -120,18 +117,15 @@ function backgroundInitialiseCache(token) {
 }
 
 function getNode(pos, token, initialize = true) {
-	pos = { layer: 0, ...pos }; // Copy pos and set pos.layer to the default value if it's unset
 	if (!cachedNodes)
-		cachedNodes = new Array(2);
-	if (!cachedNodes[pos.layer])
-		cachedNodes[pos.layer] = new Array(gridHeight);
-	if (!cachedNodes[pos.layer][pos.y])
-		cachedNodes[pos.layer][pos.y] = new Array(gridWidth);
-	if (!cachedNodes[pos.layer][pos.y][pos.x]) {
-		cachedNodes[pos.layer][pos.y][pos.x] = pos;
+		cachedNodes = new Array(gridHeight);
+	if (!cachedNodes[pos.y])
+		cachedNodes[pos.y] = new Array(gridWidth);
+	if (!cachedNodes[pos.y][pos.x]) {
+		cachedNodes[pos.y][pos.x] = pos;
 	}
 
-	const node = cachedNodes[pos.layer][pos.y][pos.x];
+	const node = cachedNodes[pos.y][pos.x];
 	if (initialize && !node.edges) {
 		if (iterationNodesCached >= maxIterationNodesCached) return;
 		iterationNodesCached++;
@@ -143,19 +137,12 @@ function getNode(pos, token, initialize = true) {
 			}
 
 			// TODO Work with pixels instead of grid locations
-			if (!stepCollidesWithWall(pos, neighborPos, token)) {
+			if (!stepCollidesWithWall(neighborPos, pos, token)) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
-				let targetLayer = pos.layer;
-				if (use5105 && isDiagonal)
-					targetLayer = 1 - targetLayer;
-				const neighbor = getNode({ ...neighborPos, layer: targetLayer }, token, false);
+				const neighbor = getNode(neighborPos, token, false);
 
 				// TODO We currently assume a cost of one or two for all transitions. Change this for difficult terrain support
-				let edgeCost = 1;
-				if (isDiagonal) {
-					// We charge 0.0001 more for edges to avoid unnecessary diagonal steps
-					edgeCost = pos.layer === 1 && targetLayer === 0 ? 2 : 1.0001;
-				}
+				let edgeCost = (isDiagonal && use5105) ? 1.5 : 1;
 				node.edges.push({ target: neighbor, cost: edgeCost })
 			}
 		}
@@ -164,22 +151,20 @@ function getNode(pos, token, initialize = true) {
 }
 
 function calculatePath(from, to, token, previousWaypoints) {
-	if (game.system.id === "pf2e")
-		use5105 = true;
-	if (canvas.grid.diagonalRule === "5105")
-		use5105 = true;
-	let startLayer = 0;
+	let startCost = 0
+	use5105 = game.system.id === "pf2e" || canvas.grid.diagonalRule === "5105";
 	if (use5105 && canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
 		previousWaypoints = previousWaypoints.map(w => getGridPositionFromPixelsObj(w));
-		startLayer = calcNoDiagonals(previousWaypoints) % 2;
+		startCost = (calcNoDiagonals(previousWaypoints) % 2) * 0.5;
 	}
 
+	// Start a priority queue
 	const nextNodes = new UniquePriorityQueue((node1, node2) => node1.node === node2.node);
 	nextNodes.push(
 		{
-			node: getNode({ ...to, layer: startLayer }, token),
+			node: getNode(to, token),
 			cost: 0,
-			estimated: estimateCost(to, from),
+			estimated: estimateCost(to, from, startCost),
 			previous: null
 		},
 		0
@@ -188,8 +173,9 @@ function calculatePath(from, to, token, previousWaypoints) {
 	while (nextNodes.hasNext()) {
 		// Get node with cheapest estimate
 		const currentNode = nextNodes.pop();
-		if (currentNode.node.x === from.x && currentNode.node.y === from.y)
+		if (currentNode.node.x === from.x && currentNode.node.y === from.y) {
 			return currentNode;
+		}
 		previousNodes.add(currentNode.node);
 		for (const edge of currentNode.node.edges) {
 			const neighborNode = getNode(edge.target, token);
@@ -198,7 +184,7 @@ function calculatePath(from, to, token, previousWaypoints) {
 			}
 			if (previousNodes.has(neighborNode))
 				continue;
-			const neighbor = { node: neighborNode, cost: currentNode.cost + edge.cost, estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, from), previous: currentNode };
+			const neighbor = { node: neighborNode, cost: currentNode.cost + edge.cost, estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, from, startCost), previous: currentNode };
 			nextNodes.push(neighbor, neighbor.cost);
 		}
 	}
@@ -212,10 +198,10 @@ function calcNoDiagonals(waypoints) {
 	return diagonals;
 }
 
-function estimateCost(pos, target) {
+function estimateCost(pos, target, startCost) {
 	const distX = Math.abs(pos.x - target.x);
 	const distY = Math.abs(pos.y - target.y);
-	return Math.max(distX, distY) + use5105 ? Math.floor(Math.min(distX, distY) * 0.5) : 0;
+	return Math.max(distX, distY) + (use5105 ? Math.floor(Math.min(distX, distY) * 0.5 + startCost) : 0);
 }
 
 function stepCollidesWithWall(from, to, token) {
