@@ -1,18 +1,18 @@
 "use strict"
 
-import {getColorForDistanceAndToken, getMovedDistanceFromToken, getRangesFromSpeedProvider, initApi, registerModule, registerSystem} from "./api.js";
-import {checkDependencies, getHexSizeSupportTokenGridCenter} from "./compatibility.js";
-import {moveEntities, onMouseMove} from "./foundry_imports.js"
-import {disableSnap, registerKeybindings} from "./keybindings.js";
-import {libWrapper} from "./libwrapper_shim.js";
-import {performMigrations} from "./migration.js"
-import {removeLastHistoryEntryIfAt, resetMovementHistory} from "./movement_tracking.js";
-import {wipePathfindingCache} from "./pathfinding.js";
-import {extendRuler} from "./ruler.js";
-import {registerSettings, RightClickAction, settingsKey} from "./settings.js"
-import {recalculate} from "./socket.js";
-import {SpeedProvider} from "./speed_provider.js"
-import {setSnapParameterOnOptions} from "./util.js";
+import { getColorForDistanceAndToken, getMovedDistanceFromToken, getRangesFromSpeedProvider, initApi, registerModule, registerSystem } from "./api.js";
+import { checkDependencies, getHexSizeSupportTokenGridCenter } from "./compatibility.js";
+import { moveEntities, onMouseMove } from "./foundry_imports.js"
+import { disableSnap, registerKeybindings } from "./keybindings.js";
+import { libWrapper } from "./libwrapper_shim.js";
+import { performMigrations } from "./migration.js"
+import { removeLastHistoryEntryIfAt, resetMovementHistory } from "./movement_tracking.js";
+import { wipePathfindingCache, initialisePathfinding } from "./pathfinding.js";
+import { extendRuler } from "./ruler.js";
+import { registerSettings, RightClickAction, settingsKey } from "./settings.js"
+import { recalculate } from "./socket.js";
+import { SpeedProvider } from "./speed_provider.js"
+import { setSnapParameterOnOptions } from "./util.js";
 
 import initGridlessPathfinding, * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
 
@@ -21,7 +21,10 @@ export let debugGraphics = undefined;
 
 initGridlessPathfinding().then(() => {
 	Hooks.on("canvasInit", wipePathfindingCache);
-	Hooks.on("canvasReady", wipePathfindingCache);
+	Hooks.on("canvasReady", () => {
+		wipePathfindingCache();
+		initialisePathfinding();
+	});
 	Hooks.on("createWall", wipePathfindingCache);
 	Hooks.on("updateWall", wipePathfindingCache);
 	Hooks.on("deleteWall", wipePathfindingCache);
@@ -76,7 +79,7 @@ Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
 });
 
 function forwardIfUnahndled(newFn) {
-	return function(oldFn, ...args) {
+	return function (oldFn, ...args) {
 		const eventHandled = newFn(...args);
 		if (!eventHandled)
 			oldFn(...args);
@@ -116,7 +119,7 @@ function onEntityLeftDragStart(wrapped, event) {
 		entityCenter = getHexSizeSupportTokenGridCenter(this);
 	else
 		entityCenter = this.center;
-	ruler.rulerOffset = {x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y};
+	ruler.rulerOffset = { x: entityCenter.x - event.data.origin.x, y: entityCenter.y - event.data.origin.y };
 	if (game.settings.get(settingsKey, "autoStartMeasurement")) {
 		let options = {};
 		setSnapParameterOnOptions(ruler, options);
@@ -203,17 +206,17 @@ function applyGridlessSnapping(event) {
 	const rasterWidth = 35 / canvas.stage.scale.x;
 	const tokenX = event.data.destination.x;
 	const tokenY = event.data.destination.y;
-	const destination = {x: tokenX + ruler.rulerOffset.x, y: tokenY + ruler.rulerOffset.y};
+	const destination = { x: tokenX + ruler.rulerOffset.x, y: tokenY + ruler.rulerOffset.y };
 	const ranges = getRangesFromSpeedProvider(ruler.draggedEntity);
 
 	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active;
 	if (terrainRulerAvailable) {
-		const segments = Ruler.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination).map(ray => {return {ray}});
+		const segments = Ruler.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination).map(ray => { return { ray } });
 		const pinpointDistances = new Map();
 		for (const range of ranges) {
 			pinpointDistances.set(range.range, null);
 		}
-		terrainRuler.measureDistances(segments, {pinpointDistances});
+		terrainRuler.measureDistances(segments, { pinpointDistances });
 		const targetDistance = Array.from(pinpointDistances.entries())
 			.filter(([_key, val]) => val)
 			.reduce((value, current) => value[0] > current[0] ? value : current, [0, null]);
@@ -232,10 +235,10 @@ function applyGridlessSnapping(event) {
 		let waypointDistance = 0;
 		let origin = event.data.origin;
 		if (ruler.waypoints.length > 1) {
-			const segments = Ruler.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination).map(ray => {return {ray}});
+			const segments = Ruler.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination).map(ray => { return { ray } });
 			origin = segments.pop().ray.A;
 			waypointDistance = canvas.grid.measureDistances(segments).reduce((a, b) => a + b);
-			origin = {x: origin.x - ruler.rulerOffset.x, y: origin.y - ruler.rulerOffset.y};
+			origin = { x: origin.x - ruler.rulerOffset.x, y: origin.y - ruler.rulerOffset.y };
 		}
 
 		const deltaX = tokenX - origin.x;
