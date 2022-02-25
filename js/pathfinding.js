@@ -7,9 +7,12 @@ import { UniquePriorityQueue, ProcessOnceQueue } from "./queues.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
 
-const maxIterationNodesCached = 100;
-let backgroundCacheQueue = undefined;
 let iterationNodesCached = 0;
+const maxNodesCachedPerIteration = 100;
+const maxBackgroundNodesCachedPerIteration = 10;
+
+let backgroundCacheQueue = undefined;
+let nextBackgroundCacheJobId;
 
 let cachedNodes = undefined;
 let use5105 = false;
@@ -69,8 +72,10 @@ export function findPath(from, to, token, previousWaypoints) {
 }
 
 export function wipePathfindingCache() {
-	cachedNodes = undefined;
+	// Cancel background caching
+	if (nextBackgroundCacheJobId) window.cancelIdleCallback(nextBackgroundCacheJobId);
 	backgroundCacheQueue = undefined;
+	cachedNodes = undefined;
 
 	for (const pathfinder of gridlessPathfinders.values()) {
 		GridlessPathfinding.free(pathfinder);
@@ -85,19 +90,25 @@ export function initialisePathfinding() {
 	gridHeight = Math.ceil(canvas.dimensions.height / canvas.grid.h);
 }
 
+/**
+ * Start off a background job to cache nodes, starting from the current ("to") node
+ */
 function startBackgroundInitialiseCache(to, token) {
 	if (!backgroundCacheQueue) {
 		backgroundCacheQueue = new ProcessOnceQueue();
 		backgroundCacheQueue.push(getNode(to, token, false));
-		window.requestIdleCallback(() => backgroundInitialiseCache(token));
+		nextBackgroundCacheJobId = window.requestIdleCallback(() => backgroundInitialiseCache(token));
 	}
 }
 
+/**
+ * Cache a batch of nodes then, if there are more nodes to cache, queue up another job to cache more
+ */
 function backgroundInitialiseCache(token) {
 	iterationNodesCached = 0;
 	let backgroundNodesCached = 0;
 
-	while (backgroundCacheQueue.hasNext() && backgroundNodesCached < 10) {
+	while (backgroundCacheQueue.hasNext() && backgroundNodesCached < maxBackgroundNodesCachedPerIteration) {
 		let node = backgroundCacheQueue.pop();
 		if (!node.edges) {
 			node = getNode(node, token);
@@ -110,9 +121,7 @@ function backgroundInitialiseCache(token) {
 	}
 
 	if (backgroundCacheQueue.hasNext()) {
-		window.requestIdleCallback(() => backgroundInitialiseCache(token));
-	} else {
-		console.log("Done initialising nodes!!")
+		nextBackgroundCacheJobId = window.requestIdleCallback(() => backgroundInitialiseCache(token));
 	}
 }
 
@@ -127,7 +136,7 @@ function getNode(pos, token, initialize = true) {
 
 	const node = cachedNodes[pos.y][pos.x];
 	if (initialize && !node.edges) {
-		if (iterationNodesCached >= maxIterationNodesCached) return;
+		if (iterationNodesCached >= maxNodesCachedPerIteration) return;
 		iterationNodesCached++;
 
 		node.edges = [];
