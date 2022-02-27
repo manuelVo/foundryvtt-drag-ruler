@@ -5,6 +5,7 @@ import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
+import {UniquePriorityQueue} from "./queues.js";
 
 let cachedNodes = undefined;
 let use5105 = false;
@@ -103,32 +104,39 @@ function calculatePath(from, to, token, previousWaypoints) {
 		previousWaypoints = previousWaypoints.map(w => getGridPositionFromPixelsObj(w));
 		startLayer = calcNoDiagonals(previousWaypoints) % 2;
 	}
-	const nextNodes = [{node: getNode({...to, layer: startLayer}, token), cost: 0, estimated: estimateCost(to, from), previous: null}];
+
+	const nextNodes = new UniquePriorityQueue((node1, node2) => node1.node === node2.node);
 	const previousNodes = new Set();
-	while (nextNodes.length > 0) {
-		// Sort by estimated cost, high to low
-		// TODO Re-sorting every iteration is expensive. Think of something better
-		nextNodes.sort((a, b) => b.estimated - a.estimated);
+
+	nextNodes.push(
+		{
+			node: getNode({...to, layer: startLayer}, token),
+			cost: 0,
+			estimated: estimateCost(to, from),
+			previous: null
+		}
+	);
+
+	while (nextNodes.hasNext()) {
 		// Get node with cheapest estimate
 		const currentNode = nextNodes.pop();
-		if (currentNode.node.x === from.x && currentNode.node.y === from.y)
+		if (currentNode.node.x === from.x && currentNode.node.y === from.y) {
 			return currentNode;
+		}
 		previousNodes.add(currentNode.node);
 		for (const edge of currentNode.node.edges) {
 			const neighborNode = getNode(edge.target, token);
-			if (previousNodes.has(neighborNode))
+			if (previousNodes.has(neighborNode)) {
 				continue;
-			const neighbor = {node: neighborNode, cost: currentNode.cost + edge.cost, estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, from), previous: currentNode};
-			const neighborIndex = nextNodes.findIndex(node => node.node === neighbor.node);
-			if (neighborIndex >= 0) {
-				// If the neighbor is cheaper to reach via the current route than through previously discovered routes, replace it
-				if (nextNodes[neighborIndex].cost > neighbor.cost) {
-					nextNodes[neighborIndex] = neighbor;
-				}
 			}
-			else {
-				nextNodes.push(neighbor);
-			}
+
+			const neighbor = {
+				node: neighborNode,
+				cost: currentNode.cost + edge.cost,
+				estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, from),
+				previous: currentNode
+			};
+			nextNodes.push(neighbor, neighbor.estimated);
 		}
 	}
 }
