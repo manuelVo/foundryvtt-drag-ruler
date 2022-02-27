@@ -3,9 +3,9 @@ import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
+import {RetraversableStack, UniquePriorityQueue} from "./queues.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
-import {UniquePriorityQueue} from "./queues.js";
 
 let cachedNodes = undefined;
 let use5105 = false;
@@ -33,20 +33,21 @@ export function findPath(from, to, token, previousWaypoints) {
 		paintGridlessPathfindingDebug(pathfinder);
 		return GridlessPathfinding.findPath(pathfinder, from, to);
 	} else {
-		const lastNode = calculatePath(from, to, token, previousWaypoints);
-		if (!lastNode)
+		const pathNodes = calculatePath(from, to, token, previousWaypoints);
+		if (!pathNodes) {
 			return null;
-		paintGriddedPathfindingDebug(lastNode, token);
+		}
+		paintGriddedPathfindingDebug(pathNodes, token);
 		const path = [];
-		let currentNode = lastNode;
-		while (currentNode) {
+		while (pathNodes.hasNext()) {
+			const currentNode = pathNodes.getNext();
 			// TODO Check if the distance doesn't change
-			if (path.length >= 2 && !stepCollidesWithWall(currentNode.node, path[path.length - 2], token))
+			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, token)) {
 				// Replace last waypoint if the current waypoint leads to a valid path
 				path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
-			else
+			} else {
 				path.push({x: currentNode.node.x, y: currentNode.node.y});
-			currentNode = currentNode.previous;
+			}
 		}
 		return path;
 	}
@@ -97,19 +98,20 @@ function calculatePath(from, to, token, previousWaypoints) {
 
 	nextNodes.push(
 		{
-			node: getNode(to, token),
+			node: getNode(from, token),
 			cost: startCost,
-			estimated: startCost + estimateCost(to, from),
+			estimated: startCost + estimateCost(from, to),
 			previous: null
 		},
-		0
+		0,
+		startCost
 	);
 
 	while (nextNodes.hasNext()) {
 		// Get node with cheapest estimate
 		const currentNode = nextNodes.pop();
-		if (currentNode.node.x === from.x && currentNode.node.y === from.y) {
-			return currentNode;
+		if (currentNode.node.x === to.x && currentNode.node.y === to.y) {
+			return buildNodeQueue(currentNode);
 		}
 		previousNodes.add(currentNode.node);
 		for (const edge of currentNode.node.edges) {
@@ -121,12 +123,27 @@ function calculatePath(from, to, token, previousWaypoints) {
 			const neighbor = {
 				node: neighborNode,
 				cost: currentNode.cost + edge.cost,
-				estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, from),
+				estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, to),
 				previous: currentNode
 			};
-			nextNodes.push(neighbor, neighbor.estimated);
+			nextNodes.push(neighbor, neighbor.estimated, neighbor.cost);
 		}
 	}
+}
+
+/**
+ * Build a stack of nodes where the top is the start of the path and the bottom is the end
+ */
+function buildNodeQueue(targetNode) {
+	const stack = new RetraversableStack();
+
+	let currentNode = targetNode;
+	while (currentNode) {
+		stack.push(currentNode);
+		currentNode = currentNode.previous;
+	}
+	stack.reset();
+	return stack;
 }
 
 function calcNoDiagonals(waypoints) {
@@ -168,21 +185,23 @@ export function initialisePathfinding() {
 	gridHeight = Math.ceil(canvas.dimensions.height / canvas.grid.h);
 }
 
-function paintGriddedPathfindingDebug(lastNode, token) {
-	if (!CONFIG.debug.dragRuler)
+function paintGriddedPathfindingDebug(pathNodes, token) {
+	if (!CONFIG.debug.dragRuler) {
 		return;
+	}
 
 	debugGraphics.removeChildren().forEach(c => c.destroy());
-	let currentNode = lastNode;
-	while (currentNode) {
-		let text = new PIXI.Text(currentNode.cost.toFixed(0));
+	while (pathNodes.hasNext()) {
+		const currentNode = pathNodes.getNext();
+
+		let text = new PIXI.Text(currentNode.cost.toFixed(1));
 		let pixels = getSnapPointForTokenObj(getPixelsFromGridPositionObj(currentNode.node), token);
 		text.anchor.set(0.5, 1.0);
 		text.x = pixels.x;
 		text.y = pixels.y;
 		debugGraphics.addChild(text);
-		currentNode = currentNode.previous;
 	}
+	pathNodes.reset();
 }
 
 function paintGridlessPathfindingDebug(pathfinder) {
