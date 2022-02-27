@@ -150,8 +150,8 @@ function getNode(pos, token, initialize = true) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
 				const neighbor = getNode(neighborPos, token, false);
 
-				// TODO We currently assume a cost of one or two for all transitions. Change this for difficult terrain support
-				let edgeCost = (isDiagonal && use5105) ? 1.5 : 1;
+				// TODO We currently assume a cost of 1 or 1.5 for all transitions. Change this for difficult terrain support
+				let edgeCost = isDiagonal ? (use5105 ? 1.5 : 1.0001) : 1;
 				node.edges.push({ target: neighbor, cost: edgeCost })
 			}
 		}
@@ -172,8 +172,8 @@ function calculatePath(from, to, token, previousWaypoints) {
 	nextNodes.push(
 		{
 			node: getNode(to, token),
-			cost: 0,
-			estimated: estimateCost(to, from, startCost),
+			cost: startCost,
+			estimated: startCost + estimateCost(to, from),
 			previous: null
 		},
 		0
@@ -193,7 +193,12 @@ function calculatePath(from, to, token, previousWaypoints) {
 			}
 			if (previousNodes.has(neighborNode))
 				continue;
-			const neighbor = { node: neighborNode, cost: currentNode.cost + edge.cost, estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, from, startCost), previous: currentNode };
+			const neighbor = {
+				node: neighborNode,
+				cost: currentNode.cost + edge.cost,
+				estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, from),
+				previous: currentNode
+			};
 			nextNodes.push(neighbor, neighbor.cost);
 		}
 	}
@@ -207,10 +212,10 @@ function calcNoDiagonals(waypoints) {
 	return diagonals;
 }
 
-function estimateCost(pos, target, startCost) {
+function estimateCost(pos, target) {
 	const distX = Math.abs(pos.x - target.x);
 	const distY = Math.abs(pos.y - target.y);
-	return Math.max(distX, distY) + (use5105 ? Math.floor(Math.min(distX, distY) * 0.5 + startCost) : 0);
+	return Math.max(distX, distY) + (use5105 ? Math.min(distX, distY) * 0.5 : 0);
 }
 
 function stepCollidesWithWall(from, to, token) {
@@ -226,7 +231,7 @@ function paintGriddedPathfindingDebug(lastNode, token) {
 	debugGraphics.removeChildren().forEach(c => c.destroy());
 	let currentNode = lastNode;
 	while (currentNode) {
-		let text = new PIXI.Text(currentNode.cost.toFixed(0));
+		let text = new PIXI.Text(currentNode.cost.toFixed(1));
 		let pixels = getSnapPointForTokenObj(getPixelsFromGridPositionObj(currentNode.node), token);
 		text.anchor.set(0.5, 1.0);
 		text.x = pixels.x;

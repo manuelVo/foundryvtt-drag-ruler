@@ -1,3 +1,4 @@
 /foundry*.js
 artifact/
 wasm/
+*.lock
