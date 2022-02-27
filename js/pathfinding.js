@@ -114,7 +114,8 @@ function calculatePath(from, to, token, previousWaypoints) {
 			cost: 0,
 			estimated: estimateCost(to, from),
 			previous: null
-		}
+		},
+		0
 	);
 
 	while (nextNodes.hasNext()) {
