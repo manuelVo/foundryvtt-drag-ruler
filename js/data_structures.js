@@ -1,18 +1,17 @@
 /**
- * A queue where all the elements are unique (according to the given elementMatcher) and ordered (in ascending order,
- * according to the given priority function).
+ * A combination queue/set where the elements are ordered (in ascending order, according to the given priority function)
+ * and unique (according to the given elementMatcher).
  * 
- * On insert, the element will only be added if there is not already a higher-priority equivalent element in the queue.
- * If there is a lower-priority equivalent element in the queue, it will be removed.
+ * If an element is added to the set and an equivalent element already exists, the lower-priority one is discarded.
  */
-export class UniquePriorityQueue {
+export class PriorityQueueSet {
 	constructor(elementMatcher, priorityFunction) {
 		this.first = null;
 		this.elementMatcher = elementMatcher;
 		this.priorityFunction = priorityFunction;
 	}
 
-	push(value) {
+	pushWithPriority(value) {
 		const newNode = {value, priority: this.priorityFunction(value), next: null};
 
 		// If the queue is currently empty, we can just set this new node as the first and we're done

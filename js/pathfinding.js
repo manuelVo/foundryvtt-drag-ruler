@@ -5,7 +5,7 @@ import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
-import {UniquePriorityQueue} from "./queues.js";
+import {PriorityQueueSet} from "./data_structures.js";
 
 let cachedNodes = undefined;
 let use5105 = false;
@@ -105,10 +105,10 @@ function calculatePath(from, to, token, previousWaypoints) {
 		startLayer = calcNoDiagonals(previousWaypoints) % 2;
 	}
 
-	const nextNodes = new UniquePriorityQueue((node1, node2) => node1.node === node2.node, node => node.estimated);
+	const nextNodes = new PriorityQueueSet((node1, node2) => node1.node === node2.node, node => node.estimated);
 	const previousNodes = new Set();
 
-	nextNodes.push(
+	nextNodes.pushWithPriority(
 		{
 			node: getNode({...to, layer: startLayer}, token),
 			cost: 0,
@@ -136,7 +136,7 @@ function calculatePath(from, to, token, previousWaypoints) {
 				estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, from),
 				previous: currentNode
 			};
-			nextNodes.push(neighbor);
+			nextNodes.pushWithPriority(neighbor);
 		}
 	}
 }
