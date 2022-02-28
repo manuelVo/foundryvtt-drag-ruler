@@ -41,7 +41,7 @@ export function findPath(from, to, token, previousWaypoints) {
 		let currentNode = lastNode;
 		while (currentNode) {
 			// TODO Check if the distance doesn't change
-			if (path.length >= 2 && !stepCollidesWithWall(currentNode.node, path[path.length - 2], token))
+			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, token))
 				// Replace last waypoint if the current waypoint leads to a valid path
 				path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
 			else
@@ -73,7 +73,7 @@ function getNode(pos, token, initialize=true) {
 			}
 
 			// TODO Work with pixels instead of grid locations
-			if (!stepCollidesWithWall(pos, neighborPos, token)) {
+			if (!stepCollidesWithWall(neighborPos, pos, token)) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
 				let targetLayer = pos.layer;
 				if (use5105 && isDiagonal)
