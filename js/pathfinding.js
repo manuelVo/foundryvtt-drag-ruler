@@ -172,6 +172,20 @@ export function wipePathfindingCache() {
 		debugGraphics.removeChildren().forEach(c => c.destroy());
 }
 
+/**
+ * Check if the current cache is still suitable for the path we're about to find. If not, clear the cache
+ */
+ function checkCacheValid(token) {
+	// If levels is enabled, the cache is invalid if it was made for a 
+	if (game.modules.get("levels")?.active) {
+		const tokenElevation = token.data.elevation;
+		if (tokenElevation !== cacheElevation) {
+			cacheElevation = tokenElevation;
+			wipePathfindingCache();
+		}
+	}
+}
+
 export function initializePathfinding() {
 	gridWidth = Math.ceil(canvas.dimensions.width / canvas.grid.w);
 	gridHeight = Math.ceil(canvas.dimensions.height / canvas.grid.h);
@@ -205,18 +219,4 @@ function paintGridlessPathfindingDebug(pathfinder) {
 		graphic.drawCircle(point.x, point.y, 5);
 	}
 	debugGraphics.addChild(graphic);
-}
-
-/**
- * Check if the current cache is still suitable for the path we're about to find. If not, clear the cache
- */
-function checkCacheValid(token) {
-	// If levels is enabled, the cache is invalid if it was made for a 
-	if (game.modules.get("levels")?.active) {
-		const tokenElevation = token.data.elevation;
-		if (tokenElevation !== cacheElevation) {
-			cacheElevation = tokenElevation;
-			wipePathfindingCache();
-		}
-	}
 }
