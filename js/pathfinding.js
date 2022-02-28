@@ -4,8 +4,8 @@ import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 
-import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
-import {UniquePriorityQueue} from "./queues.js";
+import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
+import {PriorityQueueSet} from "./data_structures.js";
 
 let cachedNodes = undefined;
 let use5105 = false;
@@ -52,7 +52,7 @@ export function findPath(from, to, token, previousWaypoints) {
 	}
 }
 
-function getNode(pos, token, initialize = true) {
+function getNode(pos, token, initialize=true) {
 	pos = {layer: 0, ...pos}; // Copy pos and set pos.layer to the default value if it's unset
 	if (!cachedNodes)
 		cachedNodes = new Array(gridHeight);
@@ -93,17 +93,16 @@ function calculatePath(from, to, token, previousWaypoints) {
 		startCost = (calcNoDiagonals(previousWaypoints) % 2) * 0.5;
 	}
 
-	const nextNodes = new UniquePriorityQueue((node1, node2) => node1.node === node2.node);
+	const nextNodes = new PriorityQueueSet((node1, node2) => node1.node === node2.node, node => node.estimated);
 	const previousNodes = new Set();
 
-	nextNodes.push(
+	nextNodes.pushWithPriority(
 		{
-			node: getNode(to, token),
-			cost: startCost,
-			estimated: startCost + estimateCost(to, from),
+			node: getNode({...to, layer: startLayer}, token),
+			cost: 0,
+			estimated: estimateCost(to, from),
 			previous: null
-		},
-		0
+		}
 	);
 
 	while (nextNodes.hasNext()) {
@@ -125,7 +124,7 @@ function calculatePath(from, to, token, previousWaypoints) {
 				estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, from),
 				previous: currentNode
 			};
-			nextNodes.push(neighbor, neighbor.estimated);
+			nextNodes.pushWithPriority(neighbor);
 		}
 	}
 }

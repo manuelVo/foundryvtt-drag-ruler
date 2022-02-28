@@ -69,7 +69,7 @@ Hooks.on("canvasReady", () => {
 	})
 })
 
-Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
+Hooks.on("getCombatTrackerEntryContext", function(html, menu) {
 	const entry = {
 		name: "drag-ruler.resetMovementHistory",
 		icon: '<i class="fas fa-undo-alt"></i>',
@@ -79,7 +79,7 @@ Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
 });
 
 function forwardIfUnahndled(newFn) {
-	return function (oldFn, ...args) {
+	return function(oldFn, ...args) {
 		const eventHandled = newFn(...args);
 		if (!eventHandled)
 			oldFn(...args);
