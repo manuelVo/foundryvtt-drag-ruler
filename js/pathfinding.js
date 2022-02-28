@@ -180,10 +180,10 @@ function calculatePath(from, to, token, previousWaypoints) {
 			const neighbor = {
 				node: neighborNode,
 				cost: currentNode.cost + edge.cost,
-				estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, from),
+				estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, to),
 				previous: currentNode
 			};
-			nextNodes.push(neighbor, neighbor.cost);
+			nextNodes.push(neighbor);
 		}
 	}
 }
