@@ -4,7 +4,7 @@ import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 
-import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
+import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet} from "./data_structures.js";
 
 let cachedNodes = undefined;
@@ -35,8 +35,7 @@ export function findPath(from, to, token, previousWaypoints) {
 		}
 		paintGridlessPathfindingDebug(pathfinder);
 		return GridlessPathfinding.findPath(pathfinder, from, to);
-	}
-	else {
+	} else {
 		const lastNode = calculatePath(from, to, token, previousWaypoints);
 		if (!lastNode)
 			return null;
@@ -59,16 +58,14 @@ export function findPath(from, to, token, previousWaypoints) {
 function getNode(pos, token, initialize=true) {
 	pos = {layer: 0, ...pos}; // Copy pos and set pos.layer to the default value if it's unset
 	if (!cachedNodes)
-		cachedNodes = new Array(2);
-	if (!cachedNodes[pos.layer])
-		cachedNodes[pos.layer] = new Array(Math.ceil(canvas.dimensions.height / canvas.grid.h));
-	if (!cachedNodes[pos.layer][pos.y])
-		cachedNodes[pos.layer][pos.y] = new Array(Math.ceil(canvas.dimensions.width / canvas.grid.w));
-	if (!cachedNodes[pos.layer][pos.y][pos.x]) {
-		cachedNodes[pos.layer][pos.y][pos.x] = pos;
+		cachedNodes = new Array(gridHeight);
+	if (!cachedNodes[pos.y])
+		cachedNodes[pos.y] = new Array(gridWidth);
+	if (!cachedNodes[pos.y][pos.x]) {
+		cachedNodes[pos.y][pos.x] = pos;
 	}
 
-	const node = cachedNodes[pos.layer][pos.y][pos.x];
+	const node = cachedNodes[pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
 		for (const neighborPos of canvas.grid.grid.getNeighbors(pos.y, pos.x).map(([y, x]) => {return {x, y};})) {
@@ -79,17 +76,11 @@ function getNode(pos, token, initialize=true) {
 			// TODO Work with pixels instead of grid locations
 			if (!stepCollidesWithWall(neighborPos, pos, token)) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
-				let targetLayer = pos.layer;
-				if (use5105 && isDiagonal)
-					targetLayer = 1 - targetLayer;
-				const neighbor = getNode({...neighborPos, layer: targetLayer}, token, false);
+				const neighbor = getNode(neighborPos, token, false);
 
-				// TODO We currently assume a cost of one or two for all transitions. Change this for difficult terrain support
-				let edgeCost = 1;
-				if (isDiagonal) {
-					// We charge 0.0001 more for edges to avoid unnecessary diagonal steps
-					edgeCost = pos.layer === 1 && targetLayer === 0 ? 2 : 1.0001;
-				}
+				// Count 5-10-5 diagonals as 1.5 (so two add up to 3) and 5-5-5 diagonals as 1.0001 (to discourage unnecessary diagonals)
+				// TODO Account for difficult terrain
+				let edgeCost = isDiagonal ? (use5105 ? 1.5 : 1.0001) : 1;
 				node.edges.push({target: neighbor, cost: edgeCost});
 			}
 		}
@@ -98,14 +89,11 @@ function getNode(pos, token, initialize=true) {
 }
 
 function calculatePath(from, to, token, previousWaypoints) {
-	if (game.system.id === "pf2e")
-		use5105 = true;
-	if (canvas.grid.diagonalRule === "5105")
-		use5105 = true;
-	let startLayer = 0;
+	use5105 = game.system.id === "pf2e" || canvas.grid.diagonalRule === "5105";
+	let startCost = 0;
 	if (use5105 && canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
 		previousWaypoints = previousWaypoints.map(w => getGridPositionFromPixelsObj(w));
-		startLayer = calcNoDiagonals(previousWaypoints) % 2;
+		startCost = (calcNoDiagonals(previousWaypoints) % 2) * 0.5;
 	}
 
 	const nextNodes = new PriorityQueueSet((node1, node2) => node1.node === node2.node, node => node.estimated);
@@ -152,8 +140,14 @@ function calcNoDiagonals(waypoints) {
 	return diagonals;
 }
 
+/**
+ * Estimate the travel distance between two points, as the crow flies. Most of the time, this is 1
+ * per space, but for a square grid using 5-10-5 diagonals, count each diagonal as an extra 0.5
+ */
 function estimateCost(pos, target) {
-	return Math.max(Math.abs(pos.x - target.x), Math.abs(pos.y - target.y));
+	const distX = Math.abs(pos.x - target.x);
+	const distY = Math.abs(pos.y - target.y);
+	return Math.max(distX, distY) + (use5105 ? Math.min(distX, distY) * 0.5 : 0);
 }
 
 function stepCollidesWithWall(from, to, token) {
