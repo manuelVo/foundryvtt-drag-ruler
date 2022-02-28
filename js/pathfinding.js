@@ -169,7 +169,7 @@ export function wipePathfindingCache() {
 		debugGraphics.removeChildren().forEach(c => c.destroy());
 }
 
-export function initialisePathfinding() {
+export function initializePathfinding() {
 	gridWidth = Math.ceil(canvas.dimensions.width / canvas.grid.w);
 	gridHeight = Math.ceil(canvas.dimensions.height / canvas.grid.h);
 }
