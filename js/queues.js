@@ -56,7 +56,7 @@ export class UniquePriorityQueue {
 	}
 
 	push(value, priority) {
-		const newNode = { value, priority, next: null };
+		const newNode = {value, priority, next: null};
 
 		// If the queue is currently empty, we can just set this new node as the first and we're done
 		if (!this.first) {

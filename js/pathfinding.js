@@ -1,9 +1,9 @@
-import { getGridPositionFromPixelsObj, getPixelsFromGridPositionObj } from "./foundry_fixes.js";
-import { moveWithoutAnimation, togglePathfinding } from "./keybindings.js";
-import { debugGraphics } from "./main.js";
-import { settingsKey } from "./settings.js";
-import { getSnapPointForTokenObj, iterPairs } from "./util.js";
-import { UniquePriorityQueue, ProcessOnceQueue } from "./queues.js";
+import {getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
+import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
+import {debugGraphics} from "./main.js";
+import {settingsKey} from "./settings.js";
+import {getSnapPointForTokenObj, iterPairs} from "./util.js";
+import {UniquePriorityQueue, ProcessOnceQueue} from "./queues.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
 
@@ -62,9 +62,9 @@ export function findPath(from, to, token, previousWaypoints) {
 			// TODO Check if the distance doesn't change
 			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, token))
 				// Replace last waypoint if the current waypoint leads to a valid path
-				path[path.length - 1] = { x: currentNode.node.x, y: currentNode.node.y };
+				path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
 			else
-				path.push({ x: currentNode.node.x, y: currentNode.node.y });
+				path.push({x: currentNode.node.x, y: currentNode.node.y});
 			currentNode = currentNode.previous;
 		}
 		return path;
@@ -140,7 +140,7 @@ function getNode(pos, token, initialize = true) {
 		iterationNodesCached++;
 
 		node.edges = [];
-		for (const neighborPos of canvas.grid.grid.getNeighbors(pos.y, pos.x).map(([y, x]) => { return { x, y }; })) {
+		for (const neighborPos of canvas.grid.grid.getNeighbors(pos.y, pos.x).map(([y, x]) => {return {x, y};})) {
 			if (neighborPos.x < 0 || neighborPos.y < 0 || neighborPos.x > gridWidth || neighborPos.y > gridHeight) {
 				continue;
 			}
@@ -152,7 +152,7 @@ function getNode(pos, token, initialize = true) {
 
 				// TODO We currently assume a cost of 1 or 1.5 for all transitions. Change this for difficult terrain support
 				let edgeCost = isDiagonal ? (use5105 ? 1.5 : 1.0001) : 1;
-				node.edges.push({ target: neighbor, cost: edgeCost })
+				node.edges.push({target: neighbor, cost: edgeCost})
 			}
 		}
 	}
