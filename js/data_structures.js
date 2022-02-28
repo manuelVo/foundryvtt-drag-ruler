@@ -80,3 +80,49 @@ export class PriorityQueueSet {
 		return first?.value;
 	}
 }
+
+/**
+ * Queue that will only ever accept a single value once
+ */
+ export class ProcessOnceQueue {
+	constructor() {
+		this.first = null;
+		this.last = null;
+		this.queued = new Set();
+	}
+
+	push(value) {
+		if (this.queued.has(value)) {
+			return;
+		}
+		this.queued.add(value);
+
+		const newNode = {
+			value,
+			next: null,
+			previous: null
+		}
+
+		if (!this.first) {
+			this.first = newNode;
+			this.last = newNode;
+		} else {
+			this.last.next = newNode;
+			newNode.previous = this.last;
+			this.last = newNode;
+		}
+	}
+
+	pop() {
+		const node = this.first;
+		this.first = node?.next;
+		if (!node.next) {
+			this.last = null;
+		}
+		return node.value;
+	}
+
+	hasNext() {
+		return !!this.first;
+	}
+}

@@ -3,10 +3,10 @@ import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
-import {RetraversableStack, ProcessOnceQueue, UniquePriorityQueue} from "./queues.js";
+import {ProcessOnceQueue} from "./queues.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
-import {PriorityQueueSet} from "./data_structures.js";
+import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
 
 let iterationNodesCached = 0;
 const maxNodesCachedPerIteration = 100;
@@ -214,7 +214,13 @@ function stepCollidesWithWall(from, to, token) {
 }
 
 export function wipePathfindingCache() {
+	// Cancel background caching
+	if (nextBackgroundCacheJobId) window.cancelIdleCallback(nextBackgroundCacheJobId);
+	backgroundCacheQueue = undefined;
+	
+	// Clear existing cache
 	cachedNodes = undefined;
+
 	for (const pathfinder of gridlessPathfinders.values()) {
 		GridlessPathfinding.free(pathfinder);
 	}
@@ -236,8 +242,6 @@ function paintGriddedPathfindingDebug(lastNode, token) {
 	let currentNode = lastNode;
 	while (currentNode) {
 		let text = new PIXI.Text(currentNode.cost.toFixed(0));
-
-		let text = new PIXI.Text(currentNode.cost.toFixed(1));
 		let pixels = getSnapPointForTokenObj(getPixelsFromGridPositionObj(currentNode.node), token);
 		text.anchor.set(0.5, 1.0);
 		text.x = pixels.x;

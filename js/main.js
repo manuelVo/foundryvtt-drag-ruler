@@ -79,7 +79,7 @@ Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
 });
 
 function forwardIfUnahndled(newFn) {
-	return function (oldFn, ...args) {
+	return function(oldFn, ...args) {
 		const eventHandled = newFn(...args);
 		if (!eventHandled)
 			oldFn(...args);
