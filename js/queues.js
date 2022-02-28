@@ -1,5 +1,7 @@
 /**
- * An ordered queue where all the elements are unique, according to the equivalencyCheck.
+ * A queue where all the elements are unique (according to the given elementMatcher) and ordered (in ascending order,
+ * according to the given priority function).
+ * 
  * On insert, the element will only be added if there is not already a higher-priority equivalent element in the queue.
  * If there is a lower-priority equivalent element in the queue, it will be removed.
  */
