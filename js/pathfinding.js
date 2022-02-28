@@ -93,7 +93,7 @@ function calculatePath(from, to, token, previousWaypoints) {
 		startCost = (calcNoDiagonals(previousWaypoints) % 2) * 0.5;
 	}
 
-	const nextNodes = new UniquePriorityQueue((node1, node2) => node1.node === node2.node);
+	const nextNodes = new UniquePriorityQueue((node1, node2) => node1.node === node2.node, node => node.estimated);
 	const previousNodes = new Set();
 
 	nextNodes.push(
@@ -102,9 +102,7 @@ function calculatePath(from, to, token, previousWaypoints) {
 			cost: startCost,
 			estimated: startCost + estimateCost(from, to),
 			previous: null
-		},
-		0,
-		startCost
+		}
 	);
 
 	while (nextNodes.hasNext()) {
@@ -126,7 +124,7 @@ function calculatePath(from, to, token, previousWaypoints) {
 				estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, to),
 				previous: currentNode
 			};
-			nextNodes.push(neighbor, neighbor.estimated, neighbor.cost);
+			nextNodes.push(neighbor);
 		}
 	}
 }
