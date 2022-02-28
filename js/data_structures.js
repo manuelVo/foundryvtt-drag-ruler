@@ -1,94 +1,17 @@
 /**
- * Queue that will only ever accept a single value once
+ * A combination queue/set where the elements are ordered (in ascending order, according to the given priority function)
+ * and unique (according to the given elementMatcher).
+ * 
+ * If an element is added to the set and an equivalent element already exists, the lower-priority one is discarded.
  */
-export class ProcessOnceQueue {
-	constructor() {
-		this.first = null;
-		this.last = null;
-		this.queued = new Set();
-	}
-
-	push(value) {
-		if (this.queued.has(value)) {
-			return;
-		}
-		this.queued.add(value);
-
-		const newNode = {
-			value,
-			next: null,
-			previous: null
-		}
-
-		if (!this.first) {
-			this.first = newNode;
-			this.last = newNode;
-		} else {
-			this.last.next = newNode;
-			newNode.previous = this.last;
-			this.last = newNode;
-		}
-	}
-
-	pop() {
-		const node = this.first;
-		this.first = node?.next;
-		if (!node.next) {
-			this.last = null;
-		}
-		return node.value;
-	}
-
-	hasNext() {
-		return !!this.first;
-	}
-}
-
-/**
- * Simple LIFO stack that tracks which element
- */
-export class RetraversableStack {
-	constructor() {
-		this.top = null;
-		this.next = null;
-	}
-
-	push(value) {
-		const newNode = {value, next: this.top};
-		if (!this.top) {
-			this.next = newNode;
-		}
-		this.top = newNode;
-	}
-
-	getNext() {
-		const next = this.next?.value
-		this.next = this.next?.next;
-		return next;
-	}
-
-	hasNext() {
-		return !!this.next;
-	}
-
-	reset() {
-		this.next = this.top;
-	}
-}
-
-/**
- * An ordered queue where all the elements are unique, according to the equivalencyCheck.
- * On insert, the element will only be added if there is not already a higher-priority equivalent element in the queue.
- * If there is a lower-priority equivalent element in the queue, it will be removed.
- */
-export class UniquePriorityQueue {
+export class PriorityQueueSet {
 	constructor(elementMatcher, priorityFunction) {
 		this.first = null;
 		this.elementMatcher = elementMatcher;
 		this.priorityFunction = priorityFunction;
 	}
 
-	push(value) {
+	pushWithPriority(value) {
 		const newNode = {value, priority: this.priorityFunction(value), next: null};
 
 		// If the queue is currently empty, we can just set this new node as the first and we're done
@@ -116,6 +39,7 @@ export class UniquePriorityQueue {
 					this.first = newNode;
 				}
 				inserted = true;
+
 				previous = current;
 				current = current.next
 				break;

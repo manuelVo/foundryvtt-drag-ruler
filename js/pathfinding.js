@@ -6,6 +6,7 @@ import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 import {RetraversableStack, ProcessOnceQueue, UniquePriorityQueue} from "./queues.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
+import {PriorityQueueSet} from "./data_structures.js";
 
 let iterationNodesCached = 0;
 const maxNodesCachedPerIteration = 100;
@@ -150,14 +151,14 @@ function calculatePath(from, to, token, previousWaypoints) {
 		startCost = (calcNoDiagonals(previousWaypoints) % 2) * 0.5;
 	}
 
-	const nextNodes = new UniquePriorityQueue((node1, node2) => node1.node === node2.node, node => node.estimated);
+	const nextNodes = new PriorityQueueSet((node1, node2) => node1.node === node2.node, node => node.estimated);
 	const previousNodes = new Set();
 
-	nextNodes.push(
+	nextNodes.pushWithPriority(
 		{
-			node: getNode(from, token),
-			cost: startCost,
-			estimated: startCost + estimateCost(from, to),
+			node: getNode({...to, layer: startLayer}, token),
+			cost: 0,
+			estimated: estimateCost(to, from),
 			previous: null
 		}
 	);
@@ -165,8 +166,8 @@ function calculatePath(from, to, token, previousWaypoints) {
 	while (nextNodes.hasNext()) {
 		// Get node with cheapest estimate
 		const currentNode = nextNodes.pop();
-		if (currentNode.node.x === to.x && currentNode.node.y === to.y) {
-			return buildNodeQueue(currentNode);
+		if (currentNode.node.x === from.x && currentNode.node.y === from.y) {
+			return currentNode;
 		}
 		previousNodes.add(currentNode.node);
 		for (const edge of currentNode.node.edges) {
@@ -183,24 +184,9 @@ function calculatePath(from, to, token, previousWaypoints) {
 				estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, to),
 				previous: currentNode
 			};
-			nextNodes.push(neighbor);
+			nextNodes.pushWithPriority(neighbor);
 		}
 	}
-}
-
-/**
- * Build a stack of nodes where the top is the start of the path and the bottom is the end
- */
-function buildNodeQueue(targetNode) {
-	const stack = new RetraversableStack();
-
-	let currentNode = targetNode;
-	while (currentNode) {
-		stack.push(currentNode);
-		currentNode = currentNode.previous;
-	}
-	stack.reset();
-	return stack;
 }
 
 function calcNoDiagonals(waypoints) {
@@ -237,19 +223,19 @@ export function wipePathfindingCache() {
 		debugGraphics.removeChildren().forEach(c => c.destroy());
 }
 
-export function initialisePathfinding() {
+export function initializePathfinding() {
 	gridWidth = Math.ceil(canvas.dimensions.width / canvas.grid.w);
 	gridHeight = Math.ceil(canvas.dimensions.height / canvas.grid.h);
 }
 
-function paintGriddedPathfindingDebug(pathNodes, token) {
-	if (!CONFIG.debug.dragRuler) {
+function paintGriddedPathfindingDebug(lastNode, token) {
+	if (!CONFIG.debug.dragRuler)
 		return;
-	}
 
 	debugGraphics.removeChildren().forEach(c => c.destroy());
-	while (pathNodes.hasNext()) {
-		const currentNode = pathNodes.getNext();
+	let currentNode = lastNode;
+	while (currentNode) {
+		let text = new PIXI.Text(currentNode.cost.toFixed(0));
 
 		let text = new PIXI.Text(currentNode.cost.toFixed(1));
 		let pixels = getSnapPointForTokenObj(getPixelsFromGridPositionObj(currentNode.node), token);
@@ -257,8 +243,8 @@ function paintGriddedPathfindingDebug(pathNodes, token) {
 		text.x = pixels.x;
 		text.y = pixels.y;
 		debugGraphics.addChild(text);
+		currentNode = currentNode.previous;
 	}
-	pathNodes.reset();
 }
 
 function paintGridlessPathfindingDebug(pathfinder) {
