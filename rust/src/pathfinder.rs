@@ -148,7 +148,7 @@ pub struct Pathfinder {
 }
 
 impl Pathfinder {
-	pub fn initialize<I>(walls: I, token_size: f64) -> Self
+	pub fn initialize<I>(walls: I, token_size: f64, token_elevation: f64) -> Self
 	where
 		I: IntoIterator<Item = Wall>,
 	{
@@ -160,6 +160,9 @@ impl Pathfinder {
 				continue;
 			}
 			if wall.is_door() && wall.is_open() {
+				continue;
+			}
+			if !wall.height.contains(token_elevation) {
 				continue;
 			}
 			let x_diff = wall.p2.x - wall.p1.x;

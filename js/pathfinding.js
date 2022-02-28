@@ -25,12 +25,12 @@ export function isPathfindingEnabled() {
 
 export function findPath(from, to, token, previousWaypoints) {
 	checkCacheValid(token);
-	
+
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
 		let pathfinder = gridlessPathfinders.get(tokenSize);
 		if (!pathfinder) {
-			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize);
+			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize, token.data.elevation, Boolean(game.modules.get("levels")?.active));
 			gridlessPathfinders.set(tokenSize, pathfinder);
 		}
 		paintGridlessPathfindingDebug(pathfinder);
@@ -176,7 +176,7 @@ export function wipePathfindingCache() {
  * Check if the current cache is still suitable for the path we're about to find. If not, clear the cache
  */
  function checkCacheValid(token) {
-	// If levels is enabled, the cache is invalid if it was made for a 
+	// If levels is enabled, the cache is invalid if it was made for a
 	if (game.modules.get("levels")?.active) {
 		const tokenElevation = token.data.elevation;
 		if (tokenElevation !== cacheElevation) {
