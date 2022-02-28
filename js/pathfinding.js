@@ -8,6 +8,7 @@ import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
 import {PriorityQueueSet} from "./data_structures.js";
 
 let cachedNodes = undefined;
+let cacheElevation;
 let use5105 = false;
 let gridlessPathfinders = new Map();
 let gridWidth, gridHeight;
@@ -23,6 +24,8 @@ export function isPathfindingEnabled() {
 }
 
 export function findPath(from, to, token, previousWaypoints) {
+	checkCacheValid(token);
+	
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
 		let pathfinder = gridlessPathfinders.get(tokenSize);
@@ -167,6 +170,20 @@ export function wipePathfindingCache() {
 	gridlessPathfinders.clear();
 	if (debugGraphics)
 		debugGraphics.removeChildren().forEach(c => c.destroy());
+}
+
+/**
+ * Check if the current cache is still suitable for the path we're about to find. If not, clear the cache
+ */
+ function checkCacheValid(token) {
+	// If levels is enabled, the cache is invalid if it was made for a 
+	if (game.modules.get("levels")?.active) {
+		const tokenElevation = token.data.elevation;
+		if (tokenElevation !== cacheElevation) {
+			cacheElevation = tokenElevation;
+			wipePathfindingCache();
+		}
+	}
 }
 
 export function initializePathfinding() {
