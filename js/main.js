@@ -7,7 +7,7 @@ import {disableSnap, registerKeybindings} from "./keybindings.js";
 import {libWrapper} from "./libwrapper_shim.js";
 import {performMigrations} from "./migration.js"
 import {removeLastHistoryEntryIfAt, resetMovementHistory} from "./movement_tracking.js";
-import {wipePathfindingCache} from "./pathfinding.js";
+import {wipePathfindingCache, initializePathfinding} from "./pathfinding.js";
 import {extendRuler} from "./ruler.js";
 import {registerSettings, RightClickAction, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
@@ -21,7 +21,10 @@ export let debugGraphics = undefined;
 
 initGridlessPathfinding().then(() => {
 	Hooks.on("canvasInit", wipePathfindingCache);
-	Hooks.on("canvasReady", wipePathfindingCache);
+	Hooks.on("canvasReady", () => {
+		wipePathfindingCache();
+		initializePathfinding();
+	});
 	Hooks.on("createWall", wipePathfindingCache);
 	Hooks.on("updateWall", wipePathfindingCache);
 	Hooks.on("deleteWall", wipePathfindingCache);

@@ -9,6 +9,7 @@ import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
 let cachedNodes = undefined;
 let use5105 = false;
 let gridlessPathfinders = new Map();
+let gridWidth, gridHeight;
 
 export function isPathfindingEnabled() {
 	if (this.user !== game.user)
@@ -51,16 +52,6 @@ export function findPath(from, to, token, previousWaypoints) {
 	}
 }
 
-export function wipePathfindingCache() {
-	cachedNodes = undefined;
-	for (const pathfinder of gridlessPathfinders.values()) {
-		GridlessPathfinding.free(pathfinder);
-	}
-	gridlessPathfinders.clear();
-	if (debugGraphics)
-		debugGraphics.removeChildren().forEach(c => c.destroy());
-}
-
 function getNode(pos, token, initialize=true) {
 	pos = {layer: 0, ...pos}; // Copy pos and set pos.layer to the default value if it's unset
 	if (!cachedNodes)
@@ -77,8 +68,10 @@ function getNode(pos, token, initialize=true) {
 	if (initialize && !node.edges) {
 		node.edges = [];
 		for (const neighborPos of canvas.grid.grid.getNeighbors(pos.y, pos.x).map(([y, x]) => {return {x, y};})) {
-			if (neighborPos.x < 0 || neighborPos.y < 0)
+			if (neighborPos.x < 0 || neighborPos.y < 0 || neighborPos.x > gridWidth || neighborPos.y > gridHeight) {
 				continue;
+			}
+
 			// TODO Work with pixels instead of grid locations
 			if (!stepCollidesWithWall(pos, neighborPos, token)) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
@@ -156,6 +149,21 @@ function stepCollidesWithWall(from, to, token) {
 	const stepStart = getSnapPointForTokenObj(getPixelsFromGridPositionObj(from), token);
 	const stepEnd = getSnapPointForTokenObj(getPixelsFromGridPositionObj(to), token);
 	return canvas.walls.checkCollision(new Ray(stepStart, stepEnd));
+}
+
+export function wipePathfindingCache() {
+	cachedNodes = undefined;
+	for (const pathfinder of gridlessPathfinders.values()) {
+		GridlessPathfinding.free(pathfinder);
+	}
+	gridlessPathfinders.clear();
+	if (debugGraphics)
+		debugGraphics.removeChildren().forEach(c => c.destroy());
+}
+
+export function initializePathfinding() {
+	gridWidth = Math.ceil(canvas.dimensions.width / canvas.grid.w);
+	gridHeight = Math.ceil(canvas.dimensions.height / canvas.grid.h);
 }
 
 function paintGriddedPathfindingDebug(lastNode, token) {
