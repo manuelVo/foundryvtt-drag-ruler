@@ -53,7 +53,7 @@ export function findPath(from, to, token, previousWaypoints) {
 	}
 }
 
-function getNode(pos, token, initialize = true) {
+function getNode(pos, token, initialize=true) {
 	pos = {layer: 0, ...pos}; // Copy pos and set pos.layer to the default value if it's unset
 	if (!cachedNodes)
 		cachedNodes = new Array(2);
