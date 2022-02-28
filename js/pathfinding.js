@@ -3,7 +3,7 @@ import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
-import {UniquePriorityQueue, ProcessOnceQueue} from "./queues.js";
+import {RetraversableStack, ProcessOnceQueue, UniquePriorityQueue} from "./queues.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
 
@@ -52,42 +52,24 @@ export function findPath(from, to, token, previousWaypoints) {
 		paintGridlessPathfindingDebug(pathfinder);
 		return GridlessPathfinding.findPath(pathfinder, from, to);
 	} else {
-		const lastNode = calculatePath(from, to, token, previousWaypoints);
-		if (!lastNode)
+		const pathNodes = calculatePath(from, to, token, previousWaypoints);
+		if (!pathNodes) {
 			return null;
-		paintGriddedPathfindingDebug(lastNode, token);
+		}
+		paintGriddedPathfindingDebug(pathNodes, token);
 		const path = [];
-		let currentNode = lastNode;
-		while (currentNode) {
+		while (pathNodes.hasNext()) {
+			const currentNode = pathNodes.getNext();
 			// TODO Check if the distance doesn't change
-			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, token))
+			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, token)) {
 				// Replace last waypoint if the current waypoint leads to a valid path
 				path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
-			else
+			} else {
 				path.push({x: currentNode.node.x, y: currentNode.node.y});
-			currentNode = currentNode.previous;
+			}
 		}
 		return path;
 	}
-}
-
-export function wipePathfindingCache() {
-	// Cancel background caching
-	if (nextBackgroundCacheJobId) window.cancelIdleCallback(nextBackgroundCacheJobId);
-	backgroundCacheQueue = undefined;
-	cachedNodes = undefined;
-
-	for (const pathfinder of gridlessPathfinders.values()) {
-		GridlessPathfinding.free(pathfinder);
-	}
-	gridlessPathfinders.clear();
-	if (debugGraphics)
-		debugGraphics.removeChildren().forEach(c => c.destroy());
-}
-
-export function initialisePathfinding() {
-	gridWidth = Math.ceil(canvas.dimensions.width / canvas.grid.w);
-	gridHeight = Math.ceil(canvas.dimensions.height / canvas.grid.h);
 }
 
 /**
@@ -146,13 +128,14 @@ function getNode(pos, token, initialize = true) {
 			}
 
 			// TODO Work with pixels instead of grid locations
-			if (!stepCollidesWithWall(neighborPos, pos, token)) {
+			if (!stepCollidesWithWall(pos, neighborPos, token)) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
 				const neighbor = getNode(neighborPos, token, false);
 
-				// TODO We currently assume a cost of 1 or 1.5 for all transitions. Change this for difficult terrain support
+				// Count 5-10-5 diagonals as 1.5 (so two add up to 3) and 5-5-5 diagonals as 1.0001 (to discourage unnecessary diagonals)
+				// TODO Account for difficult terrain
 				let edgeCost = isDiagonal ? (use5105 ? 1.5 : 1.0001) : 1;
-				node.edges.push({target: neighbor, cost: edgeCost})
+				node.edges.push({target: neighbor, cost: edgeCost});
 			}
 		}
 	}
@@ -167,23 +150,23 @@ function calculatePath(from, to, token, previousWaypoints) {
 		startCost = (calcNoDiagonals(previousWaypoints) % 2) * 0.5;
 	}
 
-	// Start a priority queue
-	const nextNodes = new UniquePriorityQueue((node1, node2) => node1.node === node2.node);
+	const nextNodes = new UniquePriorityQueue((node1, node2) => node1.node === node2.node, node => node.estimated);
+	const previousNodes = new Set();
+
 	nextNodes.push(
 		{
-			node: getNode(to, token),
+			node: getNode(from, token),
 			cost: startCost,
-			estimated: startCost + estimateCost(to, from),
+			estimated: startCost + estimateCost(from, to),
 			previous: null
-		},
-		0
+		}
 	);
-	const previousNodes = new Set();
+
 	while (nextNodes.hasNext()) {
 		// Get node with cheapest estimate
 		const currentNode = nextNodes.pop();
-		if (currentNode.node.x === from.x && currentNode.node.y === from.y) {
-			return currentNode;
+		if (currentNode.node.x === to.x && currentNode.node.y === to.y) {
+			return buildNodeQueue(currentNode);
 		}
 		previousNodes.add(currentNode.node);
 		for (const edge of currentNode.node.edges) {
@@ -191,8 +174,9 @@ function calculatePath(from, to, token, previousWaypoints) {
 			if (!neighborNode) {
 				return;
 			}
-			if (previousNodes.has(neighborNode))
+			if (previousNodes.has(neighborNode)) {
 				continue;
+			}
 			const neighbor = {
 				node: neighborNode,
 				cost: currentNode.cost + edge.cost,
@@ -204,6 +188,21 @@ function calculatePath(from, to, token, previousWaypoints) {
 	}
 }
 
+/**
+ * Build a stack of nodes where the top is the start of the path and the bottom is the end
+ */
+function buildNodeQueue(targetNode) {
+	const stack = new RetraversableStack();
+
+	let currentNode = targetNode;
+	while (currentNode) {
+		stack.push(currentNode);
+		currentNode = currentNode.previous;
+	}
+	stack.reset();
+	return stack;
+}
+
 function calcNoDiagonals(waypoints) {
 	let diagonals = 0;
 	for (const [p1, p2] of iterPairs(waypoints)) {
@@ -212,6 +211,10 @@ function calcNoDiagonals(waypoints) {
 	return diagonals;
 }
 
+/**
+ * Estimate the travel distance between two points, as the crow flies. Most of the time, this is 1
+ * per space, but for a square grid using 5-10-5 diagonals, count each diagonal as an extra 0.5
+ */
 function estimateCost(pos, target) {
 	const distX = Math.abs(pos.x - target.x);
 	const distY = Math.abs(pos.y - target.y);
@@ -224,21 +227,38 @@ function stepCollidesWithWall(from, to, token) {
 	return canvas.walls.checkCollision(new Ray(stepStart, stepEnd));
 }
 
-function paintGriddedPathfindingDebug(lastNode, token) {
-	if (!CONFIG.debug.dragRuler)
+export function wipePathfindingCache() {
+	cachedNodes = undefined;
+	for (const pathfinder of gridlessPathfinders.values()) {
+		GridlessPathfinding.free(pathfinder);
+	}
+	gridlessPathfinders.clear();
+	if (debugGraphics)
+		debugGraphics.removeChildren().forEach(c => c.destroy());
+}
+
+export function initialisePathfinding() {
+	gridWidth = Math.ceil(canvas.dimensions.width / canvas.grid.w);
+	gridHeight = Math.ceil(canvas.dimensions.height / canvas.grid.h);
+}
+
+function paintGriddedPathfindingDebug(pathNodes, token) {
+	if (!CONFIG.debug.dragRuler) {
 		return;
+	}
 
 	debugGraphics.removeChildren().forEach(c => c.destroy());
-	let currentNode = lastNode;
-	while (currentNode) {
+	while (pathNodes.hasNext()) {
+		const currentNode = pathNodes.getNext();
+
 		let text = new PIXI.Text(currentNode.cost.toFixed(1));
 		let pixels = getSnapPointForTokenObj(getPixelsFromGridPositionObj(currentNode.node), token);
 		text.anchor.set(0.5, 1.0);
 		text.x = pixels.x;
 		text.y = pixels.y;
 		debugGraphics.addChild(text);
-		currentNode = currentNode.previous;
 	}
+	pathNodes.reset();
 }
 
 function paintGridlessPathfindingDebug(pathfinder) {

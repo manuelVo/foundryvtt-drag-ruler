@@ -16,7 +16,7 @@ import {setSnapParameterOnOptions} from "./util.js";
 
 import initGridlessPathfinding, * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
 
-CONFIG.debug.dragRuler = false;
+CONFIG.debug.dragRuler = true;
 export let debugGraphics = undefined;
 
 initGridlessPathfinding().then(() => {
