@@ -7,7 +7,11 @@ import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
 import {PriorityQueueSet} from "./data_structures.js";
 
-let cachedNodes = undefined;
+const cache = {
+	nodes: null,
+	elevation: null
+};
+
 let use5105 = false;
 let gridlessPathfinders = new Map();
 let gridWidth, gridHeight;
