@@ -23,6 +23,8 @@ extern "C" {
 extern "C" {
 	pub type JsWall;
 	pub type JsWallData;
+	pub type JsWallFlags;
+	pub type JsWallHeight;
 
 	#[wasm_bindgen(method, getter)]
 	fn data(this: &JsWall) -> JsWallData;
@@ -38,6 +40,18 @@ extern "C" {
 
 	#[wasm_bindgen(method, getter, js_name = "move")]
 	fn move_type(this: &JsWallData) -> WallSenseType;
+
+	#[wasm_bindgen(method, getter)]
+	fn flags(this: &JsWallData) -> JsWallFlags;
+
+	#[wasm_bindgen(method, getter, js_name = "wallHeight")]
+	fn wall_height(this: &JsWallFlags) -> Option<JsWallHeight>;
+
+	#[wasm_bindgen(method, getter, js_name = "wallHeightTop")]
+	fn top(this: &JsWallHeight) -> Option<f64>;
+
+	#[wasm_bindgen(method, getter, js_name = "wallHeightBottom")]
+	fn bottom(this: &JsWallHeight) -> Option<f64>;
 }
 
 #[wasm_bindgen]
@@ -120,6 +134,38 @@ impl TryFrom<usize> for WallSenseType {
 	}
 }
 
+#[derive(Debug, Copy, Clone)]
+pub struct WallHeight {
+	pub top: f64,
+	pub bottom: f64,
+}
+
+impl Default for WallHeight {
+	fn default() -> Self {
+		Self {
+			top: f64::INFINITY,
+			bottom: f64::NEG_INFINITY,
+		}
+	}
+}
+
+impl From<Option<JsWallHeight>> for WallHeight {
+	fn from(height: Option<JsWallHeight>) -> Self {
+		let height = height
+			.map(|height| (height.top(), height.bottom()))
+			.unwrap_or((None, None));
+		let top = height.0.unwrap_or(WallHeight::default().top);
+		let bottom = height.1.unwrap_or(WallHeight::default().bottom);
+		Self { top, bottom }
+	}
+}
+
+impl WallHeight {
+	pub fn contains(&self, height: f64) -> bool {
+		self.top >= height && self.bottom <= height
+	}
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Wall {
 	pub p1: Point,
@@ -127,6 +173,7 @@ pub struct Wall {
 	pub door_type: DoorType,
 	pub door_state: DoorState,
 	pub move_type: WallSenseType,
+	pub height: WallHeight,
 }
 
 impl Wall {
@@ -136,6 +183,7 @@ impl Wall {
 		door_type: DoorType,
 		door_state: DoorState,
 		move_type: WallSenseType,
+		height: WallHeight,
 	) -> Self {
 		Self {
 			p1,
@@ -143,6 +191,7 @@ impl Wall {
 			door_type,
 			door_state,
 			move_type,
+			height,
 		}
 	}
 
@@ -156,29 +205,36 @@ impl Wall {
 }
 
 impl Wall {
-	fn from_js(wall: &JsWall) -> Self {
+	fn from_js(wall: &JsWall, enable_height: bool) -> Self {
 		let data = wall.data();
 		let mut c = data.c();
 		c.iter_mut().for_each(|val| *val = val.round());
+		let height = if enable_height {
+			data.flags().wall_height().into()
+		}
+		else {
+			WallHeight::default()
+		};
 		Self::new(
 			Point::new(c[0], c[1]),
 			Point::new(c[2], c[3]),
 			data.door_type(),
 			data.door_state(),
 			data.move_type(),
+			height,
 		)
 	}
 }
 
 #[allow(dead_code)]
 #[wasm_bindgen]
-pub fn initialize(js_walls: Vec<JsValue>, token_size: f64) -> Pathfinder {
+pub fn initialize(js_walls: Vec<JsValue>, token_size: f64, token_elevation: f64, enable_height: bool) -> Pathfinder {
 	let mut walls = Vec::with_capacity(js_walls.len());
 	for wall in js_walls {
 		let wall = JsWall::from(wall);
-		walls.push(Wall::from_js(&wall));
+		walls.push(Wall::from_js(&wall, enable_height));
 	}
-	Pathfinder::initialize(walls, token_size)
+	Pathfinder::initialize(walls, token_size, token_elevation)
 }
 
 #[allow(dead_code)]
