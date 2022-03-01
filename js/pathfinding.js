@@ -56,7 +56,6 @@ export function findPath(from, to, token, previousWaypoints) {
 }
 
 function getNode(pos, token, initialize=true) {
-	pos = {layer: 0, ...pos}; // Copy pos and set pos.layer to the default value if it's unset
 	if (!cachedNodes)
 		cachedNodes = new Array(gridHeight);
 	if (!cachedNodes[pos.y])
@@ -101,9 +100,9 @@ function calculatePath(from, to, token, previousWaypoints) {
 
 	nextNodes.pushWithPriority(
 		{
-			node: getNode({...to, layer: startLayer}, token),
-			cost: 0,
-			estimated: estimateCost(to, from),
+			node: getNode(to, token),
+			cost: startCost,
+			estimated: startCost + estimateCost(to, from),
 			previous: null
 		}
 	);
