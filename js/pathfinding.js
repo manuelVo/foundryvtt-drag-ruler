@@ -7,7 +7,7 @@ import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
 
-const backgroundCacheMaxNodesPerIteration = 50;
+const maxBackgroundCachingMillis = 10;
 const cache = {
 	nodes: null,
 	elevation: null,
@@ -227,20 +227,17 @@ function startBackgroundCaching(token) {
 }
 
 function backgroundCache(token) {
-	let iterations = 0;
-	const queue = cache.background.queue;
-
 	// Run through a batch of nodes and cache them, if necessary
-	while (queue.hasNext() && iterations < backgroundCacheMaxNodesPerIteration) {
-		iterations++;
-		const node = getNode(queue.pop(), token);
+	const endTime = performance.now() + maxBackgroundCachingMillis;
+	while (cache.background.queue.hasNext() && performance.now() < endTime) {
+		const node = getNode(cache.background.queue.pop(), token);
 		for (let edge of node.edges) {
-			queue.push(edge.target);
+			cache.background.queue.push(edge.target);
 		}
 	}
 
 	// If there are still more nodes to process, schedule another batch
-	if (queue.hasNext()) {
+	if (cache.background.queue.hasNext()) {
 		cache.background.nextJobId = window.requestIdleCallback(() => backgroundCache(token));
 	} else {
 		cache.background.nextJobId = null;
@@ -259,7 +256,7 @@ function paintGriddedPathfindingDebug(firstNode, token) {
 	debugGraphics.removeChildren().forEach(c => c.destroy());
 	let currentNode = firstNode;
 	while (currentNode) {
-		let text = new PIXI.Text(currentNode.cost.toFixed(0));
+		let text = new PIXI.Text(currentNode.cost.toFixed(1));
 		let pixels = getSnapPointForTokenObj(getPixelsFromGridPositionObj(currentNode.node), token);
 		text.anchor.set(0.5, 1.0);
 		text.x = pixels.x;
