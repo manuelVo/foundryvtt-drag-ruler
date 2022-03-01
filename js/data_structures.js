@@ -91,6 +91,12 @@ export class PriorityQueueSet {
 		this.queued = new Set();
 	}
 
+	reset() {
+		this.first = null;
+		this.last = null;
+		this.queued.clear();
+	}
+
 	push(value) {
 		if (this.queued.has(value)) {
 			return;
@@ -116,10 +122,10 @@ export class PriorityQueueSet {
 	pop() {
 		const node = this.first;
 		this.first = node?.next;
-		if (!node.next) {
+		if (!node?.next) {
 			this.last = null;
 		}
-		return node.value;
+		return node?.value;
 	}
 
 	hasNext() {

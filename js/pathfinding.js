@@ -5,11 +5,16 @@ import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
-import {PriorityQueueSet} from "./data_structures.js";
+import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
 
+const backgroundCacheMaxNodesPerIteration = 50;
 const cache = {
 	nodes: null,
-	elevation: null
+	elevation: null,
+	background: {
+		queue: new ProcessOnceQueue(),
+		nextJobId: null
+	}
 };
 
 let use5105 = false;
@@ -28,6 +33,7 @@ export function isPathfindingEnabled() {
 
 export function findPath(from, to, token, previousWaypoints) {
 	checkCacheValid(token);
+	startBackgroundCaching(token);
 
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
@@ -39,12 +45,12 @@ export function findPath(from, to, token, previousWaypoints) {
 		paintGridlessPathfindingDebug(pathfinder);
 		return GridlessPathfinding.findPath(pathfinder, from, to);
 	} else {
-		const lastNode = calculatePath(from, to, token, previousWaypoints);
-		if (!lastNode)
+		const firstNode = calculatePath(from, to, token, previousWaypoints);
+		if (!firstNode)
 			return null;
-		paintGriddedPathfindingDebug(lastNode, token);
+		paintGriddedPathfindingDebug(firstNode, token);
 		const path = [];
-		let currentNode = lastNode;
+		let currentNode = firstNode;
 		while (currentNode) {
 			// TODO Check if the distance doesn't change
 			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, token))
@@ -52,23 +58,22 @@ export function findPath(from, to, token, previousWaypoints) {
 				path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
 			else
 				path.push({x: currentNode.node.x, y: currentNode.node.y});
-			currentNode = currentNode.previous;
+			currentNode = currentNode.next;
 		}
 		return path;
 	}
 }
 
 function getNode(pos, token, initialize = true) {
-	pos = {layer: 0, ...pos}; // Copy pos and set pos.layer to the default value if it's unset
-	if (!cachedNodes)
-		cachedNodes = new Array(gridHeight);
-	if (!cachedNodes[pos.y])
-		cachedNodes[pos.y] = new Array(gridWidth);
-	if (!cachedNodes[pos.y][pos.x]) {
-		cachedNodes[pos.y][pos.x] = pos;
+	if (!cache.nodes)
+		cache.nodes = new Array(gridHeight);
+	if (!cache.nodes[pos.y])
+		cache.nodes[pos.y] = new Array(gridWidth);
+	if (!cache.nodes[pos.y][pos.x]) {
+		cache.nodes[pos.y][pos.x] = pos;
 	}
 
-	const node = cachedNodes[pos.y][pos.x];
+	const node = cache.nodes[pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
 		for (const neighborPos of canvas.grid.grid.getNeighbors(pos.y, pos.x).map(([y, x]) => {return {x, y};})) {
@@ -107,7 +112,8 @@ function calculatePath(from, to, token, previousWaypoints) {
 			node: getNode(from, token),
 			cost: startCost,
 			estimated: startCost + estimateCost(from, to),
-			previous: null
+			previous: null,
+			index: 0
 		}
 	);
 
@@ -115,7 +121,7 @@ function calculatePath(from, to, token, previousWaypoints) {
 		// Get node with cheapest estimate
 		const currentNode = nextNodes.pop();
 		if (currentNode.node.x === to.x && currentNode.node.y === to.y) {
-			return currentNode;
+			return buildPathNodes(currentNode);
 		}
 		previousNodes.add(currentNode.node);
 		for (const edge of currentNode.node.edges) {
@@ -133,6 +139,25 @@ function calculatePath(from, to, token, previousWaypoints) {
 			nextNodes.pushWithPriority(neighbor);
 		}
 	}
+}
+
+/**
+ * Now we've found the path, we know the final node, and each node links to the previous one.
+ * Reverse this list and return the first node in the path, with each node linking to the next
+ */
+function buildPathNodes(lastNode) {
+	let currentNode = lastNode;
+	let previousNode = null;
+	while (currentNode) {
+		const pathNode = {
+			node: currentNode.node,
+			cost: currentNode.cost,
+			next: previousNode
+		}
+		previousNode = pathNode;
+		currentNode = currentNode.previous;
+	}
+	return previousNode;
 }
 
 function calcNoDiagonals(waypoints) {
@@ -160,7 +185,10 @@ function stepCollidesWithWall(from, to, token) {
 }
 
 export function wipePathfindingCache() {
+	window.cancelIdleCallback(cache.background.nextJobId);
 	cache.nodes = null;
+	cache.background.queue.reset();
+	cache.background.nextJobId = null;
 
 	for (const pathfinder of gridlessPathfinders.values()) {
 		GridlessPathfinding.free(pathfinder);
@@ -177,10 +205,46 @@ function checkCacheValid(token) {
 	// If levels is enabled, the cache is invalid if it was made for a
 	if (game.modules.get("levels")?.active) {
 		const tokenElevation = token.data.elevation;
-		if (tokenElevation !== cacheElevation) {
-			cacheElevation = tokenElevation;
+		if (tokenElevation !== cache.elevation) {
+			cache.elevation = tokenElevation;
 			wipePathfindingCache();
 		}
+	}
+}
+
+/**
+ * Start background caching from the token's current position
+ */
+function startBackgroundCaching(token) {
+	if (!cache.background.nextJobId) {
+		cache.background.queue.push(getNode(getGridPositionFromPixelsObj(token.position), token, false));
+
+		// If the node was actually pushed to the queue (i.e. it wasn't already processed) then schedule
+		// a background caching job
+		if (cache.background.queue.hasNext()) {
+			cache.background.nextJobId = window.requestIdleCallback(() => backgroundCache(token));
+		}
+	}
+}
+
+function backgroundCache(token) {
+	let iterations = 0;
+	const queue = cache.background.queue;
+
+	// Run through a batch of nodes and cache them, if necessary
+	while (queue.hasNext() && iterations < backgroundCacheMaxNodesPerIteration) {
+		iterations++;
+		const node = getNode(queue.pop(), token);
+		for (let edge of node.edges) {
+			queue.push(edge.target);
+		}
+	}
+
+	// If there are still more nodes to process, schedule another batch
+	if (queue.hasNext()) {
+		cache.background.nextJobId = window.requestIdleCallback(() => backgroundCache(token));
+	} else {
+		cache.background.nextJobId = null;
 	}
 }
 
@@ -189,12 +253,12 @@ export function initializePathfinding() {
 	gridHeight = Math.ceil(canvas.dimensions.height / canvas.grid.h);
 }
 
-function paintGriddedPathfindingDebug(lastNode, token) {
+function paintGriddedPathfindingDebug(firstNode, token) {
 	if (!CONFIG.debug.dragRuler)
 		return;
 
 	debugGraphics.removeChildren().forEach(c => c.destroy());
-	let currentNode = lastNode;
+	let currentNode = firstNode;
 	while (currentNode) {
 		let text = new PIXI.Text(currentNode.cost.toFixed(0));
 		let pixels = getSnapPointForTokenObj(getPixelsFromGridPositionObj(currentNode.node), token);
@@ -202,7 +266,7 @@ function paintGriddedPathfindingDebug(lastNode, token) {
 		text.x = pixels.x;
 		text.y = pixels.y;
 		debugGraphics.addChild(text);
-		currentNode = currentNode.previous;
+		currentNode = currentNode.next;
 	}
 }
 
