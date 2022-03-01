@@ -3,9 +3,8 @@ import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
-import {ProcessOnceQueue} from "./queues.js";
 
-import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
+import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
 
 let iterationNodesCached = 0;
@@ -16,10 +15,10 @@ let backgroundCacheQueue = undefined;
 let nextBackgroundCacheJobId;
 
 let cachedNodes = undefined;
+let cacheElevation;
 let use5105 = false;
 let gridlessPathfinders = new Map();
 let gridWidth, gridHeight;
-let lastElevation;
 
 export function isPathfindingEnabled() {
 	if (this.user !== game.user)
@@ -32,35 +31,29 @@ export function isPathfindingEnabled() {
 }
 
 export function findPath(from, to, token, previousWaypoints) {
-	// If levels is enabled, we need to clear the Pathfinding cache whenever we change height because the walls might be different
-	if (game.modules.get("levels")?.active) {
-		const tokenElevation = token.data.elevation;
-		if (tokenElevation != lastElevation) {
-			lastElevation = tokenElevation;
-			wipePathfindingCache();
-		}
-	}
-	iterationNodesCached = 0;
+	checkCacheValid(token);
 	startBackgroundInitialiseCache(to, token);
+
+	iterationNodesCached = 0;
 
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
 		let pathfinder = gridlessPathfinders.get(tokenSize);
 		if (!pathfinder) {
-			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize);
+			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize, token.data.elevation, Boolean(game.modules.get("levels")?.active));
 			gridlessPathfinders.set(tokenSize, pathfinder);
 		}
 		paintGridlessPathfindingDebug(pathfinder);
 		return GridlessPathfinding.findPath(pathfinder, from, to);
 	} else {
-		const pathNodes = calculatePath(from, to, token, previousWaypoints);
-		if (!pathNodes) {
+		const lastNode = calculatePath(from, to, token, previousWaypoints);
+		if (!lastNode) {
 			return null;
 		}
 		paintGriddedPathfindingDebug(pathNodes, token);
 		const path = [];
-		while (pathNodes.hasNext()) {
-			const currentNode = pathNodes.getNext();
+		let currentNode = lastNode.previous;
+		while (currentNode) {
 			// TODO Check if the distance doesn't change
 			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, token)) {
 				// Replace last waypoint if the current waypoint leads to a valid path
@@ -68,6 +61,7 @@ export function findPath(from, to, token, previousWaypoints) {
 			} else {
 				path.push({x: currentNode.node.x, y: currentNode.node.y});
 			}
+			currentNode = lastNode.previous;
 		}
 		return path;
 	}
@@ -129,7 +123,7 @@ function getNode(pos, token, initialize = true) {
 			}
 
 			// TODO Work with pixels instead of grid locations
-			if (!stepCollidesWithWall(pos, neighborPos, token)) {
+			if (!stepCollidesWithWall(neighborPos, pos, token)) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
 				const neighbor = getNode(neighborPos, token, false);
 
@@ -144,8 +138,8 @@ function getNode(pos, token, initialize = true) {
 }
 
 function calculatePath(from, to, token, previousWaypoints) {
-	let startCost = 0
 	use5105 = game.system.id === "pf2e" || canvas.grid.diagonalRule === "5105";
+	let startCost = 0;
 	if (use5105 && canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
 		previousWaypoints = previousWaypoints.map(w => getGridPositionFromPixelsObj(w));
 		startCost = (calcNoDiagonals(previousWaypoints) % 2) * 0.5;
@@ -217,7 +211,7 @@ export function wipePathfindingCache() {
 	// Cancel background caching
 	if (nextBackgroundCacheJobId) window.cancelIdleCallback(nextBackgroundCacheJobId);
 	backgroundCacheQueue = undefined;
-	
+
 	// Clear existing cache
 	cachedNodes = undefined;
 
@@ -227,6 +221,20 @@ export function wipePathfindingCache() {
 	gridlessPathfinders.clear();
 	if (debugGraphics)
 		debugGraphics.removeChildren().forEach(c => c.destroy());
+}
+
+/**
+ * Check if the current cache is still suitable for the path we're about to find. If not, clear the cache
+ */
+function checkCacheValid(token) {
+	// If levels is enabled, the cache is invalid if it was made for a
+	if (game.modules.get("levels")?.active) {
+		const tokenElevation = token.data.elevation;
+		if (tokenElevation !== cacheElevation) {
+			cacheElevation = tokenElevation;
+			wipePathfindingCache();
+		}
+	}
 }
 
 export function initializePathfinding() {

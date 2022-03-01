@@ -41,7 +41,7 @@ export class PriorityQueueSet {
 				inserted = true;
 
 				previous = current;
-				current = current.next
+				current = current.next;
 				break;
 			}
 			previous = current;
@@ -56,7 +56,7 @@ export class PriorityQueueSet {
 					if (previous) {
 						previous.next = current.next;
 					} else {
-						this.first = current.next
+						this.first = current.next;
 					}
 					return;
 				}
