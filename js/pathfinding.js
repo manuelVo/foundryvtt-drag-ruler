@@ -76,17 +76,21 @@ function getNode(pos, token, initialize=true) {
 
 			// TODO Work with pixels instead of grid locations
 			if (!stepCollidesWithWall(neighborPos, pos, token)) {
+				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
 				let edgeCost;
 				if (window.terrainRuler) {
 					// TODO Additional cache for each token shape
 					// TODO Use the correct token shape
+					// TODO 5-10-5 support
 					let ray = new Ray(getCenterFromGridPositionObj(neighborPos), getCenterFromGridPositionObj(pos));
 					let measuredDistance = terrainRuler.measureDistances([{ray}], {costFunction: buildCostFunction(token, [{x: 0, y: 0}])})[0];
 					edgeCost = Math.round(measuredDistance / canvas.dimensions.distance);
+					// Charge 1.0001 instead of 1 for diagonals to discourage unnecessary diagonals
+					if (isDiagonal && edgeCost == 1) {
+						edgeCost = 1.0001;
+					}
 				}
 				else {
-					const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
-
 					// Count 5-10-5 diagonals as 1.5 (so two add up to 3) and 5-5-5 diagonals as 1.0001 (to discourage unnecessary diagonals)
 					// TODO Account for difficult terrain
 					edgeCost = isDiagonal ? (use5105 ? 1.5 : 1.0001) : 1;
