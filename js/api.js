@@ -2,7 +2,7 @@ import {measureDistances} from "./compatibility.js";
 import {getMovementHistory} from "./movement_tracking.js";
 import {GenericSpeedProvider, SpeedProvider} from "./speed_provider.js"
 import {settingsKey} from "./settings.js"
-import {getTokenShape} from "./util.js";
+import {getAreaFromPositionAndShape, getTokenShape} from "./util.js";
 
 export const availableSpeedProviders = {}
 export let currentSpeedProvider = undefined
@@ -138,6 +138,10 @@ export function getMovedDistanceFromToken(token) {
 	const distances = measureDistances(segments, token, shape, {enableTerrainRuler: terrainRulerAvailable});
 	// Sum up the distances
 	return distances.reduce((acc, val) => acc + val, 0);
+}
+
+export function buildCostFunction(token, shape) {
+	return (x, y, costOptions={}) => getCostFromSpeedProvider(token, getAreaFromPositionAndShape({x, y}, shape), costOptions);
 }
 
 export function registerModule(moduleId, speedProvider) {

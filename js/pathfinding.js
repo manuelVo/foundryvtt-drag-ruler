@@ -1,4 +1,4 @@
-import {getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
+import {getCenterFromGridPositionObj, getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
 import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
@@ -6,6 +6,8 @@ import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet} from "./data_structures.js";
+import { buildCostFunction } from "./api.js";
+import { measure } from "./foundry_imports.js";
 
 let cachedNodes = undefined;
 let cacheElevation;
@@ -74,12 +76,22 @@ function getNode(pos, token, initialize=true) {
 
 			// TODO Work with pixels instead of grid locations
 			if (!stepCollidesWithWall(neighborPos, pos, token)) {
-				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
-				const neighbor = getNode(neighborPos, token, false);
+				let edgeCost;
+				if (window.terrainRuler) {
+					// TODO Additional cache for each token shape
+					// TODO Use the correct token shape
+					let ray = new Ray(getCenterFromGridPositionObj(neighborPos), getCenterFromGridPositionObj(pos));
+					let measuredDistance = terrainRuler.measureDistances([{ray}], {costFunction: buildCostFunction(token, [{x: 0, y: 0}])})[0];
+					edgeCost = Math.round(measuredDistance / canvas.dimensions.distance);
+				}
+				else {
+					const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
 
-				// Count 5-10-5 diagonals as 1.5 (so two add up to 3) and 5-5-5 diagonals as 1.0001 (to discourage unnecessary diagonals)
-				// TODO Account for difficult terrain
-				let edgeCost = isDiagonal ? (use5105 ? 1.5 : 1.0001) : 1;
+					// Count 5-10-5 diagonals as 1.5 (so two add up to 3) and 5-5-5 diagonals as 1.0001 (to discourage unnecessary diagonals)
+					// TODO Account for difficult terrain
+					edgeCost = isDiagonal ? (use5105 ? 1.5 : 1.0001) : 1;
+				}
+				const neighbor = getNode(neighborPos, token, false);
 				node.edges.push({target: neighbor, cost: edgeCost});
 			}
 		}

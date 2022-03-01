@@ -1,6 +1,6 @@
-import {getCostFromSpeedProvider} from "./api.js";
+import {buildCostFunction} from "./api.js";
 import {settingsKey} from "./settings.js";
-import {getAreaFromPositionAndShape, highlightTokenShape} from "./util.js";
+import {highlightTokenShape} from "./util.js";
 
 export function getHexSizeSupportTokenGridCenter(token) {
 	const tokenCenterOffset = CONFIG.hexSizeSupport.getCenterOffset(token)
@@ -27,7 +27,7 @@ export function measureDistances(segments, entity, shape, options={}) {
 		const newSegments = segments.slice(firstNewSegmentIndex);
 		const distances = previousSegments.map(segment => segment.ray.dragRulerVisitedSpaces[segment.ray.dragRulerVisitedSpaces.length - 1].distance);
 		previousSegments.forEach(segment => segment.ray.terrainRulerVisitedSpaces = duplicate(segment.ray.dragRulerVisitedSpaces));
-		opts.costFunction = (x, y, costOptions={}) => {	return getCostFromSpeedProvider(entity, getAreaFromPositionAndShape({x, y}, shape), costOptions); }
+		opts.costFunction = buildCostFunction(entity, shape);
 		if (previousSegments.length > 0)
 			opts.terrainRulerInitialState = previousSegments[previousSegments.length - 1].ray.dragRulerFinalState;
 		return distances.concat(terrainRuler.measureDistances(newSegments, opts));
