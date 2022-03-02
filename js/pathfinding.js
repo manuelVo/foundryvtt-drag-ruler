@@ -107,10 +107,12 @@ function getNode(pos, token, initialize=true) {
 				if (window.terrainRuler) {
 					// TODO Additional cache for each token shape
 					// TODO Use the correct token shape
-					// TODO 5-10-5 support
 					let ray = new Ray(getCenterFromGridPositionObj(neighborPos), getCenterFromGridPositionObj(pos));
 					let measuredDistance = terrainRuler.measureDistances([{ray}], {costFunction: buildCostFunction(token, [{x: 0, y: 0}])})[0];
 					edgeCost = Math.round(measuredDistance / canvas.dimensions.distance);
+					if (ray.terrainRulerFinalState?.noDiagonals === 1) {
+						edgeCost = 1.5;
+					}
 					// Charge 1.0001 instead of 1 for diagonals to discourage unnecessary diagonals
 					if (isDiagonal && edgeCost == 1) {
 						edgeCost = 1.0001;
