@@ -48,18 +48,28 @@ export function findPath(from, to, token, previousWaypoints) {
 			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, token))
 			// Replace last waypoint if the current waypoint leads to a valid path that isn't longer than the old path
 				if (window.terrainRuler) {
-					let startNode = getCenterFromGridPositionObj(currentNode.node);
+					let startNode = getCenterFromGridPositionObj(path[path.length - 2]);
 					let middleNode = getCenterFromGridPositionObj(path[path.length - 1]);
-					let endNode = getCenterFromGridPositionObj(path[path.length - 2]);
+					let endNode = getCenterFromGridPositionObj(currentNode.node);
 					let oldPath = [{ray: new Ray(startNode, middleNode)}, {ray: new Ray(middleNode, endNode)}];
 					let newPath = [{ray: new Ray(startNode, endNode)}];
+					// TODO Use correct token shape
+					let costFunction = buildCostFunction(token, [{x: 0, y: 0}]);
 					// TODO Cache the used measurement for use in the next loop to improve performance
-					let oldDistance = terrainRuler.measureDistances(oldPath).reduce((a, b) => a + b);
-					let newDistance = terrainRuler.measureDistances(newPath)[0];
+					let oldDistance = terrainRuler.measureDistances(oldPath, {costFunction}).reduce((a, b) => a + b);
+					let newDistance = terrainRuler.measureDistances(newPath, {costFunction})[0];
 
 					// TODO We might need to check if the diagonal count has increased on 5-10-5
-					if (newDistance <= oldDistance) {
+					if (newDistance < oldDistance)  {
 						path.pop();
+					}
+					else if (newDistance === oldDistance) {
+						let oldNoDiagonals = oldPath[1].ray.terrainRulerFinalState?.noDiagonals;
+						let newNoDiagonals = newPath[0].ray.terrainRulerFinalState?.noDiagonals;
+						// This uses === && < instead of <= because the variables might be undefined (which shall lead to a true result)
+						if (oldNoDiagonals === newNoDiagonals || newNoDiagonals < oldNoDiagonals) {
+							path.pop();
+						}
 					}
 				}
 				else {
