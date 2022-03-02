@@ -45,12 +45,28 @@ export function findPath(from, to, token, previousWaypoints) {
 		const path = [];
 		let currentNode = lastNode;
 		while (currentNode) {
-			// TODO Check if the distance doesn't change
 			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, token))
-				// Replace last waypoint if the current waypoint leads to a valid path
-				path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
-			else
-				path.push({x: currentNode.node.x, y: currentNode.node.y});
+			// Replace last waypoint if the current waypoint leads to a valid path that isn't longer than the old path
+				if (window.terrainRuler) {
+					let startNode = getCenterFromGridPositionObj(currentNode.node);
+					let middleNode = getCenterFromGridPositionObj(path[path.length - 1]);
+					let endNode = getCenterFromGridPositionObj(path[path.length - 2]);
+					let oldPath = [{ray: new Ray(startNode, middleNode)}, {ray: new Ray(middleNode, endNode)}];
+					let newPath = [{ray: new Ray(startNode, endNode)}];
+					// TODO Cache the used measurement for use in the next loop to improve performance
+					let oldDistance = terrainRuler.measureDistances(oldPath).reduce((a, b) => a + b);
+					let newDistance = terrainRuler.measureDistances(newPath)[0];
+
+					// TODO We might need to check if the diagonal count has increased on 5-10-5
+					if (newDistance <= oldDistance) {
+						path.pop();
+					}
+				}
+				else {
+					path.pop();
+				}
+			}
+			path.push({x: currentNode.node.x, y: currentNode.node.y});
 			currentNode = currentNode.previous;
 		}
 		return path;
