@@ -2,14 +2,15 @@ import {getCenterFromGridPositionObj, getGridPositionFromPixelsObj, getPixelsFro
 import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
-import {getSnapPointForTokenObj, iterPairs} from "./util.js";
+import {getSnapPointForTokenObj, getTokenShape, getTokenShapeId, iterPairs} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet} from "./data_structures.js";
 import { buildCostFunction } from "./api.js";
 import { measure } from "./foundry_imports.js";
 
-let cachedNodes = undefined;
+// TODO Account for changing terrain per token in the caches
+let caches = new Map();
 let cacheElevation;
 let use5105 = false;
 let gridlessPathfinders = new Map();
@@ -53,8 +54,7 @@ export function findPath(from, to, token, previousWaypoints) {
 					let endNode = getCenterFromGridPositionObj(currentNode.node);
 					let oldPath = [{ray: new Ray(startNode, middleNode)}, {ray: new Ray(middleNode, endNode)}];
 					let newPath = [{ray: new Ray(startNode, endNode)}];
-					// TODO Use correct token shape
-					let costFunction = buildCostFunction(token, [{x: 0, y: 0}]);
+					let costFunction = buildCostFunction(token, getTokenShape(token));
 					// TODO Cache the used measurement for use in the next loop to improve performance
 					let oldDistance = terrainRuler.measureDistances(oldPath, {costFunction}).reduce((a, b) => a + b);
 					let newDistance = terrainRuler.measureDistances(newPath, {costFunction})[0];
@@ -84,15 +84,19 @@ export function findPath(from, to, token, previousWaypoints) {
 }
 
 function getNode(pos, token, initialize=true) {
-	if (!cachedNodes)
-		cachedNodes = new Array(gridHeight);
-	if (!cachedNodes[pos.y])
-		cachedNodes[pos.y] = new Array(gridWidth);
-	if (!cachedNodes[pos.y][pos.x]) {
-		cachedNodes[pos.y][pos.x] = pos;
+	let shapeId = getTokenShapeId(token);
+	let cache = caches.get(shapeId);
+	if (!cache) {
+		cache = new Array(gridHeight);
+		caches.set(shapeId, cache);
+	}
+	if (!cache[pos.y])
+	cache[pos.y] = new Array(gridWidth);
+	if (!cache[pos.y][pos.x]) {
+		cache[pos.y][pos.x] = pos;
 	}
 
-	const node = cachedNodes[pos.y][pos.x];
+	const node = cache[pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
 		for (const neighborPos of canvas.grid.grid.getNeighbors(pos.y, pos.x).map(([y, x]) => {return {x, y};})) {
@@ -105,10 +109,8 @@ function getNode(pos, token, initialize=true) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
 				let edgeCost;
 				if (window.terrainRuler) {
-					// TODO Additional cache for each token shape
-					// TODO Use the correct token shape
 					let ray = new Ray(getCenterFromGridPositionObj(neighborPos), getCenterFromGridPositionObj(pos));
-					let measuredDistance = terrainRuler.measureDistances([{ray}], {costFunction: buildCostFunction(token, [{x: 0, y: 0}])})[0];
+					let measuredDistance = terrainRuler.measureDistances([{ray}], {costFunction: buildCostFunction(token, getTokenShape(token))})[0];
 					edgeCost = Math.round(measuredDistance / canvas.dimensions.distance);
 					if (ray.terrainRulerFinalState?.noDiagonals === 1) {
 						edgeCost = 1.5;
@@ -200,7 +202,7 @@ function stepCollidesWithWall(from, to, token) {
 }
 
 export function wipePathfindingCache() {
-	cachedNodes = undefined;
+	caches.clear();
 	for (const pathfinder of gridlessPathfinders.values()) {
 		GridlessPathfinding.free(pathfinder);
 	}

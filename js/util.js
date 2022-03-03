@@ -157,6 +157,31 @@ export function getAreaFromPositionAndShape(position, shape) {
 	});
 }
 
+
+export function getTokenShapeId(token) {
+	if (token.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS) {
+		return "1";
+	}
+	else if (token.scene.data.gridType === CONST.GRID_TYPES.SQUARE) {
+		return `${token.data.width}x${token.data.height}`;
+	}
+	else {
+		// Hex grids
+		if (game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(token)) {
+			const borderSize = token.data.flags["hex-size-support"].borderSize;
+
+			let inversionFlag = "";
+			if (Boolean(CONFIG.hexSizeSupport.getAltOrientationFlag(token)) !== canvas.grid.grid.options.columns)
+				inversionFlag = "i";
+
+			return `${borderSize}${inversionFlag}`;
+		}
+		else {
+			return "1";
+		}
+	}
+}
+
 export function getTokenShape(token) {
 	if (token.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS) {
 		return [{x: 0, y: 0}]
