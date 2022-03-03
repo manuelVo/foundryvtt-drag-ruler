@@ -1,3 +1,15 @@
+/**
+ * PLAN
+ * - Have a map of caches. The key is some information about the token, the value is the cache built using
+ *   that information
+ * - When we start pathfinding, retrieve the cache with the key we built (should be the same if all info is the same)
+ * - Keep current pathfinding info in an object, along with the source/target. If we start pathfinding again with the same
+ *   source/target/cache, then we don't need to re-run the algorithm
+ * 
+ * POSSIBLE ADDITIONS
+ * - Run pathfinding asynchronously so slow computers don't lock up
+ */
+
 import {getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
 import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
@@ -16,7 +28,12 @@ const cache = {
 		nextJobId: null
 	}
 };
+const pathfinder = {
+	nextNodes = null,
+	previousNodes = new Set();
+}
 
+let initialized = false;
 let use5105 = false;
 let gridlessPathfinders = new Map();
 let gridWidth, gridHeight;
@@ -32,7 +49,7 @@ export function isPathfindingEnabled() {
 }
 
 export function findPath(from, to, token, previousWaypoints) {
-	checkCacheValid(token);
+	
 	startBackgroundCaching(token);
 
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
@@ -178,8 +195,14 @@ function estimateCost(pos, target) {
 }
 
 function stepCollidesWithWall(from, to, token) {
-	const stepStart = getSnapPointForTokenObj(getPixelsFromGridPositionObj(from), token);
-	const stepEnd = getSnapPointForTokenObj(getPixelsFromGridPositionObj(to), token);
+	let stepStart, stepEnd;
+	if (token) {
+		stepStart = getSnapPointForTokenObj(getPixelsFromGridPositionObj(from), token);
+		stepEnd = getSnapPointForTokenObj(getPixelsFromGridPositionObj(to), token);
+	} else {
+		stepStart = getSnapPointForTokenObj(getPixelsFromGridPositionObj)
+	}
+	
 	return canvas.walls.checkCollision(new Ray(stepStart, stepEnd));
 }
 
@@ -198,14 +221,19 @@ export function wipePathfindingCache() {
 }
 
 /**
- * Check if the current cache is still suitable for the path we're about to find. If not, clear the cache
+ * Build a cache ID based on the current token's data and then retrieve the cache to use from that
  */
-function checkCacheValid(token) {
+function getCache(token) {
+	const cacheId = {};
+
+	cacheId.tokenWidth = token.width;
+	cacheId.tokenHeight = token.height;
+
 	// If levels is enabled, the cache is invalid if it was made for a
 	if (game.modules.get("levels")?.active) {
 		const tokenElevation = token.data.elevation;
 		if (tokenElevation !== cache.elevation) {
-			cache.elevation = tokenElevation;
+			cacheId.elevation = tokenElevation;
 			wipePathfindingCache();
 		}
 	}
@@ -215,7 +243,7 @@ function checkCacheValid(token) {
  * Start background caching from the token's current position
  */
 function startBackgroundCaching(token) {
-	if (!cache.background.nextJobId) {
+	if (!cache.background.nextJobId && initialized) {
 		cache.background.queue.push(getNode(getGridPositionFromPixelsObj(token.position), token, false));
 
 		// If the node was actually pushed to the queue (i.e. it wasn't already processed) then schedule
@@ -247,6 +275,7 @@ function backgroundCache(token) {
 export function initializePathfinding() {
 	gridWidth = Math.ceil(canvas.dimensions.width / canvas.grid.w);
 	gridHeight = Math.ceil(canvas.dimensions.height / canvas.grid.h);
+	initialized = true;
 }
 
 function paintGriddedPathfindingDebug(firstNode, token) {
