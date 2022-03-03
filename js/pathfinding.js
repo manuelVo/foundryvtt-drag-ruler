@@ -19,19 +19,28 @@ import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
 
+class Cache {
+	constructor(key) {
+		this.key = key;
+		this.nodes = new Array(gridHeight);
+		for (let y = 0; y < gridHeight; y++) {
+			this.nodes[y] = new Array(gridWidth);
+			for (let x = 0; x < gridWidth; x++) {
+				this.nodes[y][x] = {x, y};
+			}
+		}
+	}
+}
+
 const maxBackgroundCachingMillis = 10;
-const cache = {
-	nodes: null,
-	elevation: null,
+const caches = {
+	map: new Map(), // map of cache ID to cache
 	background: {
 		queue: new ProcessOnceQueue(),
 		nextJobId: null
 	}
 };
-const pathfinder = {
-	nextNodes = null,
-	previousNodes = new Set();
-}
+let currentPathfinder = null;
 
 let initialized = false;
 let use5105 = false;
@@ -49,8 +58,12 @@ export function isPathfindingEnabled() {
 }
 
 export function findPath(from, to, token, previousWaypoints) {
-	
-	startBackgroundCaching(token);
+	let cache = getCache(token);
+	const pathfindingContext = {from, to, cacheId: cache.key};
+	if (cachedPath.context === pathfindingContext) {
+		return cachedPath.path;
+	}
+	currentPathfinder = {context: pathfindingContext, cache};
 
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
@@ -77,19 +90,12 @@ export function findPath(from, to, token, previousWaypoints) {
 				path.push({x: currentNode.node.x, y: currentNode.node.y});
 			currentNode = currentNode.next;
 		}
+		cachedPath.path = path;
 		return path;
 	}
 }
 
-function getNode(pos, token, initialize = true) {
-	if (!cache.nodes)
-		cache.nodes = new Array(gridHeight);
-	if (!cache.nodes[pos.y])
-		cache.nodes[pos.y] = new Array(gridWidth);
-	if (!cache.nodes[pos.y][pos.x]) {
-		cache.nodes[pos.y][pos.x] = pos;
-	}
-
+function getNode(pos, cache, token, initialize = true) {
 	const node = cache.nodes[pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
@@ -101,7 +107,7 @@ function getNode(pos, token, initialize = true) {
 			// TODO Work with pixels instead of grid locations
 			if (!stepCollidesWithWall(pos, neighborPos, token)) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
-				const neighbor = getNode(neighborPos, token, false);
+				const neighbor = getNode(neighborPos, cache, token, false);
 
 				// Count 5-10-5 diagonals as 1.5 (so two add up to 3) and 5-5-5 diagonals as 1.0001 (to discourage unnecessary diagonals)
 				// TODO Account for difficult terrain
@@ -126,7 +132,7 @@ function calculatePath(from, to, token, previousWaypoints) {
 
 	nextNodes.pushWithPriority(
 		{
-			node: getNode(from, token),
+			node: getNode(from, currentPathfinder.cache, token),
 			cost: startCost,
 			estimated: startCost + estimateCost(from, to),
 			previous: null
@@ -141,7 +147,7 @@ function calculatePath(from, to, token, previousWaypoints) {
 		}
 		previousNodes.add(currentNode.node);
 		for (const edge of currentNode.node.edges) {
-			const neighborNode = getNode(edge.target, token);
+			const neighborNode = getNode(edge.target, currentPathfinder.cache, token);
 			if (previousNodes.has(neighborNode)) {
 				continue;
 			}
@@ -202,15 +208,15 @@ function stepCollidesWithWall(from, to, token) {
 	} else {
 		stepStart = getSnapPointForTokenObj(getPixelsFromGridPositionObj)
 	}
-	
+
 	return canvas.walls.checkCollision(new Ray(stepStart, stepEnd));
 }
 
 export function wipePathfindingCache() {
 	window.cancelIdleCallback(cache.background.nextJobId);
-	cache.nodes = null;
-	cache.background.queue.reset();
-	cache.background.nextJobId = null;
+	caches.map.clear();
+	caches.background.queue.reset();
+	caches.background.nextJobId = null;
 
 	for (const pathfinder of gridlessPathfinders.values()) {
 		GridlessPathfinding.free(pathfinder);
@@ -229,46 +235,57 @@ function getCache(token) {
 	cacheId.tokenWidth = token.width;
 	cacheId.tokenHeight = token.height;
 
-	// If levels is enabled, the cache is invalid if it was made for a
+	// If levels is enabled, the token's elevation is relevant to the cache
 	if (game.modules.get("levels")?.active) {
-		const tokenElevation = token.data.elevation;
-		if (tokenElevation !== cache.elevation) {
-			cacheId.elevation = tokenElevation;
-			wipePathfindingCache();
-		}
+		cacheId.elevation = token.data.elevation;
 	}
+
+	let cache = caches.map.get(cacheId);
+	if (!cache) {
+		cache = new Cache(cacheId);
+		caches.map.set(cacheId, cache);
+		startBackgroundCaching(token);
+	}
+	return cache;
 }
 
 /**
  * Start background caching from the token's current position
  */
-function startBackgroundCaching(token) {
-	if (!cache.background.nextJobId && initialized) {
-		cache.background.queue.push(getNode(getGridPositionFromPixelsObj(token.position), token, false));
+function startBackgroundCaching(cache, token) {
+	caches.background.queue.push({
+		node: getNode(getGridPositionFromPixelsObj(token.position), token, false),
+		token,
+		cache
+	});
+
+	if (!caches.background.nextJobId && initialized) {
+		
 
 		// If the node was actually pushed to the queue (i.e. it wasn't already processed) then schedule
 		// a background caching job
-		if (cache.background.queue.hasNext()) {
-			cache.background.nextJobId = window.requestIdleCallback(() => backgroundCache(token));
+		if (caches.background.queue.hasNext()) {
+			caches.background.nextJobId = window.requestIdleCallback(backgroundCache);
 		}
 	}
 }
 
-function backgroundCache(token) {
+function backgroundCache() {
 	// Run through a batch of nodes and cache them, if necessary
 	const endTime = performance.now() + maxBackgroundCachingMillis;
-	while (cache.background.queue.hasNext() && performance.now() < endTime) {
-		const node = getNode(cache.background.queue.pop(), token);
+	while (caches.background.queue.hasNext() && performance.now() < endTime) {
+		const b = caches.background.queue.pop();
+		const node = getNode(b.node, b.cache, b.token);
 		for (let edge of node.edges) {
 			cache.background.queue.push(edge.target);
 		}
 	}
 
 	// If there are still more nodes to process, schedule another batch
-	if (cache.background.queue.hasNext()) {
-		cache.background.nextJobId = window.requestIdleCallback(() => backgroundCache(token));
+	if (caches.background.queue.hasNext()) {
+		caches.background.nextJobId = window.requestIdleCallback(() => backgroundCache(token));
 	} else {
-		cache.background.nextJobId = null;
+		caches.background.nextJobId = null;
 	}
 }
 
