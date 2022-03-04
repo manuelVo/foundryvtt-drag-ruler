@@ -65,7 +65,7 @@ export function findPath(from, to, token, previousWaypoints) {
 		let currentNode = firstNode;
 		while (currentNode) {
 			// TODO Check if the distance doesn't change
-			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, token))
+			if (path.length >= 2 && !stepCollidesWithWall(currentNode.node, path[path.length - 2], token)) {
 				// Replace last waypoint if the current waypoint leads to a valid path
 				path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
 			else
