@@ -66,8 +66,8 @@ function getCachedNodes(token) {
 	// Different-sized tokens snap to different points on the grid,
 	// so they might follow a different path to other tokens
 	if (canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
-		cacheData.tokenWidth = token.width;
-		cacheData.tokenHeight = token.height;
+		cacheData.tokenWidth = token.data.width;
+		cacheData.tokenHeight = token.data.height;
 	} else if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active) {
 		cacheData.tokenSize = token.document.data.flags["hex-size-support", "borderSize"];
 	}
