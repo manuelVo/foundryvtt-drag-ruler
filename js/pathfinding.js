@@ -5,13 +5,59 @@ import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
-import {MaxSizeStackSet, PriorityQueueSet} from "./data_structures.js";
+import {PriorityQueueSet} from "./data_structures.js";
+
+class Cache {
+	constructor() {
+		this.nodes = new Map();
+		this.lastUsed = new Map();
+	}
+
+	clear() {
+		this.nodes.clear();
+		this.lastUsed.clear();
+	}
+
+	/**
+	 * Get the cache associated with the given cache ID, creating a new one
+	 * if we don't already have one
+	 */
+	getCachedNodes(cacheId) {
+		// Track that we've last used this cache right now
+		this.lastUsed.set(cacheId, Date.now());
+
+		// Get the nodes for the cacheId. If we don't already have one, create one
+		let cachedNodes = this.nodes.get(cacheId);
+		if (!cachedNodes) {
+			cachedNodes = new Array(gridHeight);
+			for (let y = 0; y < gridHeight; y++) {
+				cachedNodes[y] = new Array(gridWidth);
+				for (let x = 0; x < gridWidth; x++) {
+					cachedNodes[y][x] = {x, y};
+				}
+			}
+			this.nodes.set(cacheId, cachedNodes);
+
+			// Since we're adding a new cache, check if we have too many and,
+			// if we do, get rid of the one that was last used longest ago
+			if (this.lastUsed.size > maxCacheIds) {
+				let oldest;
+				for (let entry of this.lastUsed) {
+					if (!oldest || oldest[1] > entry[1]) {
+						oldest = entry;
+					}
+				}
+				this.lastUsed.delete(oldest[0]);
+			}
+		}
+
+		return cachedNodes;
+	}
+}
 
 const maxCacheIds = 5;
-const cache = {
-	nodes: new Map(),
-	cacheIds: new MaxSizeStackSet(maxCacheIds)
-}
+const cache = new Cache();
+
 let use5105 = false;
 let gridlessPathfinders = new Map();
 let gridWidth, gridHeight;
@@ -69,7 +115,14 @@ function getCachedNodes(token) {
 		cacheData.tokenWidth = token.data.width;
 		cacheData.tokenHeight = token.data.height;
 	} else if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active) {
-		cacheData.tokenSize = token.document.data.flags["hex-size-support", "borderSize"];
+		const hexSizeSupportFlags = token.document.data.flags["hex-size-support"];
+		if (hexSizeSupportFlags) {
+			cacheData.tokenSize = hexSizeSupportFlags["borderSize"];
+			if (cacheData.tokenSize && cacheData.tokenSize % 2 === 0) {
+				cacheData.altSnap = hexSizeSupportFlags["altSnapping"];
+				cacheData.evenSnap = hexSizeSupportFlags["evenSnap"];
+			}
+		}
 	}
 
 	// If levels is enabled, the token's elevation can affect which walls
@@ -79,29 +132,7 @@ function getCachedNodes(token) {
 	}
 
 	const cacheId = JSON.stringify(cacheData);
-	
-	// Push this cache ID to the stack to put it back on top.
-	// If a cache ID is returned, we already have the maximum
-	// number of caches and we need to delete the oldest one
-	const oldCacheId = cache.cacheIds.push(cacheId);
-	if (oldCacheId) {
-		cache.nodes.delete(oldCacheId);
-	}
-
-	// Get the nodes for the cacheId. If we don't already have one, create one
-	let cachedNodes = cache.nodes.get(cacheId);
-	if (!cachedNodes) {
-		cachedNodes = new Array(gridHeight);
-		for (let y = 0; y < gridHeight; y++) {
-			cachedNodes[y] = new Array(gridWidth);
-			for (let x = 0; x < gridWidth; x++) {
-				cachedNodes[y][x] = {x, y};
-			}
-		}
-		cache.nodes.set(cacheId, cachedNodes);
-	}
-	
-	return cachedNodes;
+	return cache.getCachedNodes(cacheId);
 }
 
 function getNode(pos, cachedNodes, token, initialize = true) {
@@ -197,8 +228,7 @@ function stepCollidesWithWall(from, to, token) {
 }
 
 export function wipePathfindingCache() {
-	cache.nodes.clear();
-	cache.cacheIds.clear();
+	cache.clear();
 	for (const pathfinder of gridlessPathfinders.values()) {
 		GridlessPathfinding.free(pathfinder);
 	}
