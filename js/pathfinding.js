@@ -5,9 +5,13 @@ import {settingsKey} from "./settings.js";
 import {getSnapPointForTokenObj, iterPairs} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
-import {PriorityQueueSet} from "./data_structures.js";
+import {MaxSizeStackSet, PriorityQueueSet} from "./data_structures.js";
 
-let cache = new Map();
+const maxCacheIds = 5;
+const cache = {
+	nodes: new Map(),
+	cacheIds: new MaxSizeStackSet(maxCacheIds)
+}
 let use5105 = false;
 let gridlessPathfinders = new Map();
 let gridWidth, gridHeight;
@@ -61,8 +65,12 @@ function getCachedNodes(token) {
 
 	// Different-sized tokens snap to different points on the grid,
 	// so they might follow a different path to other tokens
-	cacheData.tokenWidth = token.width;
-	cacheData.tokenHeight = token.height;
+	if (canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
+		cacheData.tokenWidth = token.width;
+		cacheData.tokenHeight = token.height;
+	} else if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active) {
+		cacheData.tokenSize = token.document.data.flags["hex-size-support", "borderSize"];
+	}
 
 	// If levels is enabled, the token's elevation can affect which walls
 	// they need to worry about
@@ -71,18 +79,29 @@ function getCachedNodes(token) {
 	}
 
 	const cacheId = JSON.stringify(cacheData);
-	// Create a cache if we don't already have one
-	if (!cache.has(cacheId)) {
-		const cachedNodes = new Array(gridHeight);
+	
+	// Push this cache ID to the stack to put it back on top.
+	// If a cache ID is returned, we already have the maximum
+	// number of caches and we need to delete the oldest one
+	const oldCacheId = cache.cacheIds.push(cacheId);
+	if (oldCacheId) {
+		cache.nodes.delete(oldCacheId);
+	}
+
+	// Get the nodes for the cacheId. If we don't already have one, create one
+	let cachedNodes = cache.nodes.get(cacheId);
+	if (!cachedNodes) {
+		cachedNodes = new Array(gridHeight);
 		for (let y = 0; y < gridHeight; y++) {
 			cachedNodes[y] = new Array(gridWidth);
 			for (let x = 0; x < gridWidth; x++) {
 				cachedNodes[y][x] = {x, y};
 			}
 		}
-		cache.set(cacheId, cachedNodes);
+		cache.nodes.set(cacheId, cachedNodes);
 	}
-	return cache.get(cacheId);
+	
+	return cachedNodes;
 }
 
 function getNode(pos, cachedNodes, token, initialize = true) {
@@ -178,7 +197,8 @@ function stepCollidesWithWall(from, to, token) {
 }
 
 export function wipePathfindingCache() {
-	cache.clear();
+	cache.nodes.clear();
+	cache.cacheIds.clear();
 	for (const pathfinder of gridlessPathfinders.values()) {
 		GridlessPathfinding.free(pathfinder);
 	}
