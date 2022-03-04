@@ -1,15 +1,3 @@
-/**
- * PLAN
- * - Have a map of caches. The key is some information about the token, the value is the cache built using
- *   that information
- * - When we start pathfinding, retrieve the cache with the key we built (should be the same if all info is the same)
- * - Keep current pathfinding info in an object, along with the source/target. If we start pathfinding again with the same
- *   source/target/cache, then we don't need to re-run the algorithm
- * 
- * POSSIBLE ADDITIONS
- * - Run pathfinding asynchronously so slow computers don't lock up
- */
-
 import {getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
 import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
