@@ -2,13 +2,64 @@ import {getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foun
 import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
-import {getSnapPointForTokenObj, iterPairs} from "./util.js";
+import {getSnapPointForTokenObj, getTokenSize, iterPairs} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet} from "./data_structures.js";
 
-let cachedNodes = undefined;
-let cacheElevation;
+class Cache {
+	static maxCacheIds = 5;
+
+	constructor() {
+		this.nodes = new Map();
+		this.lastUsed = new Map();
+	}
+
+	clear() {
+		this.nodes.clear();
+		this.lastUsed.clear();
+	}
+
+	/**
+	 * Get the cache associated with the given cache ID, creating a new one
+	 * if we don't already have one
+	 */
+	getCachedNodes(cacheId) {
+		// Track that we've last used this cache right now
+		this.lastUsed.set(cacheId, Date.now());
+
+		// Get the nodes for the cacheId. If we don't already have one, create one
+		let cachedNodes = this.nodes.get(cacheId);
+		if (!cachedNodes) {
+			cachedNodes = new Array(gridHeight);
+			for (let y = 0; y < gridHeight; y++) {
+				cachedNodes[y] = new Array(gridWidth);
+				for (let x = 0; x < gridWidth; x++) {
+					cachedNodes[y][x] = {x, y};
+				}
+			}
+			this.nodes.set(cacheId, cachedNodes);
+
+			// Since we're adding a new cache, check if we have too many and,
+			// if we do, get rid of the one that was last used longest ago
+			if (this.lastUsed.size > Cache.maxCacheIds) {
+				let oldest;
+				for (let entry of this.lastUsed) {
+					if (!oldest || oldest[1] > entry[1]) {
+						oldest = entry;
+					}
+				}
+				this.nodes.delete(oldest[0]);
+				this.lastUsed.delete(oldest[0]);
+			}
+		}
+
+		return cachedNodes;
+	}
+}
+
+const cache = new Cache();
+
 let use5105 = false;
 let gridlessPathfinders = new Map();
 let gridWidth, gridHeight;
@@ -24,8 +75,6 @@ export function isPathfindingEnabled() {
 }
 
 export function findPath(from, to, token, previousWaypoints) {
-	checkCacheValid(token);
-
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
 		let pathfinder = gridlessPathfinders.get(tokenSize);
@@ -36,7 +85,8 @@ export function findPath(from, to, token, previousWaypoints) {
 		paintGridlessPathfindingDebug(pathfinder);
 		return GridlessPathfinding.findPath(pathfinder, from, to);
 	} else {
-		const lastNode = calculatePath(from, to, token, previousWaypoints);
+		const cachedNodes = getCachedNodes(token);
+		const lastNode = calculatePath(from, to, cachedNodes, token, previousWaypoints);
 		if (!lastNode)
 			return null;
 		paintGriddedPathfindingDebug(lastNode, token);
@@ -55,27 +105,45 @@ export function findPath(from, to, token, previousWaypoints) {
 	}
 }
 
-function getNode(pos, token, initialize=true) {
-	if (!cachedNodes)
-		cachedNodes = new Array(gridHeight);
-	if (!cachedNodes[pos.y])
-		cachedNodes[pos.y] = new Array(gridWidth);
-	if (!cachedNodes[pos.y][pos.x]) {
-		cachedNodes[pos.y][pos.x] = pos;
+/**
+ * Build a cache ID based on the current token's data and then retrieve the cache to use from that
+ */
+function getCachedNodes(token) {
+	const cacheData = {};
+
+	// Different-sized tokens snap to different points on the grid,
+	// so they might follow a different path to other tokens
+	cacheData.tokenSize = getTokenSize(token);
+	if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active) {
+		cacheData.hexConfig = {
+			altOrientation: CONFIG.hexSizeSupport.getAltOrientationFlag(token),
+			altSnapping: CONFIG.hexSizeSupport.getAltSnappingFlag(token)
+		}
 	}
 
+	// If levels is enabled, the token's elevation can affect which walls
+	// they need to worry about
+	if (game.modules.get("levels")?.active) {
+		cacheData.elevation = token.data.elevation;
+	}
+
+	const cacheId = JSON.stringify(cacheData);
+	return cache.getCachedNodes(cacheId);
+}
+
+function getNode(pos, cachedNodes, token, initialize = true) {
 	const node = cachedNodes[pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
 		for (const neighborPos of canvas.grid.grid.getNeighbors(pos.y, pos.x).map(([y, x]) => {return {x, y};})) {
-			if (neighborPos.x < 0 || neighborPos.y < 0 || neighborPos.x > gridWidth || neighborPos.y > gridHeight) {
+			if (neighborPos.x < 0 || neighborPos.y < 0 || neighborPos.x >= gridWidth || neighborPos.y >= gridHeight) {
 				continue;
 			}
 
 			// TODO Work with pixels instead of grid locations
 			if (!stepCollidesWithWall(neighborPos, pos, token)) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
-				const neighbor = getNode(neighborPos, token, false);
+				const neighbor = getNode(neighborPos, cachedNodes, token, false);
 
 				// Count 5-10-5 diagonals as 1.5 (so two add up to 3) and 5-5-5 diagonals as 1.0001 (to discourage unnecessary diagonals)
 				// TODO Account for difficult terrain
@@ -87,7 +155,7 @@ function getNode(pos, token, initialize=true) {
 	return node;
 }
 
-function calculatePath(from, to, token, previousWaypoints) {
+function calculatePath(from, to, cachedNodes, token, previousWaypoints) {
 	use5105 = game.system.id === "pf2e" || canvas.grid.diagonalRule === "5105";
 	let startCost = 0;
 	if (use5105 && canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
@@ -100,7 +168,7 @@ function calculatePath(from, to, token, previousWaypoints) {
 
 	nextNodes.pushWithPriority(
 		{
-			node: getNode(to, token),
+			node: getNode(to, cachedNodes, token),
 			cost: startCost,
 			estimated: startCost + estimateCost(to, from),
 			previous: null
@@ -115,7 +183,7 @@ function calculatePath(from, to, token, previousWaypoints) {
 		}
 		previousNodes.add(currentNode.node);
 		for (const edge of currentNode.node.edges) {
-			const neighborNode = getNode(edge.target, token);
+			const neighborNode = getNode(edge.target, cachedNodes, token);
 			if (previousNodes.has(neighborNode)) {
 				continue;
 			}
@@ -156,27 +224,13 @@ function stepCollidesWithWall(from, to, token) {
 }
 
 export function wipePathfindingCache() {
-	cachedNodes = undefined;
+	cache.clear();
 	for (const pathfinder of gridlessPathfinders.values()) {
 		GridlessPathfinding.free(pathfinder);
 	}
 	gridlessPathfinders.clear();
 	if (debugGraphics)
 		debugGraphics.removeChildren().forEach(c => c.destroy());
-}
-
-/**
- * Check if the current cache is still suitable for the path we're about to find. If not, clear the cache
- */
- function checkCacheValid(token) {
-	// If levels is enabled, the cache is invalid if it was made for a
-	if (game.modules.get("levels")?.active) {
-		const tokenElevation = token.data.elevation;
-		if (tokenElevation !== cacheElevation) {
-			cacheElevation = tokenElevation;
-			wipePathfindingCache();
-		}
-	}
 }
 
 export function initializePathfinding() {
