@@ -2,12 +2,14 @@ import {getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foun
 import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
-import {getSnapPointForTokenObj, iterPairs} from "./util.js";
+import {getSnapPointForTokenObj, getTokenSize, iterPairs} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet} from "./data_structures.js";
 
 class Cache {
+	static maxCacheIds = 5;
+
 	constructor() {
 		this.nodes = new Map();
 		this.lastUsed = new Map();
@@ -40,13 +42,14 @@ class Cache {
 
 			// Since we're adding a new cache, check if we have too many and,
 			// if we do, get rid of the one that was last used longest ago
-			if (this.lastUsed.size > maxCacheIds) {
+			if (this.lastUsed.size > Cache.maxCacheIds) {
 				let oldest;
 				for (let entry of this.lastUsed) {
 					if (!oldest || oldest[1] > entry[1]) {
 						oldest = entry;
 					}
 				}
+				this.nodes.delete(oldest[0]);
 				this.lastUsed.delete(oldest[0]);
 			}
 		}
@@ -55,7 +58,6 @@ class Cache {
 	}
 }
 
-const maxCacheIds = 5;
 const cache = new Cache();
 
 let use5105 = false;
@@ -111,17 +113,11 @@ function getCachedNodes(token) {
 
 	// Different-sized tokens snap to different points on the grid,
 	// so they might follow a different path to other tokens
-	if (canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
-		cacheData.tokenWidth = token.data.width;
-		cacheData.tokenHeight = token.data.height;
-	} else if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active) {
-		const hexSizeSupportFlags = token.document.data.flags["hex-size-support"];
-		if (hexSizeSupportFlags) {
-			cacheData.tokenSize = hexSizeSupportFlags["borderSize"];
-			if (cacheData.tokenSize && cacheData.tokenSize % 2 === 0) {
-				cacheData.altSnap = hexSizeSupportFlags["altSnapping"];
-				cacheData.evenSnap = hexSizeSupportFlags["evenSnap"];
-			}
+	cacheData.tokenSize = getTokenSize(token);
+	if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active) {
+		cacheData.hexConfig = {
+			altOrientation: CONFIG.hexSizeSupport.getAltOrientationFlag(token),
+			altSnapping: CONFIG.hexSizeSupport.getAltSnappingFlag(token)
 		}
 	}
 
