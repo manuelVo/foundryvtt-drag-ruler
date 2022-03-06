@@ -82,29 +82,31 @@ export class PriorityQueueSet {
 }
 
 /**
- * Queue that will only ever accept a single value once
+ * Queue that will only ever accept elements with a given value once. Elements must have a "value" field, the
+ * JSON representation of which will be used as the key to match
  */
  export class ProcessOnceQueue {
 	constructor() {
 		this.first = null;
 		this.last = null;
-		this.queued = new Set();
+		this.previouslyQueued = new Set();
 	}
 
 	reset() {
 		this.first = null;
 		this.last = null;
-		this.queued.clear();
+		this.previouslyQueued.clear();
 	}
 
-	push(value) {
-		if (this.queued.has(value)) {
+	push(element) {
+		const key = JSON.stringify(element.value);
+		if (this.previouslyQueued.has(key)) {
 			return;
 		}
-		this.queued.add(value);
+		this.previouslyQueued.add(key);
 
 		const newNode = {
-			value,
+			value: element,
 			next: null,
 			previous: null
 		}
