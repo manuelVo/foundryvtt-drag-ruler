@@ -108,65 +108,24 @@ class Cache {
 		this.background.queues.get(cacheId).push(
 			{
 				value: {
-					cacheId,
 					pos: getGridPositionFromPixelsObj(token.position)
 				},
+				cache: this.nodes.get(cacheId),
 				token
 			}
 		);
 		this.scheduleBackgroundCache();
 	}
 
-	runBackgroundCache(queue) {
-		let token, cacheId;
-
-		setTimeout(
-			() => {
-				// Run through a batch of nodes and cache them, if necessary
-				const endTime = performance.now() + Cache.maxBackgroundCachingMillis;
-				while (queue.hasNext() && performance.now() < endTime) {
-					let queueItem = queue.pop();
-					token = queueItem.token;
-					cacheId = queueItem.value.cacheId;
-					const node = getNode(queueItem.value.pos, this.nodes.get(queueItem.value.cacheId), queueItem.token);
-					for (let edge of node.edges) {
-						queue.push(
-							{
-								value: {
-									cacheId: queueItem.value.cacheId,
-									pos: {
-										x: edge.target.x,
-										y: edge.target.y
-									}
-								},
-								token: queueItem.token
-							}
-						);
-					}
-
-					if (!queue.hasNext()) {
-						console.log(`Done caching for ${queueItem.value.cacheId}`);
-					}
-					break;
-				}
-
-				paintGriddedCacheDebug();
-
-				this.background.nextJobId = null;
-				this.scheduleBackgroundCache();
-			},
-			100
-		);
-	}
-
 	/**
 	 * Find if any of the caches have more nodes to background cache. If there is, then schedule a background
 	 * caching job for that queue
 	 */
-	scheduleBackgroundCache() {
-		// If we already have a nextJobId, then
+	 scheduleBackgroundCache() {
+		// If we already have a nextJobId, then don't start another one
 		if (this.background.nextJobId) return;
 
+		// Find the latest-used cache that has nodes left to cache
 		const latestCache = Array.from(this.lastUsed.entries())
 			.filter(entry => this.background.queues.get(entry[0]).hasNext())
 			.sort((a, b) => b[1] - a[1])[0];
@@ -176,6 +135,32 @@ class Cache {
 				() => this.runBackgroundCache(this.background.queues.get(latestCache[0]))
 			);
 		}
+	}
+
+	runBackgroundCache(queue) {
+		// Run through a batch of nodes and cache them, if necessary
+		const endTime = performance.now() + Cache.maxBackgroundCachingMillis;
+		while (queue.hasNext() && performance.now() < endTime) {
+			let queueItem = queue.pop();
+			const node = getNode(queueItem.value.pos, this.nodes.get(queueItem.value.cacheId), queueItem.token);
+			for (let edge of node.edges) {
+				queue.push(
+					{
+						value: {
+							pos: {
+								x: edge.target.x,
+								y: edge.target.y
+							}
+						},
+						cacheId: queueItem.cacheId,
+						token: queueItem.token
+					}
+				);
+			}
+		}
+
+		this.background.nextJobId = null;
+		this.scheduleBackgroundCache();
 	}
 }
 
@@ -369,30 +354,6 @@ function paintGriddedPathfindingDebug(firstNode, token) {
 		debugGraphics.addChild(text);
 		currentNode = currentNode.next;
 	}
-}
-
-function paintGriddedCacheDebug() {
-	if (!CONFIG.debug.dragRuler)
-		return;
-
-	debugGraphics.removeChildren().forEach(c => c.destroy());
-	cache.nodes.forEach(
-		(nodes, cacheId) => {
-			for (let y = 0; y < gridHeight; y++) {
-				for (let x = 0; x < gridWidth; x++) {
-					if (nodes[y][x].edges) {
-						let text = new PIXI.Text(cacheId);
-						let pixels = getPixelsFromGridPositionObj({x, y});
-						text.anchor.set(0.5, 1.0);
-						text.x = pixels.x;
-						text.y = pixels.y;
-						debugGraphics.addChild(text);
-					}
-				}
-			}
-		}
-
-	)
 }
 
 function paintGridlessPathfindingDebug(pathfinder) {
