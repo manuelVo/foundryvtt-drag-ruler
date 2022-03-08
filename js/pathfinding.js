@@ -10,6 +10,7 @@ import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
 class Cache {
 	static maxCacheIds = 5;
 	static maxBackgroundCachingMillis = 10;
+	static maxAnimationCachingMillis = 5;
 	static backgroundCachingTimeoutMillis = 200;
 
 	constructor() {
@@ -173,8 +174,6 @@ class Cache {
 	}
 
 	runBackgroundCache(queue) {
-		console.log("run background caching");
-
 		// Run through a batch of nodes and cache them, if necessary
 		const endTime = performance.now() + Cache.maxBackgroundCachingMillis;
 		while (queue.hasNext() && performance.now() < endTime) {
@@ -186,10 +185,9 @@ class Cache {
 	}
 
 	runAnimationCache(queue) {
-		console.log("run animation caching");
-
 		// Just cache one node so we're not slowing things down too much
-		if (queue.hasNext()) {
+		const endTime = performance.now() + Cache.maxAnimationCachingMillis;
+		while (queue.hasNext() && performance.now() < endTime) {
 			this.cacheNextNode(queue);
 		}
 
