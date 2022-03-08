@@ -1,3 +1,14 @@
+## 1.12.3
+### Bugfixes
+- Fixed a bug that could cause foundry to freeze indefinitely when trying to pathfind to an unreachalbe location (thanks to JDCalvert)
+- Fixed a bug that caused the pathfinder to route through one-directional walls from the wrong direction (thanks to JDCalvert)
+- Fixed a bug that could cause Drag Ruler to write errors into the JS console during regular usage
+
+### Compatibility
+- Drag Ruler's generic speed provider is now aware of good defaults for DnD 4th Edition
+- Drag Ruler's pathfinder should now be compatible with the Wall Height and Levels modules (thanks to JDCalvert)
+
+
 ## 1.12.2
 ### Bugfixes
 - Fixed a bug where the pathfinder on gridless scenes sometimes wasn't able to find a way around corners with specific angles
