@@ -7,7 +7,6 @@ import {getSnapPointForTokenObj, getTokenShape, getTokenShapeId, iterPairs} from
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet} from "./data_structures.js";
 import { buildCostFunction } from "./api.js";
-import { measure } from "./foundry_imports.js";
 
 class Cache {
 	static maxCacheIds = 5;
