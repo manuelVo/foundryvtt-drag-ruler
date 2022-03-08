@@ -90,35 +90,12 @@ export function getSnapPointForTokenObj(pos, token) {
 	return getSnapPointForToken(pos.x, pos.y, token);
 }
 
-export function getSnapPointForMeasuredTemplate(x, y) {
-	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
-		return new PIXI.Point(x, y);
-	}
-	let subgridWidth, subgridHeight;
-	if (canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
-		subgridWidth = subgridHeight = canvas.dimensions.size / 2;
-	}
-	else {
-		if (canvas.grid.grid.columns) {
-			subgridWidth = canvas.grid.w / 4;
-			subgridHeight = canvas.grid.h / 2;
-		}
-		else {
-			subgridWidth = canvas.grid.w / 2;
-			subgridHeight = canvas.grid.h / 4;
-		}
-	}
-	const snappedX = Math.round(x / subgridWidth) * subgridWidth;
-	const snappedY = Math.round(y / subgridHeight) * subgridHeight;
-	return new PIXI.Point(snappedX, snappedY);
-}
-
 export function getSnapPointForEntity(x, y, entity) {
 	const isToken = entity instanceof Token;
 	if (isToken)
 		return getSnapPointForToken(x, y, entity);
 	else
-		return getSnapPointForMeasuredTemplate(x, y);
+		return canvas.grid.grid.getSnappedPosition(x, y, canvas.templates.gridPosition);
 }
 
 export function highlightTokenShape(position, shape, color, alpha) {
