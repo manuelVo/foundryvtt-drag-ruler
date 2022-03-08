@@ -245,7 +245,7 @@ function paintGriddedPathfindingDebug(lastNode, token) {
 	debugGraphics.removeChildren().forEach(c => c.destroy());
 	let currentNode = lastNode;
 	while (currentNode) {
-		let text = new PIXI.Text(currentNode.cost.toFixed(0));
+		let text = new PIXI.Text(currentNode.cost.toFixed(1));
 		let pixels = getSnapPointForTokenObj(getPixelsFromGridPositionObj(currentNode.node), token);
 		text.anchor.set(0.5, 1.0);
 		text.x = pixels.x;
