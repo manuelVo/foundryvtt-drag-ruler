@@ -1,3 +1,8 @@
+## 1.12.5
+### Compatibility
+- Drag Ruler is now compatible with DF Template Enhancements
+
+
 ## 1.12.4
 ### Bugfixes
 - Fixed a bug that could cause Drag Ruler to override the default ruler color on other player's clients
