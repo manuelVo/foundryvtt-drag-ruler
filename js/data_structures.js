@@ -90,8 +90,12 @@ export class PriorityQueueSet {
 		this.first = null;
 		this.last = null;
 		this.previouslyQueued = new Set();
+		this.popped = new Set();
 	}
 
+	/**
+	 * Remove everything from the queue and forget all the previously-queued items
+	 */
 	reset() {
 		this.first = null;
 		this.last = null;
