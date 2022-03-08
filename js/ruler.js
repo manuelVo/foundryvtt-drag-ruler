@@ -54,6 +54,9 @@ export function extendRuler() {
 				else
 					this.draggedEntity = canvas.templates.get(data.draggedEntity);
 			}
+			else {
+				this.draggedEntity = undefined;
+			}
 
 			super.update(data);
 		}
