@@ -7,6 +7,22 @@ import {getSnapPointForTokenObj, getTokenSize, iterPairs} from "./util.js";
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
 
+/**
+ * Class to hold all the cached node data, and functions to deal with caching.
+ * 
+ * Since pathfinding can depend on several factors, e.g. the token's size, we keep
+ * several caches, keyed by all the data relevant to pathfinding. If we already have
+ * the maximum number of caches and we need to create another one, we discard the
+ * one not used for the longest.
+ * 
+ * When we select a token, or a token we have selected updates, we start caching
+ * in the background so, when we do start pathfinding, it's very performant.
+ * 
+ * Background caching starts by trying to run an idle process (when the browser is
+ * otherwise not busy), but if it can't do that after an amount of time (e.g. the
+ * CPU is very slow and is busy) then we instead start caching a few nodes each
+ * frame. 
+ */
 class Cache {
 	static maxCacheIds = 5;
 	static maxBackgroundCachingMillis = 10;
@@ -131,7 +147,6 @@ class Cache {
 		// Find the latest-used cache that has nodes left to cache
 		const latestCacheId = this.getLatestCacheId();
 		if (latestCacheId) {
-			console.log("schedule background caching");
 			this.background.nextJobId = window.requestIdleCallback(
 				() => this.runBackgroundCache(this.background.queues.get(latestCacheId))
 			);
@@ -147,9 +162,11 @@ class Cache {
 		this.cancelTimeout();
 		this.cancelAnimationFrame();
 
-		console.log("schedule timeout caching");
 		this.background.nextTimeoutId = window.setTimeout(
-			() => this.scheduleAnimationFrameCache(),
+			() => {
+				this.scheduleAnimationFrameCache();
+				this.background.nextTimeoutId = null;
+			},
 			Cache.backgroundCachingTimeoutMillis
 		);
 	}
@@ -160,21 +177,25 @@ class Cache {
 	scheduleAnimationFrameCache() {
 		const latestCacheId = this.getLatestCacheId();
 		if (latestCacheId) {
-			console.log("schedule animation frame");
 			this.background.nextAnimationFrameId = window.requestAnimationFrame(
 				() => this.runAnimationCache(this.background.queues.get(latestCacheId))
 			);
 		}
 	}
 
+	/**
+	 * Find which cache was last used and get its cache ID
+	 */
 	getLatestCacheId() {
 		return Array.from(this.lastUsed.entries())
 			.filter(entry => this.background.queues.get(entry[0]).hasNext())
 			.sort((a, b) => b[1] - a[1])[0]?.[0];
 	}
 
+	/**
+	 * Cache nodes for a short time, and then schedule another idle job to cache more nodes
+	 */
 	runBackgroundCache(queue) {
-		// Run through a batch of nodes and cache them, if necessary
 		const endTime = performance.now() + Cache.maxBackgroundCachingMillis;
 		while (queue.hasNext() && performance.now() < endTime) {
 			this.cacheNextNode(queue);
@@ -184,13 +205,16 @@ class Cache {
 		this.scheduleBackgroundCache();
 	}
 
+	/**
+	 * Cache nodes for a very short time, then schedule to cache more nodes next frame
+	 */
 	runAnimationCache(queue) {
-		// Just cache one node so we're not slowing things down too much
 		const endTime = performance.now() + Cache.maxAnimationCachingMillis;
 		while (queue.hasNext() && performance.now() < endTime) {
 			this.cacheNextNode(queue);
 		}
 
+		this.background.nextAnimationFrameId = null;
 		this.scheduleAnimationFrameCache();
 	}
 
@@ -215,7 +239,6 @@ class Cache {
 
 	cancelTimeout() {
 		if (this.background.nextTimeoutId) {
-			console.log("cancel timeout caching");
 			window.clearTimeout(this.background.nextTimeoutId);
 			this.background.nextTimeoutId = null;
 		}
@@ -223,7 +246,6 @@ class Cache {
 
 	cancelAnimationFrame() {
 		if (this.background.nextAnimationFrameId) {
-			console.log("cancel animation caching");
 			window.cancelAnimationFrame(this.background.nextAnimationFrameId);
 			this.background.nextAnimationFrameId = null;
 		}
