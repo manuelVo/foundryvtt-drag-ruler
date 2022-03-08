@@ -10,13 +10,16 @@ import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
 class Cache {
 	static maxCacheIds = 5;
 	static maxBackgroundCachingMillis = 10;
+	static backgroundCachingTimeoutMillis = 200;
 
 	constructor() {
 		this.nodes = new Map();
 		this.lastUsed = new Map();
 		this.background = {
 			queues: new Map(),
-			nextJobId: null
+			nextJobId: null,
+			nextTimeoutId: null,
+			nextAnimationFrameId: null
 		}
 	}
 
@@ -28,6 +31,8 @@ class Cache {
 			window.cancelIdleCallback(this.background.nextJobId);
 			this.background.nextJobId = null;
 		}
+		this.cancelTimeout();
+		this.cancelAnimationFrame();
 	}
 
 	/**
@@ -122,42 +127,103 @@ class Cache {
 		// If we already have a nextJobId, then don't start another one
 		if (this.background.nextJobId) return;
 
-		// Find the latest-used cache that has nodes left to cache
-		const latestCache = Array.from(this.lastUsed.entries())
-			.filter(entry => this.background.queues.get(entry[0]).hasNext())
-			.sort((a, b) => b[1] - a[1])[0];
+		console.log("scheduling background caching");
 
-		if (latestCache) {
+		// Find the latest-used cache that has nodes left to cache
+		const latestCacheId = this.getLatestCacheId();
+		if (latestCacheId) {
 			this.background.nextJobId = window.requestIdleCallback(
-				() => this.runBackgroundCache(this.background.queues.get(latestCache[0]), {timeout: 200})
+				() => this.runBackgroundCache(this.background.queues.get(latestCacheId))
 			);
+			this.scheduleTimeout();
 		}
 	}
 
+	/**
+	 * Start a timeout which, if we read the timeout time, will schedule a small amount of caching
+	 * to be performed every frame. This timeout will be cancelled every time we perform background caching.
+	 */
+	scheduleTimeout() {
+		console.log("schedule timeout caching");
+
+		this.cancelTimeout();
+		this.cancelAnimationFrame();
+		this.background.nextTimeoutId = setTimeout(() => this.scheduleAnimationFrameCache(), this.backgroundCachingTimeoutMillis);
+	}
+
+	/**
+	 * Schedule a small amount of caching to be done just before the next frame renders
+	 */
+	scheduleAnimationFrameCache() {
+		console.log("schedule animation frame");
+
+		const latestCacheId = this.getLatestCacheId();
+		if (latestCacheId) {
+			window.requestAnimationFrame(() => this.runAnimationCache(this.background.queues.get(latestCacheId)));
+		}
+	}
+
+	getLatestCacheId() {
+		return Array.from(this.lastUsed.entries())
+			.filter(entry => this.background.queues.get(entry[0]).hasNext())
+			.sort((a, b) => b[1] - a[1])[0]?.[0];
+	}
+
 	runBackgroundCache(queue) {
+		console.log("run background caching");
+
 		// Run through a batch of nodes and cache them, if necessary
 		const endTime = performance.now() + Cache.maxBackgroundCachingMillis;
 		while (queue.hasNext() && performance.now() < endTime) {
-			let queueItem = queue.pop();
-			const node = getNode(queueItem.value.pos, this.nodes.get(queueItem.cacheId), queueItem.token);
-			for (let edge of node.edges) {
-				queue.push(
-					{
-						value: {
-							pos: {
-								x: edge.target.x,
-								y: edge.target.y
-							}
-						},
-						cacheId: queueItem.cacheId,
-						token: queueItem.token
-					}
-				);
-			}
+			this.cacheNextNode(queue);
 		}
 
 		this.background.nextJobId = null;
 		this.scheduleBackgroundCache();
+	}
+
+	runAnimationCache(queue) {
+		console.log("run animation caching");
+
+		// Just cache one node so we're not slowing things down too much
+		if (queue.hasNext()) {
+			this.cacheNextNode(queue);
+		}
+
+		this.scheduleAnimationFrameCache();
+	}
+
+	cacheNextNode(queue) {
+		let queueItem = queue.pop();
+		const node = getNode(queueItem.value.pos, this.nodes.get(queueItem.cacheId), queueItem.token);
+		for (let edge of node.edges) {
+			queue.push(
+				{
+					value: {
+						pos: {
+							x: edge.target.x,
+							y: edge.target.y
+						}
+					},
+					cacheId: queueItem.cacheId,
+					token: queueItem.token
+				}
+			);
+		}
+	}
+
+	cancelTimeout() {
+		if (this.background.nextTimeoutId) {
+			clearTimeout(this.background.nextTimeoutId);
+			this.background.nextTimeoutId = null;
+		}
+	}
+
+	cancelAnimationFrame() {
+		if (this.background.nextAnimationFrameId) {
+			window.cancelAnimationFrame(this.background.nextAnimationFrameId);
+			this.background.nextAnimationFrameId = null;
+		}
 	}
 }
 
