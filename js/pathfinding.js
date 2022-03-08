@@ -135,14 +135,11 @@ class Cache {
 	}
 
 	runBackgroundCache(queue) {
-		let cacheId;
-
 		// Run through a batch of nodes and cache them, if necessary
 		const endTime = performance.now() + Cache.maxBackgroundCachingMillis;
 		while (queue.hasNext() && performance.now() < endTime) {
 			let queueItem = queue.pop();
-			cacheId = queueItem.cacheId;
-			const node = getNode(queueItem.value.pos, this.nodes.get(queueItem.cacheId), queueItem.token);
+			const node = getNode(queueItem.value.pos, this.nodes.get(queueItem.value.cacheId), queueItem.token);
 			for (let edge of node.edges) {
 				queue.push(
 					{
