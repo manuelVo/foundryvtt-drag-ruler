@@ -81,7 +81,7 @@ export function findPath(from, to, token, previousWaypoints) {
 		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
 		let pathfinder = gridlessPathfinders.get(tokenSize);
 		if (!pathfinder) {
-			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize, token.data.elevation, Boolean(game.modules.get("levels")?.active));
+			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize, token.data.elevation, Boolean(game.modules.get("wall-height")?.active));
 			gridlessPathfinders.set(tokenSize, pathfinder);
 		}
 		paintGridlessPathfindingDebug(pathfinder);
@@ -280,7 +280,7 @@ function paintGriddedPathfindingDebug(lastNode, token) {
 	debugGraphics.removeChildren().forEach(c => c.destroy());
 	let currentNode = lastNode;
 	while (currentNode) {
-		let text = new PIXI.Text(currentNode.cost.toFixed(0));
+		let text = new PIXI.Text(currentNode.cost.toFixed(1));
 		let pixels = getSnapPointForTokenObj(getPixelsFromGridPositionObj(currentNode.node), token);
 		text.anchor.set(0.5, 1.0);
 		text.x = pixels.x;
