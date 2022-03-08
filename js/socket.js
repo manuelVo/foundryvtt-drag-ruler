@@ -39,5 +39,7 @@ export function recalculate(tokens) {
 }
 
 function _socketRecalculate(tokenIds) {
-	return canvas.controls.ruler.dragRulerRecalculate(tokenIds);
+	const ruler = canvas.controls.ruler;
+	if (ruler.isDragRuler)
+		ruler.dragRulerRecalculate(tokenIds);
 }
