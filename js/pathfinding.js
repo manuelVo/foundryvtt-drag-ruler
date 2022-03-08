@@ -127,11 +127,10 @@ class Cache {
 		// If we already have a nextJobId, then don't start another one
 		if (this.background.nextJobId) return;
 
-		console.log("scheduling background caching");
-
 		// Find the latest-used cache that has nodes left to cache
 		const latestCacheId = this.getLatestCacheId();
 		if (latestCacheId) {
+			console.log("schedule background caching");
 			this.background.nextJobId = window.requestIdleCallback(
 				() => this.runBackgroundCache(this.background.queues.get(latestCacheId))
 			);
@@ -144,22 +143,26 @@ class Cache {
 	 * to be performed every frame. This timeout will be cancelled every time we perform background caching.
 	 */
 	scheduleTimeout() {
-		console.log("schedule timeout caching");
-
 		this.cancelTimeout();
 		this.cancelAnimationFrame();
-		this.background.nextTimeoutId = setTimeout(() => this.scheduleAnimationFrameCache(), this.backgroundCachingTimeoutMillis);
+
+		console.log("schedule timeout caching");
+		this.background.nextTimeoutId = window.setTimeout(
+			() => this.scheduleAnimationFrameCache(),
+			Cache.backgroundCachingTimeoutMillis
+		);
 	}
 
 	/**
 	 * Schedule a small amount of caching to be done just before the next frame renders
 	 */
 	scheduleAnimationFrameCache() {
-		console.log("schedule animation frame");
-
 		const latestCacheId = this.getLatestCacheId();
 		if (latestCacheId) {
-			window.requestAnimationFrame(() => this.runAnimationCache(this.background.queues.get(latestCacheId)));
+			console.log("schedule animation frame");
+			this.background.nextAnimationFrameId = window.requestAnimationFrame(
+				() => this.runAnimationCache(this.background.queues.get(latestCacheId))
+			);
 		}
 	}
 
@@ -214,13 +217,15 @@ class Cache {
 
 	cancelTimeout() {
 		if (this.background.nextTimeoutId) {
-			clearTimeout(this.background.nextTimeoutId);
+			console.log("cancel timeout caching");
+			window.clearTimeout(this.background.nextTimeoutId);
 			this.background.nextTimeoutId = null;
 		}
 	}
 
 	cancelAnimationFrame() {
 		if (this.background.nextAnimationFrameId) {
+			console.log("cancel animation caching");
 			window.cancelAnimationFrame(this.background.nextAnimationFrameId);
 			this.background.nextAnimationFrameId = null;
 		}
