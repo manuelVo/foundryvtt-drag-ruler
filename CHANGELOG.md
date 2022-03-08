@@ -1,3 +1,8 @@
+## 1.12.4
+### Bugfixes
+- Fixed a bug that could cause Drag Ruler to override the default ruler color on other player's clients
+
+
 ## 1.12.3
 ### Bugfixes
 - Fixed a bug that could cause foundry to freeze indefinitely when trying to pathfind to an unreachalbe location (thanks to JDCalvert)
