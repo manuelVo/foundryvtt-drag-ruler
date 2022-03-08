@@ -129,7 +129,7 @@ class Cache {
 
 		if (latestCache) {
 			this.background.nextJobId = window.requestIdleCallback(
-				() => this.runBackgroundCache(this.background.queues.get(latestCache[0]))
+				() => this.runBackgroundCache(this.background.queues.get(latestCache[0]), {timeout: 200})
 			);
 		}
 	}

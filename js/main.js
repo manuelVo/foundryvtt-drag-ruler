@@ -36,6 +36,7 @@ initGridlessPathfinding().then(() => {
 		}
 	});
 
+	// Whenever a token the current user controls updates, start caching
 	Hooks.on("updateToken", (document) => {
 		const token = document.object;
 		if (token._controlled) {
