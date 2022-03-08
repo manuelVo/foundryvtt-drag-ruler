@@ -29,11 +29,19 @@ initGridlessPathfinding().then(() => {
 	Hooks.on("updateWall", wipePathfindingCache);
 	Hooks.on("deleteWall", wipePathfindingCache);
 
+	// Whenever the current user selects a token, start caching
 	Hooks.on("controlToken", (token, controlled) => {
 		if (controlled) {
 			startBackgroundCaching(token);
 		}
-	})
+	});
+
+	Hooks.on("updateToken", (document) => {
+		const token = document.object;
+		if (token._controlled) {
+			startBackgroundCaching(token);
+		}
+	});
 });
 
 Hooks.once("init", () => {

@@ -139,7 +139,7 @@ class Cache {
 		const endTime = performance.now() + Cache.maxBackgroundCachingMillis;
 		while (queue.hasNext() && performance.now() < endTime) {
 			let queueItem = queue.pop();
-			const node = getNode(queueItem.value.pos, this.nodes.get(queueItem.value.cacheId), queueItem.token);
+			const node = getNode(queueItem.value.pos, this.nodes.get(queueItem.cacheId), queueItem.token);
 			for (let edge of node.edges) {
 				queue.push(
 					{
@@ -337,7 +337,9 @@ export function initializePathfinding() {
 }
 
 export function startBackgroundCaching(token) {
-	cache.startBackgroundCaching(token);
+	if (game.user.isGM || game.settings.get(settingsKey, "allowPathfinding")) {
+		cache.startBackgroundCaching(token);
+	}
 }
 
 function paintGriddedPathfindingDebug(firstNode, token) {
