@@ -3,7 +3,7 @@ import {findVertexSnapPoint} from "./hex_support.js";
 import {disableSnap} from "./keybindings.js";
 
 export function* zip(it1, it2) {
-	for (let i = 0; i < Math.min(it1.length, it2.length); i++) {
+	for (let i = 0;i < Math.min(it1.length, it2.length);i++) {
 		yield [it1[i], it2[i]]
 	}
 }
@@ -17,7 +17,7 @@ export function* enumeratedZip(it1, it2) {
 }
 
 export function* iterPairs(l) {
-	for (let i = 1; i < l.length; i++) {
+	for (let i = 1;i < l.length;i++) {
 		yield [l[i - 1], l[i]];
 	}
 }
@@ -148,7 +148,7 @@ export function getSnapPointForEntity(x, y, entity) {
 
 export function highlightTokenShape(position, shape, color, alpha) {
 	const layer = canvas.grid.highlightLayers[this.name];
-	if (!layer)
+    if ( !layer )
 		return false;
 	const area = getAreaFromPositionAndShape(position, shape);
 	for (const space of area) {
@@ -190,8 +190,8 @@ export function getTokenShape(token) {
 		const topOffset = -Math.floor(token.data.height / 2)
 		const leftOffset = -Math.floor(token.data.width / 2)
 		const shape = []
-		for (let y = 0; y < token.data.height; y++) {
-			for (let x = 0; x < token.data.width; x++) {
+		for (let y = 0;y < token.data.height;y++) {
+			for (let x = 0;x < token.data.width;x++) {
 				shape.push({x: x + leftOffset, y: y + topOffset})
 			}
 		}
