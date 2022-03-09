@@ -1,7 +1,7 @@
 /**
  * A combination queue/set where the elements are ordered (in ascending order, according to the given priority function)
  * and unique (according to the given elementMatcher).
- * 
+ *
  * If an element is added to the set and an equivalent element already exists, the lower-priority one is discarded.
  */
 export class PriorityQueueSet {
@@ -85,7 +85,7 @@ export class PriorityQueueSet {
  * Queue that will only ever accept elements with a given value once. Elements must have a "value" field, the
  * JSON representation of which will be used as the key to match
  */
- export class ProcessOnceQueue {
+export class ProcessOnceQueue {
 	constructor() {
 		this.first = null;
 		this.last = null;

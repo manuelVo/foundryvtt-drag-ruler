@@ -34,19 +34,19 @@ class CacheLayer {
 
 /**
  * Class to hold all the cached node data, and functions to deal with caching.
- * 
+ *
  * Since pathfinding can depend on several factors, e.g. the token's size, we keep
  * several caches, keyed by all the data relevant to pathfinding. If we already have
  * the maximum number of caches and we need to create another one, we discard the
  * one not used for the longest.
- * 
+ *
  * When we select a token, or a token we have selected updates, we start caching
  * in the background so, when we do start pathfinding, it's very performant.
- * 
+ *
  * Background caching starts by trying to run an idle process (when the browser is
  * otherwise not busy), but if it can't do that after an amount of time (e.g. the
  * CPU is very slow and is busy) then we instead start caching a few nodes each
- * frame. 
+ * frame.
  */
 class Cache {
 	static maxCacheLayers = 5;
@@ -108,9 +108,9 @@ class Cache {
 	startBackgroundCaching(token) {
 		const cacheLayer = this.getCacheLayer(token);
 		const tokenPosition = getGridPositionFromPixelsObj(token.position)
-		
+
 		cacheLayer.queue.push(cacheLayer.nodes[tokenPosition.y][tokenPosition.x]);
-		
+
 		this.scheduleBackgroundCache();
 	}
 
