@@ -2,7 +2,7 @@ import {getCenterFromGridPositionObj, getGridPositionFromPixelsObj, getPixelsFro
 import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
-import {buildSnapPointTokenData, getSnapPointForTokenDataObj, isModuleActive, iterPairs} from "./util.js";
+import {buildSnapPointTokenData, getSnapPointForTokenDataObj, getTokenShape, getTokenShapeForTokenData, isModuleActive, iterPairs} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
@@ -322,7 +322,7 @@ function getNode(pos, cacheLayer, initialize = true) {
 				let edgeCost;
 				if (window.terrainRuler) {
 					let ray = new Ray(getCenterFromGridPositionObj(neighborPos), getCenterFromGridPositionObj(pos));
-					let measuredDistance = terrainRuler.measureDistances([{ray}], {costFunction: buildCostFunction(token, getTokenShape(token))})[0];
+					let measuredDistance = terrainRuler.measureDistances([{ray}], {costFunction: buildCostFunction(cacheLayer.tokenData, getTokenShapeForTokenData(cacheLayer.tokenData))})[0];
 					edgeCost = Math.round(measuredDistance / canvas.dimensions.distance);
 					if (ray.terrainRulerFinalState?.noDiagonals === 1) {
 						edgeCost = 1.5;

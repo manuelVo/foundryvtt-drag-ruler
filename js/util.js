@@ -167,15 +167,19 @@ export function getAreaFromPositionAndShape(position, shape) {
 }
 
 export function getTokenShape(token) {
-	if (token.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS) {
+	return getTokenShapeForTokenData(buildSnapPointTokenData(token), token.scene);
+}
+
+export function getTokenShapeForTokenData(tokenData, scene=canvas.scene) {
+	if (scene.data.gridType === CONST.GRID_TYPES.GRIDLESS) {
 		return [{x: 0, y: 0}]
 	}
-	else if (token.scene.data.gridType === CONST.GRID_TYPES.SQUARE) {
-		const topOffset = -Math.floor(token.data.height / 2)
-		const leftOffset = -Math.floor(token.data.width / 2)
+	else if (scene.data.gridType === CONST.GRID_TYPES.SQUARE) {
+		const topOffset = -Math.floor(tokenData.height / 2)
+		const leftOffset = -Math.floor(tokenData.width / 2)
 		const shape = []
-		for (let y = 0;y < token.data.height;y++) {
-			for (let x = 0;x < token.data.width;x++) {
+		for (let y = 0;y < tokenData.height;y++) {
+			for (let x = 0;x < tokenData.width;x++) {
 				shape.push({x: x + leftOffset, y: y + topOffset})
 			}
 		}
@@ -183,8 +187,8 @@ export function getTokenShape(token) {
 	}
 	else {
 		// Hex grids
-		if (game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(token)) {
-			const borderSize = token.data.flags["hex-size-support"].borderSize;
+		if (game.modules.get("hex-size-support")?.active && tokenData.hexSizeSupport.altSnappingFlag) {
+			const borderSize = tokenData.hexSizeSupport.borderSize;
 			let shape = [{x: 0, y: 0}];
 			if (borderSize >= 2)
 				shape = shape.concat([{x: 0, y: -1}, {x: -1, y: -1}]);
@@ -193,7 +197,7 @@ export function getTokenShape(token) {
 			if (borderSize >= 4)
 				shape = shape.concat([{x: -2, y: -1}, {x: 1, y: -1}, {x: -1, y: -2}, {x: 0, y: -2}, {x: 1, y: -2}])
 
-			if (Boolean(CONFIG.hexSizeSupport.getAltOrientationFlag(token)) !== canvas.grid.grid.options.columns)
+			if (Boolean(tokenData.hexSizeSupport.altOrientationFlag) !== canvas.grid.grid.options.columns)
 				shape.forEach(space => space.y *= -1);
 			if (canvas.grid.grid.options.columns)
 				shape = shape.map(space => {return {x: space.y, y: space.x}});
