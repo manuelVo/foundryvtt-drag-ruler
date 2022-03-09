@@ -87,10 +87,7 @@ class Cache {
 			// get rid of the one that hasn't been used for the longest
 			if (this.layers.size >= Cache.maxCacheLayers) {
 				const oldestCache = Array.from(this.layers.values())
-					.reduce(
-						(layer1, layer2) => (layer1.lastUsed < layer2.lastUsed) ? layer1 : layer2,
-						{lastUsed: Infinity} // Any cache will be older than this
-					);
+					.reduce((layer1, layer2) => (layer1?.lastUsed < layer2.lastUsed) ? layer1 : layer2, null);
 				this.layers.delete(oldestCache.cacheId);
 			}
 
