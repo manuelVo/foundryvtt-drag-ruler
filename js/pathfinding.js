@@ -2,10 +2,35 @@ import {getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foun
 import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
-import {getSnapPointForTokenObj, getTokenSize, iterPairs} from "./util.js";
+import {buildSnapPointTokenData, getSnapPointForTokenDataObj, isModuleActive, iterPairs} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
+
+class CacheLayer {
+	constructor(tokenData, cacheId) {
+		this.tokenData = tokenData;
+		this.cacheId = cacheId;
+		this.queue = new ProcessOnceQueue();
+
+		this.buildNodes();
+		this.registerUse();
+	}
+
+	buildNodes() {
+		this.nodes = new Array(gridHeight);
+		for (let y = 0; y < gridHeight; y++) {
+			this.nodes[y] = new Array(gridWidth);
+			for (let x = 0; x < gridWidth; x++) {
+				this.nodes[y][x] = {x, y};
+			}
+		}
+	}
+
+	registerUse() {
+		this.lastUsed = Date.now();
+	}
+}
 
 /**
  * Class to hold all the cached node data, and functions to deal with caching.
@@ -24,16 +49,14 @@ import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
  * frame. 
  */
 class Cache {
-	static maxCacheIds = 5;
+	static maxCacheLayers = 5;
 	static maxBackgroundCachingMillis = 10;
 	static maxAnimationCachingMillis = 5;
 	static backgroundCachingTimeoutMillis = 200;
 
 	constructor() {
-		this.nodes = new Map();
-		this.lastUsed = new Map();
+		this.layers = new Map();
 		this.background = {
-			queues: new Map(),
 			nextJobId: null,
 			nextTimeoutId: null,
 			nextAnimationFrameId: null
@@ -41,9 +64,7 @@ class Cache {
 	}
 
 	clear() {
-		this.nodes.clear();
-		this.lastUsed.clear();
-		this.background.queues.clear();
+		this.layers.clear();
 		if (this.background.nextJobId) {
 			window.cancelIdleCallback(this.background.nextJobId);
 			this.background.nextJobId = null;
@@ -53,86 +74,46 @@ class Cache {
 	}
 
 	/**
-	 * Build a cache ID from the information that could make a difference to the pathfinding algorithm
+	 * Retrieve the cache layer for this token, using information that can make a difference to the pathfinding algorithm
+	 * If a layer that suits this token doesn't exist, create one
 	 */
-	getCacheId(token) {
-		const cacheData = {};
-
-		// Different-sized tokens snap to different points on the grid,
-		// so they might follow a different path to other tokens
-		cacheData.tokenSize = getTokenSize(token);
-		if (canvas.grid.isHex && game.modules.get("hex-size-support")?.active) {
-			cacheData.hexConfig = {
-				altOrientation: CONFIG.hexSizeSupport.getAltOrientationFlag(token),
-				altSnapping: CONFIG.hexSizeSupport.getAltSnappingFlag(token)
+	getCacheLayer(token) {
+		const tokenData = buildTokenData(token);
+		const cacheId = JSON.stringify(tokenData);
+		let cacheLayer = this.layers.get(cacheId);
+		// If we don't already have a cache layer for this cache ID, create one now
+		if (!cacheLayer) {
+			// Check if we already have the max number of layers. If we do,
+			// get rid of the one that hasn't been used for the longest
+			if (this.layers.size >= Cache.maxCacheLayers) {
+				const oldestCache = Array.from(this.layers.values())
+					.reduce(
+						(layer1, layer2) => (layer1.lastUsed < layer2.lastUsed) ? layer1 : layer2,
+						{lastUsed: Infinity} // Any cache will be older than this
+					);
+				this.layers.delete(oldestCache.cacheId);
 			}
+
+			// Create the new cache
+			cacheLayer = new CacheLayer(tokenData, cacheId);
+			this.layers.set(cacheId, cacheLayer);
+		} else {
+			// Register that we're using this cache right now
+			cacheLayer.registerUse();
 		}
 
-		// If levels is enabled, the token's elevation can affect which walls
-		// they need to worry about
-		if (game.modules.get("levels")?.active) {
-			cacheData.elevation = token.data.elevation;
-		}
-
-		const cacheId = JSON.stringify(cacheData);
-		this.ensureCacheExists(cacheId);
-		return cacheId;
-	}
-
-	ensureCacheExists(cacheId) {
-		// Track that we've last used this cache right now
-		this.lastUsed.set(cacheId, Date.now());
-
-		// Get the nodes for the cacheId. If we don't already have one, create one
-		if (!this.nodes.has(cacheId)) {
-			const cachedNodes = new Array(gridHeight);
-			for (let y = 0; y < gridHeight; y++) {
-				cachedNodes[y] = new Array(gridWidth);
-				for (let x = 0; x < gridWidth; x++) {
-					cachedNodes[y][x] = {x, y};
-				}
-			}
-			this.nodes.set(cacheId, cachedNodes);
-			this.background.queues.set(cacheId, new ProcessOnceQueue());
-
-			// Since we're adding a new cache, check if we have too many and,
-			// if we do, get rid of the one that was last used longest ago
-			if (this.lastUsed.size > Cache.maxCacheIds) {
-				// Build an array from the last used entries, sort in ascending order, and get the first
-				// element (with the lowest last-used value) as the oldest entry, then retrieve the cache ID
-				// from that element
-				const oldestCacheId = Array.from(this.lastUsed.entries()).sort((a, b) => a[1] - b[1])[0][0];
-
-				this.nodes.delete(oldestCacheId);
-				this.lastUsed.delete(oldestCacheId);
-				this.background.queues.delete(oldestCacheId);
-			}
-		}
-	}
-
-	/**
-	 * Get the cache associated with the given cache ID, creating a new one
-	 * if we don't already have one
-	 */
-	getCachedNodes(token) {
-		const cacheId = this.getCacheId(token);
-		return this.nodes.get(cacheId);
+		return cacheLayer;
 	}
 
 	/**
 	 * Start background caching from the token's current position
 	 */
 	startBackgroundCaching(token) {
-		const cacheId = this.getCacheId(token);
-		this.background.queues.get(cacheId).push(
-			{
-				value: {
-					pos: getGridPositionFromPixelsObj(token.position)
-				},
-				cacheId,
-				token
-			}
-		);
+		const cacheLayer = this.getCacheLayer(token);
+		const tokenPosition = getGridPositionFromPixelsObj(token.position)
+		
+		cacheLayer.queue.push(cacheLayer.nodes[tokenPosition.y][tokenPosition.x]);
+		
 		this.scheduleBackgroundCache();
 	}
 
@@ -145,20 +126,20 @@ class Cache {
 		if (this.background.nextJobId) return;
 
 		// Find the latest-used cache that has nodes left to cache
-		const latestCacheId = this.getLatestCacheId();
-		if (latestCacheId) {
+		const latestCache = this.getLatestCacheWithNonEmptyQueue();
+		if (latestCache) {
 			this.background.nextJobId = window.requestIdleCallback(
-				() => this.runBackgroundCache(this.background.queues.get(latestCacheId))
+				() => this.runBackgroundCache(latestCache)
 			);
-			this.scheduleTimeout();
+			this.resetAnimationFrameTimeout();
 		}
 	}
 
 	/**
-	 * Start a timeout which, if we read the timeout time, will schedule a small amount of caching
-	 * to be performed every frame. This timeout will be cancelled every time we perform background caching.
+	 * Start a timeout which, if we reach the timeout time, will schedule a small amount of caching
+	 * to be performed every frame. This timeout will be reset every time we perform background caching.
 	 */
-	scheduleTimeout() {
+	resetAnimationFrameTimeout() {
 		this.cancelTimeout();
 		this.cancelAnimationFrame();
 
@@ -175,10 +156,10 @@ class Cache {
 	 * Schedule a small amount of caching to be done just before the next frame renders
 	 */
 	scheduleAnimationFrameCache() {
-		const latestCacheId = this.getLatestCacheId();
-		if (latestCacheId) {
+		const latestCache = this.getLatestCacheWithNonEmptyQueue();
+		if (latestCache) {
 			this.background.nextAnimationFrameId = window.requestAnimationFrame(
-				() => this.runAnimationCache(this.background.queues.get(latestCacheId))
+				() => this.runAnimationCache(latestCache)
 			);
 		}
 	}
@@ -186,19 +167,19 @@ class Cache {
 	/**
 	 * Find which cache was last used and get its cache ID
 	 */
-	getLatestCacheId() {
-		return Array.from(this.lastUsed.entries())
-			.filter(entry => this.background.queues.get(entry[0]).hasNext())
-			.sort((a, b) => b[1] - a[1])[0]?.[0];
+	getLatestCacheWithNonEmptyQueue() {
+		return Array.from(this.layers.values())
+			.filter(layer => layer.queue.hasNext())
+			.reduce((layer1, layer2) => (layer1?.lastUsed > layer2.lastUsed) ? layer1 : layer2, null);
 	}
 
 	/**
 	 * Cache nodes for a short time, and then schedule another idle job to cache more nodes
 	 */
-	runBackgroundCache(queue) {
+	runBackgroundCache(cacheLayer) {
 		const endTime = performance.now() + Cache.maxBackgroundCachingMillis;
-		while (queue.hasNext() && performance.now() < endTime) {
-			this.cacheNextNode(queue);
+		while (cacheLayer.queue.hasNext() && performance.now() < endTime) {
+			this.cacheNextNode(cacheLayer);
 		}
 
 		this.background.nextJobId = null;
@@ -208,32 +189,21 @@ class Cache {
 	/**
 	 * Cache nodes for a very short time, then schedule to cache more nodes next frame
 	 */
-	runAnimationCache(queue) {
+	runAnimationCache(cacheLayer) {
 		const endTime = performance.now() + Cache.maxAnimationCachingMillis;
-		while (queue.hasNext() && performance.now() < endTime) {
-			this.cacheNextNode(queue);
+		while (cacheLayer.queue.hasNext() && performance.now() < endTime) {
+			this.cacheNextNode(cacheLayer);
 		}
 
 		this.background.nextAnimationFrameId = null;
 		this.scheduleAnimationFrameCache();
 	}
 
-	cacheNextNode(queue) {
-		let queueItem = queue.pop();
-		const node = getNode(queueItem.value.pos, this.nodes.get(queueItem.cacheId), queueItem.token);
+	cacheNextNode(cacheLayer) {
+		let node = cacheLayer.queue.pop();
+		getNode(node, cacheLayer);
 		for (let edge of node.edges) {
-			queue.push(
-				{
-					value: {
-						pos: {
-							x: edge.target.x,
-							y: edge.target.y
-						}
-					},
-					cacheId: queueItem.cacheId,
-					token: queueItem.token
-				}
-			);
+			cacheLayer.queue.push(edge.target);
 		}
 	}
 
@@ -279,17 +249,16 @@ export function findPath(from, to, token, previousWaypoints) {
 		paintGridlessPathfindingDebug(pathfinder);
 		return GridlessPathfinding.findPath(pathfinder, from, to);
 	} else {
-		const cachedNodes = cache.getCachedNodes(token);
-		cache.startBackgroundCaching(token);
-		const firstNode = calculatePath(from, to, cachedNodes, token, previousWaypoints);
+		const cacheLayer = cache.getCacheLayer(token);
+		const firstNode = calculatePath(from, to, cacheLayer, previousWaypoints);
 		if (!firstNode)
 			return null;
-		paintGriddedPathfindingDebug(firstNode, token);
+		paintGriddedPathfindingDebug(firstNode, cacheLayer.tokenData);
 		const path = [];
 		let currentNode = firstNode;
 		while (currentNode) {
 			// TODO Check if the distance doesn't change
-			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, token)) {
+			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, cacheLayer.tokenData)) {
 				// Replace last waypoint if the current waypoint leads to a valid path
 				path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
 			} else {
@@ -301,8 +270,23 @@ export function findPath(from, to, token, previousWaypoints) {
 	}
 }
 
-function getNode(pos, cachedNodes, token, initialize = true) {
-	const node = cachedNodes[pos.y][pos.x];
+function buildTokenData(token) {
+	// Almost all the information we need is for calculating the snap point
+	const tokenData = buildSnapPointTokenData(token);
+
+	// If levels is enabled, which walls matter depends on the token's elevation.
+	// Depending on the settings in levels, the height we care about is either their
+	// Foot height (elevation) or eye height (losHeight).
+	if (isModuleActive("levels")) {
+		const blockSightMovement = game.settings.get(_levelsModuleName, "blockSightMovement");
+		tokenData.elevation = blockSightMovement ? token.data.elevation : token.losHeight;
+	}
+
+	return tokenData;
+}
+
+function getNode(pos, cacheLayer, initialize = true) {
+	const node = cacheLayer.nodes[pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
 		for (const neighborPos of canvas.grid.grid.getNeighbors(pos.y, pos.x).map(([y, x]) => {return {x, y};})) {
@@ -311,9 +295,9 @@ function getNode(pos, cachedNodes, token, initialize = true) {
 			}
 
 			// TODO Work with pixels instead of grid locations
-			if (!stepCollidesWithWall(pos, neighborPos, token)) {
+			if (!stepCollidesWithWall(pos, neighborPos, cacheLayer.tokenData)) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
-				const neighbor = getNode(neighborPos, cachedNodes, token, false);
+				const neighbor = getNode(neighborPos, cacheLayer, false);
 
 				// Count 5-10-5 diagonals as 1.5 (so two add up to 3) and 5-5-5 diagonals as 1.0001 (to discourage unnecessary diagonals)
 				// TODO Account for difficult terrain
@@ -325,7 +309,7 @@ function getNode(pos, cachedNodes, token, initialize = true) {
 	return node;
 }
 
-function calculatePath(from, to, cachedNodes, token, previousWaypoints) {
+function calculatePath(from, to, cacheLayer, previousWaypoints) {
 	use5105 = game.system.id === "pf2e" || canvas.grid.diagonalRule === "5105";
 	let startCost = 0;
 	if (use5105 && canvas.grid.type === CONST.GRID_TYPES.SQUARE) {
@@ -338,7 +322,7 @@ function calculatePath(from, to, cachedNodes, token, previousWaypoints) {
 
 	nextNodes.pushWithPriority(
 		{
-			node: getNode(from, cachedNodes, token),
+			node: getNode(from, cacheLayer),
 			cost: startCost,
 			estimated: startCost + estimateCost(from, to),
 			previous: null
@@ -353,7 +337,7 @@ function calculatePath(from, to, cachedNodes, token, previousWaypoints) {
 		}
 		previousNodes.add(currentNode.node);
 		for (const edge of currentNode.node.edges) {
-			const neighborNode = getNode(edge.target, cachedNodes, token);
+			const neighborNode = getNode(edge.target, cacheLayer);
 			if (previousNodes.has(neighborNode)) {
 				continue;
 			}
@@ -406,10 +390,16 @@ function estimateCost(pos, target) {
 	return Math.max(distX, distY) + (use5105 ? Math.min(distX, distY) * 0.5 : 0);
 }
 
-function stepCollidesWithWall(from, to, token) {
-	const stepStart = getSnapPointForTokenObj(getPixelsFromGridPositionObj(from), token);
-	const stepEnd = getSnapPointForTokenObj(getPixelsFromGridPositionObj(to), token);
-	return canvas.walls.checkCollision(new Ray(stepStart, stepEnd));
+function stepCollidesWithWall(from, to, tokenData) {
+	const stepStart = getSnapPointForTokenDataObj(getPixelsFromGridPositionObj(from), tokenData);
+	const stepEnd = getSnapPointForTokenDataObj(getPixelsFromGridPositionObj(to), tokenData);
+	if (isModuleActive("levels")) {
+		stepStart.z = tokenData.elevation;
+		stepEnd.z = tokenData.elevation;
+		return _levels.testCollision(stepStart, stepEnd, "collision")
+	} else {
+		return canvas.walls.checkCollision(new Ray(stepStart, stepEnd));
+	}
 }
 
 export function wipePathfindingCache() {
@@ -433,7 +423,7 @@ export function startBackgroundCaching(token) {
 	}
 }
 
-function paintGriddedPathfindingDebug(firstNode, token) {
+function paintGriddedPathfindingDebug(firstNode, tokenData) {
 	if (!CONFIG.debug.dragRuler)
 		return;
 
@@ -441,7 +431,7 @@ function paintGriddedPathfindingDebug(firstNode, token) {
 	let currentNode = firstNode;
 	while (currentNode) {
 		let text = new PIXI.Text(currentNode.cost.toFixed(1));
-		let pixels = getSnapPointForTokenObj(getPixelsFromGridPositionObj(currentNode.node), token);
+		let pixels = getSnapPointForTokenDataObj(getPixelsFromGridPositionObj(currentNode.node), tokenData);
 		text.anchor.set(0.5, 1.0);
 		text.x = pixels.x;
 		text.y = pixels.y;

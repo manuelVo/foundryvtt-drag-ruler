@@ -90,7 +90,6 @@ export class PriorityQueueSet {
 		this.first = null;
 		this.last = null;
 		this.previouslyQueued = new Set();
-		this.popped = new Set();
 	}
 
 	/**
@@ -103,11 +102,10 @@ export class PriorityQueueSet {
 	}
 
 	push(element) {
-		const key = JSON.stringify(element.value);
-		if (this.previouslyQueued.has(key)) {
+		if (this.previouslyQueued.has(element)) {
 			return;
 		}
-		this.previouslyQueued.add(key);
+		this.previouslyQueued.add(element);
 
 		const newNode = {
 			value: element,

@@ -14,7 +14,7 @@ import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js"
 import {setSnapParameterOnOptions} from "./util.js";
 
-import initGridlessPathfinding from "../wasm/gridless_pathfinding.js"
+import initGridlessPathfinding, * as GridlessPathfinding from "../wasm/gridless_pathfinding.js"
 
 CONFIG.debug.dragRuler = false;
 export let debugGraphics = undefined;
@@ -84,7 +84,7 @@ Hooks.on("canvasReady", () => {
 	})
 })
 
-Hooks.on("getCombatTrackerEntryContext", function(html, menu) {
+Hooks.on("getCombatTrackerEntryContext", function (html, menu) {
 	const entry = {
 		name: "drag-ruler.resetMovementHistory",
 		icon: '<i class="fas fa-undo-alt"></i>',
