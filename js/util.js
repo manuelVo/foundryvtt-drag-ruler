@@ -1,5 +1,6 @@
 import {getPixelsFromGridPosition} from "./foundry_fixes.js"
-import { disableSnap } from "./keybindings.js";
+import {findVertexSnapPoint} from "./hex_support.js";
+import {disableSnap} from "./keybindings.js";
 
 export function* zip(it1, it2) {
 	for (let i = 0;i < Math.min(it1.length, it2.length);i++) {
@@ -25,14 +26,38 @@ export function sum(arr) {
 	return arr.reduce((a, b) => a + b, 0);
 }
 
+export function buildSnapPointTokenData(token) {
+	const tokenData = {
+		width: token.data.width,
+		height: token.data.height
+	};
+
+	if (isModuleActive("hex-size-support")) {
+		tokenData.hexSizeSupport = {};
+		tokenData.hexSizeSupport.altSnappingFlag = CONFIG.hexSizeSupport.getAltSnappingFlag(token);
+		tokenData.hexSizeSupport.altOrientationFlag = CONFIG.hexSizeSupport.getAltOrientationFlag(token);
+		tokenData.hexSizeSupport.borderSize = token.document.getFlag("hex-size-support", "borderSize");
+	}
+
+	return tokenData;
+}
+
 export function getSnapPointForToken(x, y, token) {
+	return getSnapPointForTokenData(x, y, buildSnapPointTokenData(token));
+}
+
+export function getSnapPointForTokenDataObj(pos, tokenData) {
+	return getSnapPointForTokenData(pos.x, pos.y, tokenData);
+}
+
+function getSnapPointForTokenData(x, y, tokenData) {
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		return new PIXI.Point(x, y);
 	}
 	if (canvas.grid.isHex) {
-		if (game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(token)) {
-			if (token.document.getFlag("hex-size-support", "borderSize") % 2 === 0) {
-				const snapPoint = CONFIG.hexSizeSupport.findVertexSnapPoint(x, y, token, canvas.grid.grid)
+		if (tokenData.hexSizeSupport?.altSnappingFlag) {
+			if (tokenData.hexSizeSupport.borderSize % 2 === 0) {
+				const snapPoint = findVertexSnapPoint(x, y, tokenData.hexSizeSupport.altOrientationFlag);
 				return new PIXI.Point(snapPoint.x, snapPoint.y)
 			}
 			else {
@@ -46,38 +71,38 @@ export function getSnapPointForToken(x, y, token) {
 
 	const [topLeftX, topLeftY] = canvas.grid.getTopLeft(x, y);
 	let cellX, cellY;
-	if (token.data.width % 2 === 0)
+	if (tokenData.width % 2 === 0)
 		cellX = x - canvas.grid.h / 2;
 	else
 		cellX = x;
-	if (token.data.height % 2 === 0)
+	if (tokenData.height % 2 === 0)
 		cellY = y - canvas.grid.h / 2;
 	else
 		cellY = y;
 	const [centerX, centerY] = canvas.grid.getCenter(cellX, cellY);
 	let snapX, snapY;
 	// Tiny tokens can snap to the cells corners
-	if (token.data.width <= 0.5) {
+	if (tokenData.width <= 0.5) {
 		const offsetX = x - topLeftX;
 		const subGridWidth = Math.floor(canvas.grid.w / 2);
 		const subGridPosX = Math.floor(offsetX / subGridWidth);
 		snapX = topLeftX + (subGridPosX + 0.5) * subGridWidth;
 	}
 	// Tokens with odd multipliers (1x1, 3x3, ...) and tokens smaller than 1x1 but bigger than 0.5x0.5 snap to the center of the grid cell
-	else if (Math.round(token.data.width) % 2 === 1 || token.data.width < 1) {
+	else if (Math.round(tokenData.width) % 2 === 1 || tokenData.width < 1) {
 		snapX = centerX;
 	}
 	// All remaining tokens (those with even or fractional multipliers on square grids) snap to the intersection points of the grid
 	else {
 		snapX = centerX + canvas.grid.w / 2;
 	}
-	if (token.data.height <= 0.5) {
+	if (tokenData.height <= 0.5) {
 		const offsetY = y - topLeftY;
 		const subGridHeight = Math.floor(canvas.grid.h / 2);
 		const subGridPosY = Math.floor(offsetY / subGridHeight);
 		snapY = topLeftY + (subGridPosY + 0.5) * subGridHeight;
 	}
-	else if (Math.round(token.data.height) % 2 === 1 || token.data.height < 1) {
+	else if (Math.round(tokenData.height) % 2 === 1 || tokenData.height < 1) {
 		snapY = centerY;
 	}
 	else {
@@ -90,12 +115,19 @@ export function getSnapPointForTokenObj(pos, token) {
 	return getSnapPointForToken(pos.x, pos.y, token);
 }
 
+export function getSnapPointForMeasuredTemplate(x, y) {
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+		return new PIXI.Point(x, y);
+	}
+	return canvas.grid.grid.getSnappedPosition(x, y, canvas.templates.gridPosition);
+}
+
 export function getSnapPointForEntity(x, y, entity) {
 	const isToken = entity instanceof Token;
 	if (isToken)
 		return getSnapPointForToken(x, y, entity);
 	else
-		return canvas.grid.grid.getSnappedPosition(x, y, canvas.templates.gridPosition);
+		return getSnapPointForMeasuredTemplate(x, y);
 }
 
 export function highlightTokenShape(position, shape, color, alpha) {
@@ -132,31 +164,6 @@ export function getAreaFromPositionAndShape(position, shape) {
 		}
 		return {x, y}
 	});
-}
-
-
-export function getTokenShapeId(token) {
-	if (token.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS) {
-		return "1";
-	}
-	else if (token.scene.data.gridType === CONST.GRID_TYPES.SQUARE) {
-		return `${token.data.width}x${token.data.height}`;
-	}
-	else {
-		// Hex grids
-		if (game.modules.get("hex-size-support")?.active && CONFIG.hexSizeSupport.getAltSnappingFlag(token)) {
-			const borderSize = token.data.flags["hex-size-support"].borderSize;
-
-			let inversionFlag = "";
-			if (Boolean(CONFIG.hexSizeSupport.getAltOrientationFlag(token)) !== canvas.grid.grid.options.columns)
-				inversionFlag = "i";
-
-			return `${borderSize}${inversionFlag}`;
-		}
-		else {
-			return "1";
-		}
-	}
 }
 
 export function getTokenShape(token) {
@@ -280,4 +287,8 @@ export function early_isGM() {
 	const level = game.data.users.find(u => u._id == game.data.userId).role;
 	const gmLevel = CONST.USER_ROLES.ASSISTANT;
 	return level >= gmLevel;
+}
+
+export function isModuleActive(moduleName) {
+	return game.modules.get(moduleName)?.active
 }
