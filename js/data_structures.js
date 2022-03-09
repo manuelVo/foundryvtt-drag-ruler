@@ -1,7 +1,7 @@
 /**
  * A combination queue/set where the elements are ordered (in ascending order, according to the given priority function)
  * and unique (according to the given elementMatcher).
- * 
+ *
  * If an element is added to the set and an equivalent element already exists, the lower-priority one is discarded.
  */
 export class PriorityQueueSet {
@@ -78,5 +78,61 @@ export class PriorityQueueSet {
 		const first = this.first;
 		this.first = first?.next;
 		return first?.value;
+	}
+}
+
+/**
+ * Queue that will only ever accept elements with a given value once. Elements must have a "value" field, the
+ * JSON representation of which will be used as the key to match
+ */
+export class ProcessOnceQueue {
+	constructor() {
+		this.first = null;
+		this.last = null;
+		this.previouslyQueued = new Set();
+	}
+
+	/**
+	 * Remove everything from the queue and forget all the previously-queued items
+	 */
+	reset() {
+		this.first = null;
+		this.last = null;
+		this.previouslyQueued.clear();
+	}
+
+	push(element) {
+		if (this.previouslyQueued.has(element)) {
+			return;
+		}
+		this.previouslyQueued.add(element);
+
+		const newNode = {
+			value: element,
+			next: null,
+			previous: null
+		}
+
+		if (!this.first) {
+			this.first = newNode;
+			this.last = newNode;
+		} else {
+			this.last.next = newNode;
+			newNode.previous = this.last;
+			this.last = newNode;
+		}
+	}
+
+	pop() {
+		const node = this.first;
+		this.first = node?.next;
+		if (!node?.next) {
+			this.last = null;
+		}
+		return node?.value;
+	}
+
+	hasNext() {
+		return !!this.first;
 	}
 }
