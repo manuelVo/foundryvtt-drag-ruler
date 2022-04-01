@@ -1,3 +1,8 @@
+## 1.12.7
+### Bugfixes
+- Fixed a bug that caused measurement templates to only snap to the corners of the grid (this was a regression introduced in 1.12.5)
+
+
 ## 1.12.6
 ### Bugfixes
 - Measured templates no longer snap to a virtual grid on gridless scenes (this was a regression introduced in 1.12.5)
