@@ -28,6 +28,9 @@ export async function moveEntities(draggedEntity, selectedEntities) {
 		const hasCollision = selectedEntities.some(token => {
 			const offset = calculateEntityOffset(token, draggedEntity);
 			const offsetRays = rays.filter(ray => !ray.isPrevious).map(ray => applyOffsetToRay(ray, offset))
+			if (window.WallHeight) {
+				window.WallHeight.addBoundsToRays(offsetRays, draggedEntity);
+			}
 			return offsetRays.some(r => canvas.walls.checkCollision(r));
 		})
 		if (hasCollision) {
