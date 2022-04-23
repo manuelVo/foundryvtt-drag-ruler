@@ -237,7 +237,8 @@ export function isPathfindingEnabled() {
 
 export function findPath(from, to, token, previousWaypoints) {
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
-		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
+		let radiusMultiplier = game.settings.get(settingsKey, "pathfindingRadius");
+		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size * radiusMultiplier;
 		let pathfinder = gridlessPathfinders.get(tokenSize);
 		if (!pathfinder) {
 			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize, token.data.elevation, Boolean(game.modules.get("wall-height")?.active));
