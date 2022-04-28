@@ -1,5 +1,6 @@
 import {availableSpeedProviders, currentSpeedProvider, getDefaultSpeedProvider, updateSpeedProvider} from "./api.js";
 import {SpeedProvider} from "./speed_provider.js"
+import {wipePathfindingCache} from "./pathfinding.js"
 import { early_isGM } from "./util.js";
 
 export const settingsKey = "drag-ruler";
@@ -111,6 +112,7 @@ export function registerSettings() {
 		config: false,
 		type: Number,
 		default: 0.9,
+		onChange: wipePathfindingCache,
 	});
 
 	game.settings.register(settingsKey, "lastTerrainRulerHintTime", {
