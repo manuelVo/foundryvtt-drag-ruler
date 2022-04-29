@@ -240,7 +240,8 @@ export function findPath(from, to, token, previousWaypoints) {
 		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
 		let pathfinder = gridlessPathfinders.get(tokenSize);
 		if (!pathfinder) {
-			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize, token.data.elevation, Boolean(game.modules.get("wall-height")?.active));
+			let radiusMultiplier = game.settings.get(settingsKey, "pathfindingRadius");
+			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize * radiusMultiplier, token.data.elevation, Boolean(game.modules.get("wall-height")?.active));
 			gridlessPathfinders.set(tokenSize, pathfinder);
 		}
 		paintGridlessPathfindingDebug(pathfinder);
