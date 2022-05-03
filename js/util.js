@@ -119,7 +119,7 @@ export function getSnapPointForMeasuredTemplate(x, y) {
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		return new PIXI.Point(x, y);
 	}
-	return canvas.grid.grid.getSnappedPosition(x, y, canvas.templates.gridPosition);
+	return canvas.grid.grid.getSnappedPosition(x, y, canvas.templates.gridPrecision);
 }
 
 export function getSnapPointForEntity(x, y, entity) {
