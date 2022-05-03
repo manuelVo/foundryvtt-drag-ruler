@@ -321,7 +321,7 @@ function getNode(pos, cacheLayer, initialize = true) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
 				let edgeCost;
 				if (window.terrainRuler) {
-					let ray = new Ray(getCenterFromGridPositionObj(neighborPos), getCenterFromGridPositionObj(pos));
+					let ray = new Ray(getCenterFromGridPositionObj(pos), getCenterFromGridPositionObj(neighborPos));
 					let measuredDistance = terrainRuler.measureDistances([{ray}], {costFunction: buildCostFunction(cacheLayer.tokenData, getTokenShapeForTokenData(cacheLayer.tokenData))})[0];
 					edgeCost = Math.round(measuredDistance / canvas.dimensions.distance);
 					if (ray.terrainRulerFinalState?.noDiagonals === 1) {
