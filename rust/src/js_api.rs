@@ -1,4 +1,5 @@
 use js_sys::Array;
+use sha1::{Sha1, Digest};
 use wasm_bindgen::prelude::*;
 
 use crate::{
@@ -260,6 +261,14 @@ pub fn debug_get_pathfinding_points(pathfinder: &Pathfinder) -> Array {
 		.map(|node| node.borrow().point)
 		.map(JsValue::from)
 		.collect()
+}
+
+#[allow(dead_code)]
+#[wasm_bindgen]
+pub fn sha1(input: &str) -> String {
+	let mut hasher = Sha1::new();
+	hasher.update(input);
+	format!("{:x}", hasher.finalize())
 }
 
 trait IteratePath {

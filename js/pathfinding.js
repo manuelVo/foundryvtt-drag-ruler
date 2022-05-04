@@ -80,7 +80,18 @@ class Cache {
 	 */
 	getCacheLayer(token) {
 		const tokenData = buildTokenData(token);
-		const cacheId = JSON.stringify(tokenData);
+		// TODO Request this from the speed providers so they can set their own options
+		let terrainData = canvas.terrain.listTerrain({token});
+		terrainData = terrainData.map(data => {
+			return {
+				x: data.object.x,
+				y: data.object.y,
+				cost: data.cost,
+				shape: data.shape,
+			};
+		});
+		const cacheIdData = {tokenData, terrainData};
+		const cacheId = GridlessPathfinding.sha1(JSON.stringify(cacheIdData));
 		let cacheLayer = this.layers.get(cacheId);
 		// If we don't already have a cache layer for this cache ID, create one now
 		if (!cacheLayer) {
