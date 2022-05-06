@@ -416,6 +416,9 @@ export function initializePathfinding() {
 }
 
 export function startBackgroundCaching(token) {
+	// Background caching isn't yet supported for gridless scenes
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
+		return;
 	if (game.user.isGM || game.settings.get(settingsKey, "allowPathfinding")) {
 		cache.startBackgroundCaching(token);
 	}
