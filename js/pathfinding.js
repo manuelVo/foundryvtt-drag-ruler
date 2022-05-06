@@ -272,12 +272,12 @@ function buildTokenData(token) {
 	// Almost all the information we need is for calculating the snap point
 	const tokenData = buildSnapPointTokenData(token);
 
-	// If levels is enabled, which walls matter depends on the token's elevation.
-	// Depending on the settings in levels, the height we care about is either their
-	// Foot height (elevation) or eye height (losHeight).
-	if (isModuleActive("levels")) {
-		const blockSightMovement = game.settings.get(_levelsModuleName, "blockSightMovement");
-		tokenData.elevation = blockSightMovement ? token.data.elevation : token.losHeight;
+	// If Wall Height is enabled, which walls matter depends on the token's elevation.
+	// Depending on the settings in Wall Height, the height we care about is either their
+	// foot height (elevation) or eye height (losHeight).
+	if (isModuleActive("wall-height")) {
+		const blockSightMovement = game.settings.get("wall-height", "blockSightMovement");
+		tokenData.elevation = blockSightMovement ? token.losHeight : token.data.elevation;
 	}
 
 	return tokenData;
