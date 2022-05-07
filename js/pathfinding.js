@@ -81,7 +81,7 @@ class Cache {
 	getCacheLayer(token) {
 		const tokenData = buildTokenData(token);
 		// TODO Request this from the speed providers so they can set their own options
-		let terrainData = canvas.terrain.listTerrain({token});
+		let terrainData = canvas.terrain.listAllTerrain({token});
 		terrainData = terrainData.map(data => {
 			return {
 				x: data.object.x,
