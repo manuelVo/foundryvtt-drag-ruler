@@ -1,11 +1,12 @@
-import {getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
+import {getCenterFromGridPositionObj, getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
 import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
-import {buildSnapPointTokenData, getSnapPointForTokenDataObj, isModuleActive, iterPairs} from "./util.js";
+import {buildSnapPointTokenData, getSnapPointForTokenDataObj, getTokenShape, getTokenShapeForTokenData, isModuleActive, iterPairs} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
+import {buildCostFunction} from "./api.js";
 
 class CacheLayer {
 	constructor(tokenData, cacheId) {
@@ -79,7 +80,18 @@ class Cache {
 	 */
 	getCacheLayer(token) {
 		const tokenData = buildTokenData(token);
-		const cacheId = JSON.stringify(tokenData);
+		// TODO Request this from the speed providers so they can set their own options
+		let terrainData = canvas.terrain.listAllTerrain({token});
+		terrainData = terrainData.map(data => {
+			return {
+				x: data.object.x,
+				y: data.object.y,
+				cost: data.cost,
+				shape: data.shape,
+			};
+		});
+		const cacheIdData = {tokenData, terrainData};
+		const cacheId = GridlessPathfinding.sha1(JSON.stringify(cacheIdData));
 		let cacheLayer = this.layers.get(cacheId);
 		// If we don't already have a cache layer for this cache ID, create one now
 		if (!cacheLayer) {
@@ -255,13 +267,37 @@ export function findPath(from, to, token, previousWaypoints) {
 		const path = [];
 		let currentNode = firstNode;
 		while (currentNode) {
-			// TODO Check if the distance doesn't change
 			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, cacheLayer.tokenData)) {
-				// Replace last waypoint if the current waypoint leads to a valid path
-				path[path.length - 1] = {x: currentNode.node.x, y: currentNode.node.y};
-			} else {
-				path.push({x: currentNode.node.x, y: currentNode.node.y});
+				// Replace last waypoint if the current waypoint leads to a valid path that isn't longer than the old path
+				if (window.terrainRuler) {
+					let startNode = getCenterFromGridPositionObj(path[path.length - 2]);
+					let middleNode = getCenterFromGridPositionObj(path[path.length - 1]);
+					let endNode = getCenterFromGridPositionObj(currentNode.node);
+					let oldPath = [{ray: new Ray(startNode, middleNode)}, {ray: new Ray(middleNode, endNode)}];
+					let newPath = [{ray: new Ray(startNode, endNode)}];
+					let costFunction = buildCostFunction(token, getTokenShape(token));
+					// TODO Cache the used measurement for use in the next loop to improve performance
+					let oldDistance = terrainRuler.measureDistances(oldPath, {costFunction}).reduce((a, b) => a + b);
+					let newDistance = terrainRuler.measureDistances(newPath, {costFunction})[0];
+
+					// TODO We might need to check if the diagonal count has increased on 5-10-5
+					if (newDistance < oldDistance)  {
+						path.pop();
+					}
+					else if (newDistance === oldDistance) {
+						let oldNoDiagonals = oldPath[1].ray.terrainRulerFinalState?.noDiagonals;
+						let newNoDiagonals = newPath[0].ray.terrainRulerFinalState?.noDiagonals;
+						// This uses === && < instead of <= because the variables might be undefined (which shall lead to a true result)
+						if (oldNoDiagonals === newNoDiagonals || newNoDiagonals < oldNoDiagonals) {
+							path.pop();
+						}
+					}
+				}
+				else {
+					path.pop();
+				}
 			}
+			path.push({x: currentNode.node.x, y: currentNode.node.y});
 			currentNode = currentNode.next;
 		}
 		return path;
@@ -295,11 +331,25 @@ function getNode(pos, cacheLayer, initialize = true) {
 			// TODO Work with pixels instead of grid locations
 			if (!stepCollidesWithWall(pos, neighborPos, cacheLayer.tokenData)) {
 				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
+				let edgeCost;
+				if (window.terrainRuler) {
+					let ray = new Ray(getCenterFromGridPositionObj(pos), getCenterFromGridPositionObj(neighborPos));
+					let measuredDistance = terrainRuler.measureDistances([{ray}], {costFunction: buildCostFunction(cacheLayer.tokenData, getTokenShapeForTokenData(cacheLayer.tokenData))})[0];
+					edgeCost = Math.round(measuredDistance / canvas.dimensions.distance);
+					if (ray.terrainRulerFinalState?.noDiagonals === 1) {
+						edgeCost = 1.5;
+					}
+					// Charge 1.0001 instead of 1 for diagonals to discourage unnecessary diagonals
+					if (isDiagonal && edgeCost == 1) {
+						edgeCost = 1.0001;
+					}
+				}
+				else {
+					// Count 5-10-5 diagonals as 1.5 (so two add up to 3) and 5-5-5 diagonals as 1.0001 (to discourage unnecessary diagonals)
+					// TODO Account for difficult terrain
+					edgeCost = isDiagonal ? (use5105 ? 1.5 : 1.0001) : 1;
+				}
 				const neighbor = getNode(neighborPos, cacheLayer, false);
-
-				// Count 5-10-5 diagonals as 1.5 (so two add up to 3) and 5-5-5 diagonals as 1.0001 (to discourage unnecessary diagonals)
-				// TODO Account for difficult terrain
-				let edgeCost = isDiagonal ? (use5105 ? 1.5 : 1.0001) : 1;
 				node.edges.push({target: neighbor, cost: edgeCost});
 			}
 		}
