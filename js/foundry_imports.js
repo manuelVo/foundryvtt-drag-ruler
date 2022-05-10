@@ -175,7 +175,9 @@ export function measure(destination, options={}) {
 		const from = getGridPositionFromPixelsObj(this.waypoints[this.waypoints.length - 1]);
 		const to = getGridPositionFromPixelsObj(destination);
 		let path = findPath(from, to, this.draggedEntity, this.waypoints);
-		if (path) {
+		if (path)
+			path.shift();
+		if (path && path.length > 0) {
 			path = path.map(point => getSnapPointForTokenObj(getPixelsFromGridPositionObj(point), this.draggedEntity));
 
 			// If the token is snapped to the grid, the first point of the path is already handled by the ruler

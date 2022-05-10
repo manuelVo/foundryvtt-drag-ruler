@@ -252,7 +252,8 @@ export function findPath(from, to, token, previousWaypoints) {
 		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
 		let pathfinder = gridlessPathfinders.get(tokenSize);
 		if (!pathfinder) {
-			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize, token.data.elevation, Boolean(game.modules.get("wall-height")?.active));
+			let radiusMultiplier = game.settings.get(settingsKey, "pathfindingRadius");
+			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize * radiusMultiplier, token.data.elevation, Boolean(game.modules.get("wall-height")?.active));
 			gridlessPathfinders.set(tokenSize, pathfinder);
 		}
 		paintGridlessPathfindingDebug(pathfinder);
@@ -307,12 +308,12 @@ function buildTokenData(token) {
 	// Almost all the information we need is for calculating the snap point
 	const tokenData = buildSnapPointTokenData(token);
 
-	// If levels is enabled, which walls matter depends on the token's elevation.
-	// Depending on the settings in levels, the height we care about is either their
-	// Foot height (elevation) or eye height (losHeight).
-	if (isModuleActive("levels")) {
-		const blockSightMovement = game.settings.get(_levelsModuleName, "blockSightMovement");
-		tokenData.elevation = blockSightMovement ? token.data.elevation : token.losHeight;
+	// If Wall Height is enabled, which walls matter depends on the token's elevation.
+	// Depending on the settings in Wall Height, the height we care about is either their
+	// foot height (elevation) or eye height (losHeight).
+	if (isModuleActive("wall-height")) {
+		const blockSightMovement = game.settings.get("wall-height", "blockSightMovement");
+		tokenData.elevation = blockSightMovement ? token.losHeight : token.data.elevation;
 	}
 
 	return tokenData;
@@ -465,6 +466,9 @@ export function initializePathfinding() {
 }
 
 export function startBackgroundCaching(token) {
+	// Background caching isn't yet supported for gridless scenes
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
+		return;
 	if (game.user.isGM || game.settings.get(settingsKey, "allowPathfinding")) {
 		cache.startBackgroundCaching(token);
 	}
