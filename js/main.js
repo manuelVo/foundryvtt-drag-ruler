@@ -7,7 +7,7 @@ import {disableSnap, registerKeybindings} from "./keybindings.js";
 import {libWrapper} from "./libwrapper_shim.js";
 import {performMigrations} from "./migration.js"
 import {removeLastHistoryEntryIfAt, resetMovementHistory} from "./movement_tracking.js";
-import {wipePathfindingCache, initializePathfinding, startBackgroundCaching} from "./pathfinding.js";
+import {wipePathfindingCache, initializePathfinding, startBackgroundCaching, terrainRulerWrapper} from "./pathfinding.js";
 import {extendRuler} from "./ruler.js";
 import {registerSettings, RightClickAction, settingsKey} from "./settings.js"
 import {recalculate} from "./socket.js";
@@ -62,6 +62,9 @@ Hooks.once("init", () => {
 		registerSystem,
 		recalculate,
 		resetMovementHistory,
+		private: {
+			terrainRulerWrapper
+		}
 	}
 })
 

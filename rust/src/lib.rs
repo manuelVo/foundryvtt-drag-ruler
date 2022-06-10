@@ -3,6 +3,7 @@ mod geometry;
 mod js_api;
 mod pathfinder;
 mod ptr_indexed_hash_set;
+mod util;
 
 use wasm_bindgen::prelude::*;
 

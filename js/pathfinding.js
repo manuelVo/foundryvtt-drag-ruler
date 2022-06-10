@@ -253,7 +253,10 @@ export function findPath(from, to, token, previousWaypoints) {
 		let pathfinder = gridlessPathfinders.get(tokenSize);
 		if (!pathfinder) {
 			let radiusMultiplier = game.settings.get(settingsKey, "pathfindingRadius");
-			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize * radiusMultiplier, token.data.elevation, Boolean(game.modules.get("wall-height")?.active));
+			// TODO Pass proper options to listAllTerrain
+			// TODO Wipe caches when they become invalid
+			// TODO Multiple caches, analog to gridded pathfinding
+			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, canvas.terrain.listAllTerrain(), tokenSize * radiusMultiplier, token.data.elevation, Boolean(game.modules.get("wall-height")?.active));
 			gridlessPathfinders.set(tokenSize, pathfinder);
 		}
 		paintGridlessPathfindingDebug(pathfinder);
@@ -302,6 +305,12 @@ export function findPath(from, to, token, previousWaypoints) {
 		}
 		return path;
 	}
+}
+
+export function terrainRulerWrapper(from, to) {
+	// TODO Send list of terrain to terrain layer
+	const ray = new Ray(from, to);
+	return terrainRuler.measureDistances([{ray}])[0] / canvas.dimensions.distance * canvas.dimensions.size;
 }
 
 function buildTokenData(token) {

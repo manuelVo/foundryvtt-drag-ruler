@@ -1,10 +1,11 @@
 use js_sys::Array;
-use sha1::{Sha1, Digest};
+use sha1::{Digest, Sha1};
 use wasm_bindgen::prelude::*;
 
 use crate::{
-	geometry::Point,
+	geometry::{Circle, LineSegment, Point, Rectangle},
 	pathfinder::{DiscoveredNodePtr, Pathfinder},
+	util::Windows,
 };
 
 #[allow(unused)]
@@ -18,6 +19,9 @@ macro_rules! log {
 extern "C" {
 	#[wasm_bindgen(js_namespace = console, js_name=warn)]
 	pub fn log(s: &str);
+
+	#[wasm_bindgen(js_namespace = ["dragRuler", "private"], js_name=terrainRulerWrapper)]
+	pub fn distance_with_terrain(a: Point, b: Point) -> f64;
 }
 
 #[wasm_bindgen]
@@ -71,6 +75,112 @@ impl From<JsPoint> for Point {
 		Point {
 			x: point.x(),
 			y: point.y(),
+		}
+	}
+}
+
+#[wasm_bindgen]
+extern "C" {
+	pub type JsTerrainInfo;
+	pub type JsTerrainObject;
+	pub type JsTerrainShape;
+
+	#[wasm_bindgen(method, getter)]
+	fn object(this: &JsTerrainInfo) -> JsTerrainObject;
+
+	#[wasm_bindgen(method, getter)]
+	fn shape(this: &JsTerrainInfo) -> JsTerrainShape;
+
+	#[wasm_bindgen(method, getter)]
+	fn x(this: &JsTerrainObject) -> f64;
+
+	#[wasm_bindgen(method, getter)]
+	fn y(this: &JsTerrainObject) -> f64;
+
+	#[wasm_bindgen(method, getter)]
+	fn width(this: &JsTerrainObject) -> f64;
+
+	#[wasm_bindgen(method, getter)]
+	fn height(this: &JsTerrainObject) -> f64;
+
+	#[wasm_bindgen(method, getter, js_name = "type")]
+	fn shape_type(this: &JsTerrainShape) -> u32;
+
+	#[wasm_bindgen(method, getter)]
+	fn x(this: &JsTerrainShape) -> f64;
+
+	#[wasm_bindgen(method, getter)]
+	fn y(this: &JsTerrainShape) -> f64;
+
+	#[wasm_bindgen(method, getter)]
+	fn radius(this: &JsTerrainShape) -> f64;
+
+	#[wasm_bindgen(method, getter)]
+	fn points(this: &JsTerrainShape) -> Vec<f64>;
+}
+
+impl JsTerrainObject {
+	fn to_bounding_rect(&self) -> Rectangle {
+		let left = self.x();
+		let top = self.y();
+		let right = left + self.width();
+		let bottom = top + self.height();
+		Rectangle::new(left, top, right, bottom)
+	}
+}
+
+impl JsTerrainShape {
+	fn to_segments(&self, x: f64, y: f64) -> Vec<LineSegment> {
+		let points = self.points();
+		assert!(points.len() % 2 == 0);
+		points
+			.chunks(2)
+			.map(|coordinates| Point::new(coordinates[0] + x, coordinates[1] + y))
+			.windows()
+			.map(|(p1, p2)| LineSegment::new(p1, p2))
+			.collect()
+	}
+
+	fn to_circle(&self, x: f64, y: f64) -> Circle {
+		let center = Point::new(self.x() + x, self.y() + y);
+		let radius = self.radius();
+		Circle { center, radius }
+	}
+}
+
+impl From<&JsTerrainInfo> for TerrainShape {
+	fn from(terrain: &JsTerrainInfo) -> Self {
+		let shape = terrain.shape();
+		let object = terrain.object();
+		let x = object.x();
+		let y = object.y();
+		match shape.shape_type() {
+			0 => TerrainShape::Polygon(shape.to_segments(x, y)),
+			2 => TerrainShape::Circle(shape.to_circle(x, y)),
+			_ => unimplemented!(),
+		}
+	}
+}
+
+#[derive(Debug, Clone)]
+pub enum TerrainShape {
+	Polygon(Vec<LineSegment>),
+	Circle(Circle),
+}
+
+#[derive(Debug, Clone)]
+pub struct Terrain {
+	pub shape: TerrainShape,
+	pub bounding_box: Rectangle,
+}
+
+impl From<&JsTerrainInfo> for Terrain {
+	fn from(terrain: &JsTerrainInfo) -> Self {
+		let bounding_box = terrain.object().to_bounding_rect();
+		let shape = terrain.into();
+		Self {
+			bounding_box,
+			shape,
 		}
 	}
 }
@@ -212,8 +322,7 @@ impl Wall {
 		c.iter_mut().for_each(|val| *val = val.round());
 		let height = if enable_height {
 			data.flags().wall_height().into()
-		}
-		else {
+		} else {
 			WallHeight::default()
 		};
 		Self::new(
@@ -229,13 +338,20 @@ impl Wall {
 
 #[allow(dead_code)]
 #[wasm_bindgen]
-pub fn initialize(js_walls: Vec<JsValue>, token_size: f64, token_elevation: f64, enable_height: bool) -> Pathfinder {
+pub fn initialize(
+	js_walls: Vec<JsValue>,
+	js_terrain: Vec<JsTerrainInfo>,
+	token_size: f64,
+	token_elevation: f64,
+	enable_height: bool,
+) -> Pathfinder {
 	let mut walls = Vec::with_capacity(js_walls.len());
 	for wall in js_walls {
 		let wall = JsWall::from(wall);
 		walls.push(Wall::from_js(&wall, enable_height));
 	}
-	Pathfinder::initialize(walls, token_size, token_elevation)
+	let terrain = js_terrain.iter().map(|terrain| terrain.into()).collect();
+	Pathfinder::initialize(walls, terrain, token_size, token_elevation)
 }
 
 #[allow(dead_code)]

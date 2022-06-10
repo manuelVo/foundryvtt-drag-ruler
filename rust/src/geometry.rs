@@ -38,6 +38,11 @@ impl Point {
 		let e = 0.000001;
 		(self.x - other.x).abs() < e && (self.y - other.y).abs() < e
 	}
+
+	pub fn is_in_rectangle(&self, rect: &Rectangle) -> bool {
+		between(self.x, rect.left.p1.x, rect.right.p1.x)
+			&& between(self.y, rect.top.p1.y, rect.bottom.p1.y)
+	}
 }
 
 impl Eq for Point {}
@@ -179,9 +184,70 @@ impl LineSegment {
 		}
 		between(intersection.x, self.p1.x, self.p2.x)
 	}
+
+	pub fn intersects_rect(&self, rect: &Rectangle) -> bool {
+		if self.p1.is_in_rectangle(rect) {
+			return true;
+		}
+		[rect.left, rect.top, rect.right, rect.bottom]
+			.iter()
+			.any(|edge| self.intersection(edge).is_some())
+	}
 }
 
 pub fn between<T: Copy + PartialOrd>(num: T, a: T, b: T) -> bool {
 	let (min, max) = if a < b { (a, b) } else { (b, a) };
 	num >= min && num <= max
+}
+
+#[wasm_bindgen]
+extern "C" {
+	pub type JsRectangle;
+
+	#[wasm_bindgen(method, getter)]
+	fn left(this: &JsRectangle) -> f64;
+
+	#[wasm_bindgen(method, getter)]
+	fn top(this: &JsRectangle) -> f64;
+
+	#[wasm_bindgen(method, getter)]
+	fn right(this: &JsRectangle) -> f64;
+
+	#[wasm_bindgen(method, getter)]
+	fn bottom(this: &JsRectangle) -> f64;
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Rectangle {
+	pub left: LineSegment,
+	pub top: LineSegment,
+	pub right: LineSegment,
+	pub bottom: LineSegment,
+}
+
+impl Rectangle {
+	pub fn new(left: f64, top: f64, right: f64, bottom: f64) -> Self {
+		Self {
+			left: LineSegment::new(Point::new(left, top), Point::new(left, bottom)),
+			top: LineSegment::new(Point::new(left, top), Point::new(right, top)),
+			right: LineSegment::new(Point::new(right, top), Point::new(right, bottom)),
+			bottom: LineSegment::new(Point::new(left, bottom), Point::new(right, bottom)),
+		}
+	}
+}
+
+impl From<&JsRectangle> for Rectangle {
+	fn from(rect: &JsRectangle) -> Self {
+		let left = rect.left();
+		let top = rect.top();
+		let right = rect.right();
+		let bottom = rect.bottom();
+		Self::new(left, top, right, bottom)
+	}
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Circle {
+	pub center: Point,
+	pub radius: f64,
 }

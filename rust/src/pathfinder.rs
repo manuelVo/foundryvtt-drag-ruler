@@ -5,8 +5,8 @@ use wasm_bindgen::prelude::*;
 use rustc_hash::FxHashMap;
 
 use crate::{
-	geometry::{LineSegment, Point},
-	js_api::{Wall, WallSenseType},
+	geometry::{LineSegment, Point, Rectangle},
+	js_api::{distance_with_terrain, Terrain, TerrainShape, Wall, WallSenseType, log},
 	ptr_indexed_hash_set::PtrIndexedHashSet,
 };
 
@@ -84,7 +84,7 @@ impl NodeStorage {
 		self.regular_nodes.push(node);
 	}
 
-	fn initialize_edges(&mut self, node: &NodePtr, walls: &[LineSegment]) {
+	fn initialize_edges(&mut self, node: &NodePtr, walls: &[LineSegment], terrain: &[Rectangle]) {
 		if node.borrow().final_edge.is_none() {
 			let final_edge = self
 				.final_node
@@ -97,7 +97,11 @@ impl NodeStorage {
 				})
 				.map(|neighbor| Edge {
 					target: neighbor.clone(),
-					cost: node.borrow().point.distance_to(neighbor.borrow().point),
+					cost: Self::measure_distance(
+						node.borrow().point,
+						neighbor.borrow().point,
+						terrain,
+					),
 				});
 			node.borrow_mut().final_edge = Some(final_edge);
 		}
@@ -114,7 +118,8 @@ impl NodeStorage {
 			}
 			let neighbor_point = neighbor.borrow().point;
 			if !self.collides_with_wall(&LineSegment::new(point, neighbor_point), walls) {
-				let cost = point.distance_to(neighbor_point);
+				let cost =
+					Self::measure_distance(node.borrow().point, neighbor.borrow().point, terrain);
 				edges.push(Edge {
 					target: neighbor.clone(),
 					cost,
@@ -126,6 +131,15 @@ impl NodeStorage {
 
 	fn collides_with_wall(&self, line: &LineSegment, walls: &[LineSegment]) -> bool {
 		walls.iter().any(|wall| line.intersection(wall).is_some())
+	}
+
+	fn measure_distance(a: Point, b: Point, terrain: &[Rectangle]) -> f64 {
+		let segment = LineSegment::new(a, b);
+		if terrain.iter().any(|rect| segment.intersects_rect(rect)) {
+			distance_with_terrain(a, b)
+		} else {
+			a.distance_to(b)
+		}
 	}
 
 	pub fn cleanup_final_edges(&mut self) {
@@ -145,35 +159,51 @@ pub struct Pathfinder {
 	pub nodes: NodeStorage,
 	#[wasm_bindgen(skip)]
 	pub walls: Vec<LineSegment>,
+	#[wasm_bindgen(skip)]
+	pub terrain: Vec<Rectangle>,
 }
 
 impl Pathfinder {
-	pub fn initialize<I>(walls: I, token_size: f64, token_elevation: f64) -> Self
-	where
-		I: IntoIterator<Item = Wall>,
-	{
+	pub fn initialize(
+		walls: Vec<Wall>,
+		terrain: Vec<Terrain>,
+		token_size: f64,
+		token_elevation: f64,
+	) -> Self {
+		log!("{:#?}", terrain);
 		let distance_from_walls = token_size / 2.0;
+
+		// TODO Place pathfinding nodes around terrain edges
+		let mut polygon_terrain = Vec::new();
+		let mut circle_terrain = Vec::new();
+
+		for terrain in &terrain {
+			match &terrain.shape {
+				TerrainShape::Polygon(polygon) => polygon_terrain.append(&mut polygon.clone()),
+				TerrainShape::Circle(circle) => circle_terrain.push(circle),
+			}
+		}
+
+		let mut walls = walls
+			.into_iter()
+			.filter(|wall| wall.move_type != WallSenseType::NONE)
+			.filter(|wall| !(wall.is_door() && wall.is_open()))
+			.filter(|wall| wall.height.contains(token_elevation))
+			.map(|wall| LineSegment::new(wall.p1, wall.p2))
+			.collect::<Vec<_>>();
+
+		// TODO Generate points around difficult terrain
 		let mut endpoints = FxHashMap::<Point, Vec<f64>>::default();
-		let mut line_segments = Vec::new();
-		for wall in walls {
-			if wall.move_type == WallSenseType::NONE {
-				continue;
-			}
-			if wall.is_door() && wall.is_open() {
-				continue;
-			}
-			if !wall.height.contains(token_elevation) {
-				continue;
-			}
-			let x_diff = wall.p2.x - wall.p1.x;
-			let y_diff = wall.p2.y - wall.p1.y;
+
+		for segments in walls.iter().chain(polygon_terrain.iter()) {
+			let x_diff = segments.p2.x - segments.p1.x;
+			let y_diff = segments.p2.y - segments.p1.y;
 			let p1_angle = y_diff.atan2(x_diff).rem_euclid(2.0 * PI);
 			let p2_angle = (p1_angle + PI).rem_euclid(2.0 * PI);
-			for (point, angle) in [(wall.p1, p1_angle), (wall.p2, p2_angle)] {
+			for (point, angle) in [(segments.p1, p1_angle), (segments.p2, p2_angle)] {
 				let angles = endpoints.entry(point).or_insert_with(Vec::new);
 				angles.push(angle);
 			}
-			line_segments.push(LineSegment::new(wall.p1, wall.p2));
 		}
 		endpoints
 			.values_mut()
@@ -196,19 +226,19 @@ impl Pathfinder {
 					point,
 					angle_between,
 					distance_from_walls,
-					&mut line_segments,
+					&mut walls,
 				));
 				nodes.push(calc_pathfinding_node(
 					point,
 					angle1 + 0.5 * PI,
 					distance_from_walls,
-					&mut line_segments,
+					&mut walls,
 				));
 				nodes.push(calc_pathfinding_node(
 					point,
 					angle2 - 0.5 * PI,
 					distance_from_walls,
-					&mut line_segments,
+					&mut walls,
 				));
 			}
 			let angle1 = angles.last().unwrap();
@@ -222,25 +252,46 @@ impl Pathfinder {
 				point,
 				angle_between,
 				distance_from_walls,
-				&mut line_segments,
+				&mut walls,
 			));
 			nodes.push(calc_pathfinding_node(
 				point,
 				angle1 + 0.5 * PI,
 				distance_from_walls,
-				&mut line_segments,
+				&mut walls,
 			));
 			nodes.push(calc_pathfinding_node(
 				point,
 				angle2 - 0.5 * PI,
 				distance_from_walls,
-				&mut line_segments,
+				&mut walls,
 			));
 		}
+
+		// TODO Check bounding box of circle terrain
+		for circle in circle_terrain {
+			let angle_step = f64::asin(token_size / 2.0 / circle.radius);
+			let mut angle = 0.0;
+			while angle < 2.0 * PI {
+				let point = Point {
+					x: circle.center.x + angle.cos() * circle.radius,
+					y: circle.center.y + angle.sin() * circle.radius,
+				};
+				nodes.push(calc_pathfinding_node(
+					point,
+					angle,
+					distance_from_walls,
+					&mut walls,
+				));
+				angle += angle_step;
+			}
+		}
+
 		// TODO Eliminating nodes close to each other may improve performance
 		Self {
 			nodes,
-			walls: line_segments,
+			walls,
+			terrain: terrain.iter().map(|terrain| terrain.bounding_box).collect(),
 		}
 	}
 
@@ -249,7 +300,7 @@ impl Pathfinder {
 		let mut nodes = self.nodes.clone();
 		nodes.final_node = Some(NodePtr::from(Node::new(from)));
 		let to_node = NodePtr::from(Node::new(to));
-		nodes.initialize_edges(&to_node, &self.walls);
+		nodes.initialize_edges(&to_node, &self.walls, &self.terrain);
 		let to = DiscoveredNode {
 			node: to_node,
 			cost: 0.0,
@@ -282,7 +333,7 @@ impl Pathfinder {
 				if previous_nodes.contains(neighbor) {
 					continue;
 				}
-				nodes.initialize_edges(neighbor, &self.walls);
+				nodes.initialize_edges(neighbor, &self.walls, &self.terrain);
 				// Add a flat 0.00001 cost per node to discurage creation of unnecessary waypoints
 				let cost = current_node.borrow().cost + edge.cost + 0.00001;
 				let discovered_neighbor = DiscoveredNode {
@@ -312,11 +363,11 @@ fn calc_pathfinding_node(
 	p: Point,
 	angle: f64,
 	distance_from_walls: f64,
-	line_segments: &mut Vec<LineSegment>,
+	walls: &mut Vec<LineSegment>,
 ) -> NodePtr {
 	let offset_x = angle.cos() * distance_from_walls;
 	let offset_y = angle.sin() * distance_from_walls;
-	line_segments.push(LineSegment::new(
+	walls.push(LineSegment::new(
 		p,
 		Point {
 			x: p.x + offset_x * 0.99,
