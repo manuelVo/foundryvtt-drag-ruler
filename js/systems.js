@@ -21,6 +21,8 @@ export function getDefaultSpeedAttribute() {
 			return "actor.data.data.stats.speed.adjusted";
 		case "ds4":
 			return "actor.data.data.combatValues.movement.total";
+		case "splittermond":
+			return "actor.derivedValues.speed.value";
 	}
 	return ""
 }
@@ -41,6 +43,8 @@ export function getDefaultDashMultiplier() {
 			return 2;
 		case "CoC7":
 			return 5;
+		case "splittermond":
+			return 3;
 	}
 	return 0;
 }
