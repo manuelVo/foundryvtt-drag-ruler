@@ -137,7 +137,7 @@ export class GenericSpeedProvider extends SpeedProvider {
 		const speedAttribute = this.getSetting("speedAttribute")
 		if (!speedAttribute)
 			return []
-		const tokenSpeed = parseFloat(getProperty(token, speedAttribute));
+		const tokenSpeed = parseFloat(getProperty(token.document, speedAttribute));
 		if (tokenSpeed === undefined) {
 			console.warn(`Drag Ruler (Generic Speed Provider) | The configured token speed attribute "${speedAttribute}" didn't return a speed value. To use colors based on drag distance set the setting to the correct value (or clear the box to disable this feature).`)
 			return []

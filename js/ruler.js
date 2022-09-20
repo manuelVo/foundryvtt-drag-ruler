@@ -211,5 +211,6 @@ export function extendRuler() {
 		}
 	}
 
-	Ruler = DragRulerRuler;
+	CONFIG.Canvas.rulerClass = DragRulerRuler;
+	
 }

@@ -179,10 +179,10 @@ class SpeedProviderSettings extends FormApplication {
 			else {
 				let name
 				if (type === "module") {
-					name = game.modules.get(id).data.title
+					name = game.modules.get(id).title
 				}
 				else {
-					name = game.system.data.title
+					name = game.system.title
 				}
 				provider.selectTitle = game.i18n.format(`drag-ruler.settings.speedProviderSettings.speedProvider.choices.${type}`, {name})
 			}

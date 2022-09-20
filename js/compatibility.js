@@ -63,7 +63,7 @@ export function checkDependencies() {
 		if (Date.now() - lastHint > 604800000) { // One week
 			let enabledTerrainModule;
 			if (game.modules.get("enhanced-terrain-layer")?.active) {
-				enabledTerrainModule = game.modules.get("enhanced-terrain-layer").data.title;
+				enabledTerrainModule = game.modules.get("enhanced-terrain-layer").title;
 			}
 			if (enabledTerrainModule) {
 				new Dialog({

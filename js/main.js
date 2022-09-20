@@ -261,9 +261,7 @@ function applyGridlessSnapping(event) {
 		const distance = Math.hypot(deltaX, deltaY);
 		// targetRange will be the largest range that's still smaller than distance
 		let targetDistance = ranges
-			.map(range => range.range)
-			.map(range => range - waypointDistance)
-			.map(range => range * canvas.dimensions.size / canvas.dimensions.distance)
+			.map(range => (range.range - waypointDistance) * canvas.dimensions.size / canvas.dimensions.distance)
 			.filter(range => range < distance)
 			.reduce((a, b) => Math.max(a, b), 0);
 		if (targetDistance) {

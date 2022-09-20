@@ -4,14 +4,14 @@ import {getTokenShape, isClose, zip} from "./util.js";
 
 function initTrackingFlag(combatant) {
 	const initialFlag = {passedWaypoints: [], trackedRound: 0};
-	let dragRulerFlag = combatant.data.flags.dragRuler;
+	let dragRulerFlag = combatant.flags.dragRuler;
 	if (dragRulerFlag) {
 		if (isNaN(dragRulerFlag.trackedRound)) {
 			mergeObject(dragRulerFlag, initialFlag);
 		}
 	}
 	else {
-		combatant.data.flags.dragRuler = initialFlag;
+		combatant.flags.dragRuler = initialFlag;
 	}
 }
 
@@ -43,14 +43,14 @@ function calculateUpdate(combat, token, rays) {
 		return;
 
 	// Check if we have entered a new round. If so, remove the currently stored path
-	if (combat.data.round > combatant.data.flags.dragRuler.trackedRound) {
-		combatant.data.flags.dragRuler.passedWaypoints = [];
-		combatant.data.flags.dragRuler.trackedRound = combat.data.round;
+	if (combat.round > combatant.flags.dragRuler.trackedRound) {
+		combatant.flags.dragRuler.passedWaypoints = [];
+		combatant.flags.dragRuler.trackedRound = combat.round;
 	}
 
 	// Add the passed waypoints to the combatant
 	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active;
-	const dragRulerFlags = combatant.data.flags.dragRuler;
+	const dragRulerFlags = combatant.flags.dragRuler;
 	const waypoints = dragRulerFlags.passedWaypoints;
 	for (const ray of rays) {
 		// Ignore rays that have the same start and end coordinates
@@ -73,10 +73,10 @@ export function getMovementHistory(token) {
 	const combatant = combat.getCombatantByToken(token.id);
 	if (!combatant)
 		return [];
-	const dragRulerFlags = combatant.data.flags.dragRuler;
+	const dragRulerFlags = combatant.flags.dragRuler;
 	if (!dragRulerFlags)
 		return [];
-	if (combat.data.round > dragRulerFlags.trackedRound)
+	if (combat.round > dragRulerFlags.trackedRound)
 		return [];
 	return dragRulerFlags.passedWaypoints ?? [];
 }
@@ -92,12 +92,12 @@ export async function removeLastHistoryEntryIfAt(token, x, y) {
 	history.pop();
 	const combat = game.combat;
 	const combatant = combat.getCombatantByToken(token.id);
-	await updateCombatantDragRulerFlags(combat, [{_id: combatant.id, dragRulerFlags: combatant.data.flags.dragRuler}]);
+	await updateCombatantDragRulerFlags(combat, [{_id: combatant.id, dragRulerFlags: combatant.flags.dragRuler}]);
 }
 
 export async function resetMovementHistory(combat, combatantId) {
 	const combatant = combat.combatants.get(combatantId);
-	const dragRulerFlags = combatant.data.flags.dragRuler;
+	const dragRulerFlags = combatant.flags.dragRuler;
 	if (!dragRulerFlags)
 		return;
 	dragRulerFlags.passedWaypoints = null;

@@ -28,8 +28,8 @@ export function sum(arr) {
 
 export function buildSnapPointTokenData(token) {
 	const tokenData = {
-		width: token.data.width,
-		height: token.data.height
+		width: token.width,
+		height: token.height
 	};
 
 	if (isModuleActive("hex-size-support")) {
@@ -171,10 +171,10 @@ export function getTokenShape(token) {
 }
 
 export function getTokenShapeForTokenData(tokenData, scene=canvas.scene) {
-	if (scene.data.gridType === CONST.GRID_TYPES.GRIDLESS) {
+	if (scene.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		return [{x: 0, y: 0}]
 	}
-	else if (scene.data.gridType === CONST.GRID_TYPES.SQUARE) {
+	else if (scene.grid.type === CONST.GRID_TYPES.SQUARE) {
 		const topOffset = -Math.floor(tokenData.height / 2)
 		const leftOffset = -Math.floor(tokenData.width / 2)
 		const shape = []
@@ -216,8 +216,8 @@ export function getTokenSize(token) {
 		w = h = hexSizeSupportBorderSize
 	}
 	else {
-		w = token.data.width
-		h = token.data.height
+		w = token.width
+		h = token.height
 	}
 	return {w, h};
 }

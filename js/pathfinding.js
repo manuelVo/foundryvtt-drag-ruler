@@ -249,11 +249,11 @@ export function isPathfindingEnabled() {
 
 export function findPath(from, to, token, previousWaypoints) {
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
-		let tokenSize = Math.max(token.data.width, token.data.height) * canvas.dimensions.size;
+		let tokenSize = Math.max(token.width, token.height) * canvas.dimensions.size;
 		let pathfinder = gridlessPathfinders.get(tokenSize);
 		if (!pathfinder) {
 			let radiusMultiplier = game.settings.get(settingsKey, "pathfindingRadius");
-			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize * radiusMultiplier, token.data.elevation, Boolean(game.modules.get("wall-height")?.active));
+			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize * radiusMultiplier, token.document.elevation, Boolean(game.modules.get("wall-height")?.active));
 			gridlessPathfinders.set(tokenSize, pathfinder);
 		}
 		paintGridlessPathfindingDebug(pathfinder);
@@ -313,7 +313,7 @@ function buildTokenData(token) {
 	// foot height (elevation) or eye height (losHeight).
 	if (isModuleActive("wall-height")) {
 		const blockSightMovement = game.settings.get("wall-height", "blockSightMovement");
-		tokenData.elevation = blockSightMovement ? token.losHeight : token.data.elevation;
+		tokenData.elevation = blockSightMovement ? token.losHeight : token.document.elevation;
 	}
 
 	return tokenData;
