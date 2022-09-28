@@ -1,8 +1,19 @@
-import {getCenterFromGridPositionObj, getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
+import {
+	getCenterFromGridPositionObj,
+	getGridPositionFromPixelsObj,
+	getPixelsFromGridPositionObj,
+} from "./foundry_fixes.js";
 import {moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
 import {debugGraphics} from "./main.js";
 import {settingsKey} from "./settings.js";
-import {buildSnapPointTokenData, getSnapPointForTokenDataObj, getTokenShape, getTokenShapeForTokenData, isModuleActive, iterPairs} from "./util.js";
+import {
+	buildSnapPointTokenData,
+	getSnapPointForTokenDataObj,
+	getTokenShape,
+	getTokenShapeForTokenData,
+	isModuleActive,
+	iterPairs,
+} from "./util.js";
 
 import * as GridlessPathfinding from "../wasm/gridless_pathfinding.js";
 import {PriorityQueueSet, ProcessOnceQueue} from "./data_structures.js";
@@ -60,8 +71,8 @@ class Cache {
 		this.background = {
 			nextJobId: null,
 			nextTimeoutId: null,
-			nextAnimationFrameId: null
-		}
+			nextAnimationFrameId: null,
+		};
 	}
 
 	clear() {
@@ -98,8 +109,10 @@ class Cache {
 			// Check if we already have the max number of layers. If we do,
 			// get rid of the one that hasn't been used for the longest
 			if (this.layers.size >= Cache.maxCacheLayers) {
-				const oldestCache = Array.from(this.layers.values())
-					.reduce((layer1, layer2) => (layer1?.lastUsed < layer2.lastUsed) ? layer1 : layer2, null);
+				const oldestCache = Array.from(this.layers.values()).reduce(
+					(layer1, layer2) => (layer1?.lastUsed < layer2.lastUsed ? layer1 : layer2),
+					null,
+				);
 				this.layers.delete(oldestCache.cacheId);
 			}
 
@@ -119,7 +132,7 @@ class Cache {
 	 */
 	startBackgroundCaching(token) {
 		const cacheLayer = this.getCacheLayer(token);
-		const tokenPosition = getGridPositionFromPixelsObj(token.position)
+		const tokenPosition = getGridPositionFromPixelsObj(token.position);
 
 		cacheLayer.queue.push(cacheLayer.nodes[tokenPosition.y][tokenPosition.x]);
 
@@ -137,8 +150,8 @@ class Cache {
 		// Find the latest-used cache that has nodes left to cache
 		const latestCache = this.getLatestCacheWithNonEmptyQueue();
 		if (latestCache) {
-			this.background.nextJobId = window.requestIdleCallback(
-				() => this.runBackgroundCache(latestCache)
+			this.background.nextJobId = window.requestIdleCallback(() =>
+				this.runBackgroundCache(latestCache),
 			);
 			this.resetAnimationFrameTimeout();
 		}
@@ -152,13 +165,10 @@ class Cache {
 		this.cancelTimeout();
 		this.cancelAnimationFrame();
 
-		this.background.nextTimeoutId = window.setTimeout(
-			() => {
-				this.scheduleAnimationFrameCache();
-				this.background.nextTimeoutId = null;
-			},
-			Cache.backgroundCachingTimeoutMillis
-		);
+		this.background.nextTimeoutId = window.setTimeout(() => {
+			this.scheduleAnimationFrameCache();
+			this.background.nextTimeoutId = null;
+		}, Cache.backgroundCachingTimeoutMillis);
 	}
 
 	/**
@@ -167,8 +177,8 @@ class Cache {
 	scheduleAnimationFrameCache() {
 		const latestCache = this.getLatestCacheWithNonEmptyQueue();
 		if (latestCache) {
-			this.background.nextAnimationFrameId = window.requestAnimationFrame(
-				() => this.runAnimationCache(latestCache)
+			this.background.nextAnimationFrameId = window.requestAnimationFrame(() =>
+				this.runAnimationCache(latestCache),
 			);
 		}
 	}
@@ -179,7 +189,7 @@ class Cache {
 	getLatestCacheWithNonEmptyQueue() {
 		return Array.from(this.layers.values())
 			.filter(layer => layer.queue.hasNext())
-			.reduce((layer1, layer2) => (layer1?.lastUsed > layer2.lastUsed) ? layer1 : layer2, null);
+			.reduce((layer1, layer2) => (layer1?.lastUsed > layer2.lastUsed ? layer1 : layer2), null);
 	}
 
 	/**
@@ -238,12 +248,9 @@ let gridlessPathfinders = new Map();
 let gridWidth, gridHeight;
 
 export function isPathfindingEnabled() {
-	if (this.user !== game.user)
-		return false;
-	if (!game.user.isGM && !game.settings.get(settingsKey, "allowPathfinding"))
-		return false;
-	if (moveWithoutAnimation)
-		return false;
+	if (this.user !== game.user) return false;
+	if (!game.user.isGM && !game.settings.get(settingsKey, "allowPathfinding")) return false;
+	if (moveWithoutAnimation) return false;
 	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
 }
 
@@ -253,7 +260,12 @@ export function findPath(from, to, token, previousWaypoints) {
 		let pathfinder = gridlessPathfinders.get(tokenSize);
 		if (!pathfinder) {
 			let radiusMultiplier = game.settings.get(settingsKey, "pathfindingRadius");
-			pathfinder = GridlessPathfinding.initialize(canvas.walls.placeables, tokenSize * radiusMultiplier, token.data.elevation, Boolean(game.modules.get("wall-height")?.active));
+			pathfinder = GridlessPathfinding.initialize(
+				canvas.walls.placeables,
+				tokenSize * radiusMultiplier,
+				token.data.elevation,
+				Boolean(game.modules.get("wall-height")?.active),
+			);
 			gridlessPathfinders.set(tokenSize, pathfinder);
 		}
 		paintGridlessPathfindingDebug(pathfinder);
@@ -261,30 +273,36 @@ export function findPath(from, to, token, previousWaypoints) {
 	} else {
 		const cacheLayer = cache.getCacheLayer(token);
 		const firstNode = calculatePath(from, to, cacheLayer, previousWaypoints);
-		if (!firstNode)
-			return null;
+		if (!firstNode) return null;
 		paintGriddedPathfindingDebug(firstNode, cacheLayer.tokenData);
 		const path = [];
 		let currentNode = firstNode;
 		while (currentNode) {
-			if (path.length >= 2 && !stepCollidesWithWall(path[path.length - 2], currentNode.node, cacheLayer.tokenData)) {
+			if (
+				path.length >= 2 &&
+				!stepCollidesWithWall(path[path.length - 2], currentNode.node, cacheLayer.tokenData)
+			) {
 				// Replace last waypoint if the current waypoint leads to a valid path that isn't longer than the old path
 				if (window.terrainRuler) {
 					let startNode = getCenterFromGridPositionObj(path[path.length - 2]);
 					let middleNode = getCenterFromGridPositionObj(path[path.length - 1]);
 					let endNode = getCenterFromGridPositionObj(currentNode.node);
-					let oldPath = [{ray: new Ray(startNode, middleNode)}, {ray: new Ray(middleNode, endNode)}];
+					let oldPath = [
+						{ray: new Ray(startNode, middleNode)},
+						{ray: new Ray(middleNode, endNode)},
+					];
 					let newPath = [{ray: new Ray(startNode, endNode)}];
 					let costFunction = buildCostFunction(token, getTokenShape(token));
 					// TODO Cache the used measurement for use in the next loop to improve performance
-					let oldDistance = terrainRuler.measureDistances(oldPath, {costFunction}).reduce((a, b) => a + b);
+					let oldDistance = terrainRuler
+						.measureDistances(oldPath, {costFunction})
+						.reduce((a, b) => a + b);
 					let newDistance = terrainRuler.measureDistances(newPath, {costFunction})[0];
 
 					// TODO We might need to check if the diagonal count has increased on 5-10-5
-					if (newDistance < oldDistance)  {
+					if (newDistance < oldDistance) {
 						path.pop();
-					}
-					else if (newDistance === oldDistance) {
+					} else if (newDistance === oldDistance) {
 						let oldNoDiagonals = oldPath[1].ray.terrainRulerFinalState?.noDiagonals;
 						let newNoDiagonals = newPath[0].ray.terrainRulerFinalState?.noDiagonals;
 						// This uses === && < instead of <= because the variables might be undefined (which shall lead to a true result)
@@ -292,8 +310,7 @@ export function findPath(from, to, token, previousWaypoints) {
 							path.pop();
 						}
 					}
-				}
-				else {
+				} else {
 					path.pop();
 				}
 			}
@@ -323,18 +340,36 @@ function getNode(pos, cacheLayer, initialize = true) {
 	const node = cacheLayer.nodes[pos.y][pos.x];
 	if (initialize && !node.edges) {
 		node.edges = [];
-		for (const neighborPos of canvas.grid.grid.getNeighbors(pos.y, pos.x).map(([y, x]) => {return {x, y};})) {
-			if (neighborPos.x < 0 || neighborPos.y < 0 || neighborPos.x >= gridWidth || neighborPos.y >= gridHeight) {
+		for (const neighborPos of canvas.grid.grid.getNeighbors(pos.y, pos.x).map(([y, x]) => {
+			return {x, y};
+		})) {
+			if (
+				neighborPos.x < 0 ||
+				neighborPos.y < 0 ||
+				neighborPos.x >= gridWidth ||
+				neighborPos.y >= gridHeight
+			) {
 				continue;
 			}
 
 			// TODO Work with pixels instead of grid locations
 			if (!stepCollidesWithWall(pos, neighborPos, cacheLayer.tokenData)) {
-				const isDiagonal = node.x !== neighborPos.x && node.y !== neighborPos.y && canvas.grid.type === CONST.GRID_TYPES.SQUARE;
+				const isDiagonal =
+					node.x !== neighborPos.x &&
+					node.y !== neighborPos.y &&
+					canvas.grid.type === CONST.GRID_TYPES.SQUARE;
 				let edgeCost;
 				if (window.terrainRuler) {
-					let ray = new Ray(getCenterFromGridPositionObj(pos), getCenterFromGridPositionObj(neighborPos));
-					let measuredDistance = terrainRuler.measureDistances([{ray}], {costFunction: buildCostFunction(cacheLayer.tokenData, getTokenShapeForTokenData(cacheLayer.tokenData))})[0];
+					let ray = new Ray(
+						getCenterFromGridPositionObj(pos),
+						getCenterFromGridPositionObj(neighborPos),
+					);
+					let measuredDistance = terrainRuler.measureDistances([{ray}], {
+						costFunction: buildCostFunction(
+							cacheLayer.tokenData,
+							getTokenShapeForTokenData(cacheLayer.tokenData),
+						),
+					})[0];
 					edgeCost = Math.round(measuredDistance / canvas.dimensions.distance);
 					if (ray.terrainRulerFinalState?.noDiagonals === 1) {
 						edgeCost = 1.5;
@@ -343,8 +378,7 @@ function getNode(pos, cacheLayer, initialize = true) {
 					if (isDiagonal && edgeCost == 1) {
 						edgeCost = 1.0001;
 					}
-				}
-				else {
+				} else {
 					// Count 5-10-5 diagonals as 1.5 (so two add up to 3) and 5-5-5 diagonals as 1.0001 (to discourage unnecessary diagonals)
 					// TODO Account for difficult terrain
 					edgeCost = isDiagonal ? (use5105 ? 1.5 : 1.0001) : 1;
@@ -365,17 +399,18 @@ function calculatePath(from, to, cacheLayer, previousWaypoints) {
 		startCost = (calcNoDiagonals(previousWaypoints) % 2) * 0.5;
 	}
 
-	const nextNodes = new PriorityQueueSet((node1, node2) => node1.node === node2.node, node => node.estimated);
+	const nextNodes = new PriorityQueueSet(
+		(node1, node2) => node1.node === node2.node,
+		node => node.estimated,
+	);
 	const previousNodes = new Set();
 
-	nextNodes.pushWithPriority(
-		{
-			node: getNode(from, cacheLayer),
-			cost: startCost,
-			estimated: startCost + estimateCost(from, to),
-			previous: null
-		}
-	);
+	nextNodes.pushWithPriority({
+		node: getNode(from, cacheLayer),
+		cost: startCost,
+		estimated: startCost + estimateCost(from, to),
+		previous: null,
+	});
 
 	while (nextNodes.hasNext()) {
 		// Get node with cheapest estimate
@@ -394,7 +429,7 @@ function calculatePath(from, to, cacheLayer, previousWaypoints) {
 				node: neighborNode,
 				cost: currentNode.cost + edge.cost,
 				estimated: currentNode.cost + edge.cost + estimateCost(neighborNode, to),
-				previous: currentNode
+				previous: currentNode,
 			};
 			nextNodes.pushWithPriority(neighbor);
 		}
@@ -412,8 +447,8 @@ function buildPathNodes(lastNode) {
 		const pathNode = {
 			node: currentNode.node,
 			cost: currentNode.cost,
-			next: previousNode
-		}
+			next: previousNode,
+		};
 		previousNode = pathNode;
 		currentNode = currentNode.previous;
 	}
@@ -444,7 +479,7 @@ function stepCollidesWithWall(from, to, tokenData) {
 	if (isModuleActive("levels")) {
 		stepStart.z = tokenData.elevation;
 		stepEnd.z = tokenData.elevation;
-		return _levels.testCollision(stepStart, stepEnd, "collision")
+		return _levels.testCollision(stepStart, stepEnd, "collision");
 	} else {
 		return canvas.walls.checkCollision(new Ray(stepStart, stepEnd));
 	}
@@ -456,8 +491,7 @@ export function wipePathfindingCache() {
 		GridlessPathfinding.free(pathfinder);
 	}
 	gridlessPathfinders.clear();
-	if (debugGraphics)
-		debugGraphics.removeChildren().forEach(c => c.destroy());
+	if (debugGraphics) debugGraphics.removeChildren().forEach(c => c.destroy());
 }
 
 export function initializePathfinding() {
@@ -467,22 +501,23 @@ export function initializePathfinding() {
 
 export function startBackgroundCaching(token) {
 	// Background caching isn't yet supported for gridless scenes
-	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
-		return;
+	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) return;
 	if (game.user.isGM || game.settings.get(settingsKey, "allowPathfinding")) {
 		cache.startBackgroundCaching(token);
 	}
 }
 
 function paintGriddedPathfindingDebug(firstNode, tokenData) {
-	if (!CONFIG.debug.dragRuler)
-		return;
+	if (!CONFIG.debug.dragRuler) return;
 
 	debugGraphics.removeChildren().forEach(c => c.destroy());
 	let currentNode = firstNode;
 	while (currentNode) {
 		let text = new PIXI.Text(currentNode.cost.toFixed(1));
-		let pixels = getSnapPointForTokenDataObj(getPixelsFromGridPositionObj(currentNode.node), tokenData);
+		let pixels = getSnapPointForTokenDataObj(
+			getPixelsFromGridPositionObj(currentNode.node),
+			tokenData,
+		);
 		text.anchor.set(0.5, 1.0);
 		text.x = pixels.x;
 		text.y = pixels.y;
@@ -492,8 +527,7 @@ function paintGriddedPathfindingDebug(firstNode, tokenData) {
 }
 
 function paintGridlessPathfindingDebug(pathfinder) {
-	if (!CONFIG.debug.dragRuler)
-		return;
+	if (!CONFIG.debug.dragRuler) return;
 
 	debugGraphics.removeChildren().forEach(c => c.destroy());
 	let graphic = new PIXI.Graphics();

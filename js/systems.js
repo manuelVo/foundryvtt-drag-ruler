@@ -24,13 +24,13 @@ export function getDefaultSpeedAttribute() {
 		case "splittermond":
 			return "actor.derivedValues.speed.value";
 	}
-	return ""
+	return "";
 }
 
 export function getDefaultDashMultiplier() {
 	switch (game.system.id) {
 		case "swade":
-			return 0
+			return 0;
 		case "dcc":
 		case "dnd4e":
 		case "dnd5e":

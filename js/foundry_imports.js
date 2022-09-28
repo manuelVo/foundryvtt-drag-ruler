@@ -1,12 +1,25 @@
 import {highlightMeasurementTerrainRuler, measureDistances} from "./compatibility.js";
-import {getGridPositionFromPixels, getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
+import {
+	getGridPositionFromPixels,
+	getGridPositionFromPixelsObj,
+	getPixelsFromGridPositionObj,
+} from "./foundry_fixes.js";
 import {Line} from "./geometry.js";
 import {disableSnap, moveWithoutAnimation} from "./keybindings.js";
-import {trackRays} from "./movement_tracking.js"
+import {trackRays} from "./movement_tracking.js";
 import {findPath, isPathfindingEnabled} from "./pathfinding.js";
 import {settingsKey} from "./settings.js";
 import {recalculate} from "./socket.js";
-import {applyTokenSizeOffset, enumeratedZip, getSnapPointForEntity, getSnapPointForToken, getSnapPointForTokenObj, getTokenShape, highlightTokenShape, sum} from "./util.js";
+import {
+	applyTokenSizeOffset,
+	enumeratedZip,
+	getSnapPointForEntity,
+	getSnapPointForToken,
+	getSnapPointForTokenObj,
+	getTokenShape,
+	highlightTokenShape,
+	sum,
+} from "./util.js";
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
 export async function moveEntities(draggedEntity, selectedEntities) {
@@ -27,12 +40,14 @@ export async function moveEntities(draggedEntity, selectedEntities) {
 	if (!game.user.isGM && draggedEntity instanceof Token) {
 		const hasCollision = selectedEntities.some(token => {
 			const offset = calculateEntityOffset(token, draggedEntity);
-			const offsetRays = rays.filter(ray => !ray.isPrevious).map(ray => applyOffsetToRay(ray, offset))
+			const offsetRays = rays
+				.filter(ray => !ray.isPrevious)
+				.map(ray => applyOffsetToRay(ray, offset));
 			if (window.WallHeight) {
 				window.WallHeight.addBoundsToRays(offsetRays, draggedEntity);
 			}
 			return offsetRays.some(r => canvas.walls.checkCollision(r));
-		})
+		});
 		if (hasCollision) {
 			ui.notifications.error(game.i18n.localize("ERROR.TokenCollide"));
 			this._endMeasurement();
@@ -46,8 +61,7 @@ export async function moveEntities(draggedEntity, selectedEntities) {
 	await animateEntities.call(this, selectedEntities, draggedEntity, rays, wasPaused);
 
 	// Once all animations are complete we can clear the ruler
-	if (this.draggedEntity?.id === draggedEntity.id)
-		this._endMeasurement();
+	if (this.draggedEntity?.id === draggedEntity.id) this._endMeasurement();
 }
 
 // This is a modified version code extracted from Ruler.moveToken from foundry 0.7.9
@@ -65,8 +79,7 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 		if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 			dx = entity.data.x - origin[0];
 			dy = entity.data.y - origin[1];
-		}
-		else {
+		} else {
 			dx = entity.data.x - origin[0];
 			dy = entity.data.y - origin[1];
 		}
@@ -81,7 +94,7 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 	// This is a flag of the "Monk's Active Tile Triggers" module that signals that the movement should be cancelled early
 	this.cancelMovement = false;
 
-	for (let i = startWaypoint;i < entityAnimationData[0].rays.length; i++) {
+	for (let i = startWaypoint; i < entityAnimationData[0].rays.length; i++) {
 		if (!wasPaused && game.paused) break;
 		const entityPaths = entityAnimationData.map(({entity, rays, dx, dy}) => {
 			const ray = rays[i];
@@ -92,18 +105,29 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 		const updates = entityPaths.map(({entity, path}) => {
 			return {x: path.B.x, y: path.B.y, _id: entity.id};
 		});
-		await draggedEntity.scene.updateEmbeddedDocuments(draggedEntity.constructor.embeddedName, updates, {animate});
+		await draggedEntity.scene.updateEmbeddedDocuments(
+			draggedEntity.constructor.embeddedName,
+			updates,
+			{animate},
+		);
 		if (animate)
-			await Promise.all(entityPaths.map(({entity}) => CanvasAnimation.getAnimation(entity.movementAnimationName)?.promise));
+			await Promise.all(
+				entityPaths.map(
+					({entity}) => CanvasAnimation.getAnimation(entity.movementAnimationName)?.promise,
+				),
+			);
 
 		// This is a flag of the "Monk's Active Tile Triggers" module that signals that the movement should be cancelled early
 		if (this.cancelMovement) {
-			entityAnimationData.forEach(ead => ead.rays = ead.rays.slice(0, i + 1));
+			entityAnimationData.forEach(ead => (ead.rays = ead.rays.slice(0, i + 1)));
 			break;
 		}
 	}
 	if (isToken)
-		trackRays(entities, entityAnimationData.map(({rays}) => rays)).then(() => recalculate(entities));
+		trackRays(
+			entities,
+			entityAnimationData.map(({rays}) => rays),
+		).then(() => recalculate(entities));
 }
 
 function calculateEntityOffset(entityA, entityB) {
@@ -111,7 +135,10 @@ function calculateEntityOffset(entityA, entityB) {
 }
 
 function applyOffsetToRay(ray, offset) {
-	const newRay = new Ray({x: ray.A.x + offset.x, y: ray.A.y + offset.y}, {x: ray.B.x + offset.x, y: ray.B.y + offset.y});
+	const newRay = new Ray(
+		{x: ray.A.x + offset.x, y: ray.A.y + offset.y},
+		{x: ray.B.x + offset.x, y: ray.B.y + offset.y},
+	);
 	newRay.isPrevious = ray.isPrevious;
 	return newRay;
 }
@@ -121,7 +148,10 @@ export function onMouseMove(event) {
 	if (this._state === Ruler.STATES.MOVING) return;
 
 	// Extract event data
-	const destination = {x: event.data.destination.x + this.rulerOffset.x, y: event.data.destination.y + this.rulerOffset.y}
+	const destination = {
+		x: event.data.destination.x + this.rulerOffset.x,
+		y: event.data.destination.y + this.rulerOffset.y,
+	};
 
 	// Hide any existing Token HUD
 	canvas.hud.token.clear();
@@ -140,12 +170,21 @@ function scheduleMeasurement(destination, event) {
 		event._measureTime = Date.now();
 		this._state = Ruler.STATES.MEASURING;
 		cancelScheduledMeasurement.call(this);
-	}
-	else {
+	} else {
 		this.deferredMeasurementData = {destination, event};
 		if (!this.deferredMeasurementTimeout) {
-			this.deferredMeasurementPromise = new Promise((resolve, reject) => this.deferredMeasurementResolve = resolve);
-			this.deferredMeasurementTimeout = window.setTimeout(() => scheduleMeasurement.call(this, this.deferredMeasurementData.destination, this.deferredMeasurementData.event), measurementInterval);
+			this.deferredMeasurementPromise = new Promise(
+				(resolve, reject) => (this.deferredMeasurementResolve = resolve),
+			);
+			this.deferredMeasurementTimeout = window.setTimeout(
+				() =>
+					scheduleMeasurement.call(
+						this,
+						this.deferredMeasurementData.destination,
+						this.deferredMeasurementData.event,
+					),
+				measurementInterval,
+			);
 		}
 	}
 }
@@ -157,11 +196,9 @@ export function cancelScheduledMeasurement() {
 }
 
 // This is a modified version of Ruler.measure form foundry 0.7.9
-export function measure(destination, options={}) {
-
+export function measure(destination, options = {}) {
 	const isToken = this.draggedEntity instanceof Token;
-	if (isToken && !this.draggedEntity.isVisible)
-		return []
+	if (isToken && !this.draggedEntity.isVisible) return [];
 
 	options.snap = options.snap ?? !disableSnap;
 
@@ -175,32 +212,34 @@ export function measure(destination, options={}) {
 		const from = getGridPositionFromPixelsObj(this.waypoints[this.waypoints.length - 1]);
 		const to = getGridPositionFromPixelsObj(destination);
 		let path = findPath(from, to, this.draggedEntity, this.waypoints);
-		if (path)
-			path.shift();
+		if (path) path.shift();
 		if (path && path.length > 0) {
-			path = path.map(point => getSnapPointForTokenObj(getPixelsFromGridPositionObj(point), this.draggedEntity));
+			path = path.map(point =>
+				getSnapPointForTokenObj(getPixelsFromGridPositionObj(point), this.draggedEntity),
+			);
 
 			// If the token is snapped to the grid, the first point of the path is already handled by the ruler
-			if (path[0].x === this.waypoints[this.waypoints.length - 1].x && path[0].y === this.waypoints[this.waypoints.length - 1].y)
+			if (
+				path[0].x === this.waypoints[this.waypoints.length - 1].x &&
+				path[0].y === this.waypoints[this.waypoints.length - 1].y
+			)
 				path = path.slice(1);
 
 			// If snapping is enabled, the last point of the path is already handled by the ruler
-			if (options.snap)
-				path = path.slice(0, path.length - 1);
+			if (options.snap) path = path.slice(0, path.length - 1);
 
 			for (const point of path) {
 				point.isPathfinding = true;
 				this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
 			}
 			this.waypoints = this.waypoints.concat(path);
-		}
-		else {
+		} else {
 			// Don't show a path if the pathfinding yields no result to show the user that the destination is unreachable
 			destination = this.waypoints[this.waypoints.length - 1];
 		}
 	}
 
-	if(options.gridSpaces === undefined) {
+	if (options.gridSpaces === undefined) {
 		options.gridSpaces = canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS;
 	}
 
@@ -209,7 +248,7 @@ export function measure(destination, options={}) {
 		options.ignoreGrid = true;
 	}
 
-	if(options.ignoreGrid === undefined) {
+	if (options.ignoreGrid === undefined) {
 		options.ignoreGrid = false;
 	}
 
@@ -217,24 +256,26 @@ export function measure(destination, options={}) {
 
 	const waypoints = this.waypoints.concat([destination]);
 	// Move the waypoints to the center of the grid if a size is used that measures from edge to edge
-	const centeredWaypoints = isToken ? applyTokenSizeOffset(waypoints, this.draggedEntity) : duplicate(waypoints);
+	const centeredWaypoints = isToken
+		? applyTokenSizeOffset(waypoints, this.draggedEntity)
+		: duplicate(waypoints);
 	// Foundries native ruler requires the waypoints to sit in the dead center of the square to work properly
 	if (!options.enableTerrainRuler && !options.ignoreGrid)
-		centeredWaypoints.forEach(w => [w.x, w.y] = canvas.grid.getCenter(w.x, w.y));
+		centeredWaypoints.forEach(w => ([w.x, w.y] = canvas.grid.getCenter(w.x, w.y)));
 
 	const r = this.ruler;
 	this.destination = destination;
 
 	// Iterate over waypoints and construct segment rays
 	const segments = [];
-	const centeredSegments = []
+	const centeredSegments = [];
 	for (let [i, dest] of waypoints.slice(1).entries()) {
-		const centeredDest = centeredWaypoints[i + 1]
+		const centeredDest = centeredWaypoints[i + 1];
 		const origin = waypoints[i];
-		const centeredOrigin = centeredWaypoints[i]
+		const centeredOrigin = centeredWaypoints[i];
 		const label = this.labels.children[i];
 		const ray = new Ray(origin, dest);
-		const centeredRay = new Ray(centeredOrigin, centeredDest)
+		const centeredRay = new Ray(centeredOrigin, centeredDest);
 		ray.isPrevious = Boolean(origin.isPrevious);
 		centeredRay.isPrevious = ray.isPrevious;
 		ray.dragRulerVisitedSpaces = origin.dragRulerVisitedSpaces;
@@ -245,10 +286,9 @@ export function measure(destination, options={}) {
 			if (label) label.visible = false;
 			continue;
 		}
-		segments.push({ ray, label });
-		centeredSegments.push({ray: centeredRay, label})
+		segments.push({ray, label});
+		centeredSegments.push({ray: centeredRay, label});
 	}
-
 
 	const shape = isToken ? getTokenShape(this.draggedEntity) : null;
 
@@ -258,9 +298,9 @@ export function measure(destination, options={}) {
 	let totalDistance = 0;
 	for (let [i, d] of distances.entries()) {
 		let s = centeredSegments[i];
-		s.startDistance = totalDistance
+		s.startDistance = totalDistance;
 		totalDistance += d;
-		s.last = i === (centeredSegments.length - 1);
+		s.last = i === centeredSegments.length - 1;
 		s.distance = d;
 		s.text = this._getSegmentLabel(d, totalDistance, s.last);
 	}
@@ -271,18 +311,24 @@ export function measure(destination, options={}) {
 
 	// Draw measured path
 	r.clear();
-	let rulerColor
+	let rulerColor;
 	if (!options.gridSpaces || canvas.grid.type === CONST.GRID_TYPES.GRIDLESS)
 		rulerColor = this.dragRulerGetColorForDistance(totalDistance);
-	else
-		rulerColor = this.color
-	for (const [i, s, cs] of enumeratedZip([...segments].reverse(), [...centeredSegments].reverse())) {
-		const { label, text, last } = cs;
+	else rulerColor = this.color;
+	for (const [i, s, cs] of enumeratedZip(
+		[...segments].reverse(),
+		[...centeredSegments].reverse(),
+	)) {
+		const {label, text, last} = cs;
 
 		// Draw line segment
 		const opacityMultiplier = s.ray.isPrevious ? 0.33 : 1;
-		r.lineStyle(6, 0x000000, 0.5 * opacityMultiplier).moveTo(s.ray.A.x, s.ray.A.y).lineTo(s.ray.B.x, s.ray.B.y)
-			.lineStyle(4, rulerColor, 0.25 * opacityMultiplier).moveTo(s.ray.A.x, s.ray.A.y).lineTo(s.ray.B.x, s.ray.B.y);
+		r.lineStyle(6, 0x000000, 0.5 * opacityMultiplier)
+			.moveTo(s.ray.A.x, s.ray.A.y)
+			.lineTo(s.ray.B.x, s.ray.B.y)
+			.lineStyle(4, rulerColor, 0.25 * opacityMultiplier)
+			.moveTo(s.ray.A.x, s.ray.A.y)
+			.lineTo(s.ray.B.x, s.ray.B.y);
 
 		// Draw the distance label just after the endpoint of the segment
 		if (label) {
@@ -296,11 +342,14 @@ export function measure(destination, options={}) {
 			const rayLabelXHitY = rayLine.calcY(labelPosition.x);
 			let innerDistance;
 			// If ray hits top or bottom side of label
-			if (rayLine.isVertical || rayLabelXHitY < labelPosition.y || rayLabelXHitY > labelPosition.y + label.height)
-				innerDistance = Math.abs((label.height / 2) / Math.sin(s.ray.angle));
+			if (
+				rayLine.isVertical ||
+				rayLabelXHitY < labelPosition.y ||
+				rayLabelXHitY > labelPosition.y + label.height
+			)
+				innerDistance = Math.abs(label.height / 2 / Math.sin(s.ray.angle));
 			// If ray hits left or right side of label
-			else
-				innerDistance = Math.abs((label.width / 2) / Math.cos(s.ray.angle));
+			else innerDistance = Math.abs(label.width / 2 / Math.cos(s.ray.angle));
 			labelPosition = s.ray.project((s.ray.distance + 50 + innerDistance) / s.ray.distance);
 			labelPosition.x -= label.width / 2;
 			labelPosition.y -= label.height / 2;
@@ -310,9 +359,14 @@ export function measure(destination, options={}) {
 		// Highlight grid positions
 		if (isToken && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS && options.gridSpaces) {
 			if (options.enableTerrainRuler) {
-				highlightMeasurementTerrainRuler.call(this, cs.ray, cs.startDistance, shape, opacityMultiplier)
-			}
-			else {
+				highlightMeasurementTerrainRuler.call(
+					this,
+					cs.ray,
+					cs.startDistance,
+					shape,
+					opacityMultiplier,
+				);
+			} else {
 				const previousSegments = centeredSegments.slice(0, segments.length - 1 - i);
 				highlightMeasurementNative.call(this, cs.ray, previousSegments, shape, opacityMultiplier);
 			}
@@ -328,22 +382,30 @@ export function measure(destination, options={}) {
 	return segments;
 }
 
-export function highlightMeasurementNative(ray, previousSegments, tokenShape=[{x: 0, y: 0}], alpha=1) {
+export function highlightMeasurementNative(
+	ray,
+	previousSegments,
+	tokenShape = [{x: 0, y: 0}],
+	alpha = 1,
+) {
 	const spacer = canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ? 1.41 : 1;
-	const nMax = Math.max(Math.floor(ray.distance / (spacer * Math.min(canvas.grid.w, canvas.grid.h))), 1);
-	const tMax = Array.fromRange(nMax+1).map(t => t / nMax);
+	const nMax = Math.max(
+		Math.floor(ray.distance / (spacer * Math.min(canvas.grid.w, canvas.grid.h))),
+		1,
+	);
+	const tMax = Array.fromRange(nMax + 1).map(t => t / nMax);
 
 	// Track prior position
 	let prior = null;
 
 	// Iterate over ray portions
-	for ( let [i, t] of tMax.reverse().entries() ) {
+	for (let [i, t] of tMax.reverse().entries()) {
 		let {x, y} = ray.project(t);
 
 		// Get grid position
-		let [x0, y0] = (i === 0) ? [null, null] : prior;
+		let [x0, y0] = i === 0 ? [null, null] : prior;
 		let [x1, y1] = canvas.grid.grid.getGridPositionFromPixels(x, y);
-		if ( x0 === x1 && y0 === y1 ) continue;
+		if (x0 === x1 && y0 === y1) continue;
 
 		// Highlight the grid position
 		let [xgtl, ygtl] = canvas.grid.grid.getPixelsFromGridPosition(x1, y1);
@@ -358,7 +420,7 @@ export function highlightMeasurementNative(ray, previousSegments, tokenShape=[{x
 
 		// If the positions are not neighbors, also highlight their halfway point
 		if (i > 0 && !canvas.grid.isNeighbor(x0, y0, x1, y1)) {
-			let th = tMax[i - 1] - (0.5 / nMax);
+			let th = tMax[i - 1] - 0.5 / nMax;
 			let {x, y} = ray.project(th);
 			let [x1h, y1h] = canvas.grid.grid.getGridPositionFromPixels(x, y);
 			let [xghtl, yghtl] = canvas.grid.grid.getPixelsFromGridPosition(x1h, y1h);

@@ -110,8 +110,8 @@ export class ProcessOnceQueue {
 		const newNode = {
 			value: element,
 			next: null,
-			previous: null
-		}
+			previous: null,
+		};
 
 		if (!this.first) {
 			this.first = newNode;

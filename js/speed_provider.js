@@ -1,5 +1,5 @@
-import {settingsKey} from "./settings.js"
-import {getDefaultDashMultiplier, getDefaultSpeedAttribute} from "./systems.js"
+import {settingsKey} from "./settings.js";
+import {getDefaultDashMultiplier, getDefaultSpeedAttribute} from "./systems.js";
 
 /**
  * Base class for all speed providers.
@@ -19,7 +19,7 @@ export class SpeedProvider {
 	 * Implementing this method is required for all speed providers
 	 */
 	get colors() {
-		throw new Error("A SpeedProvider must implement the colors function")
+		throw new Error("A SpeedProvider must implement the colors function");
 	}
 
 	/**
@@ -31,7 +31,7 @@ export class SpeedProvider {
 	 * Implementing this method is required for all speed providers
 	 */
 	getRanges(token) {
-		throw new Error("A SpeedProvider must implement the getRanges function")
+		throw new Error("A SpeedProvider must implement the getRanges function");
 	}
 
 	/**
@@ -44,7 +44,7 @@ export class SpeedProvider {
 	 * Implementing this method is optional and only needs to be done if you want to provide custom provider settings
 	 */
 	get settings() {
-		return []
+		return [];
 	}
 
 	/**
@@ -53,7 +53,7 @@ export class SpeedProvider {
 	 * Implementing this method is optional and only needs to be done if you want to provide a custom default for that color.
 	 */
 	get defaultUnreachableColor() {
-		return 0xFF0000
+		return 0xff0000;
 	}
 
 	/**
@@ -69,12 +69,12 @@ export class SpeedProvider {
 	 *
 	 * Implementing this method is optional and only needs to be done if you want to provide a custom cost function (for example to allow tokens to ignore difficult terrain)
 	 */
-	getCostForStep(token, area, options={}) {
+	getCostForStep(token, area, options = {}) {
 		// Lookup the cost for each square occupied by the token
 		options.token = token;
 		const costs = area.map(space => terrainRuler.getCost(space.x, space.y, options));
 		// Return the maximum of the costs
-		return costs.reduce((max, current) => Math.max(max, current))
+		return costs.reduce((max, current) => Math.max(max, current));
 	}
 
 	/**
@@ -86,7 +86,7 @@ export class SpeedProvider {
 	 * Implementing this method is optional and only needs to be done if you want to disable Drag Ruler for some tokens.
 	 */
 	usesRuler(token) {
-		return true
+		return true;
 	}
 
 	/**
@@ -104,13 +104,14 @@ export class SpeedProvider {
 	 */
 	getSetting(settingId) {
 		try {
-			return game.settings.get(settingsKey, `speedProviders.${this.id}.setting.${settingId}`)
-		}
-		catch (e) {
+			return game.settings.get(settingsKey, `speedProviders.${this.id}.setting.${settingId}`);
+		} catch (e) {
 			if (this.settings.some(setting => setting.id === settingId)) {
-				throw e
+				throw e;
 			}
-			throw new Error(`Drag Ruler | "${settingId}" is not a registered setting for "${this.id}". If you're the module/system developer, please add it to the return values of your Speed Providers "get settings()" function.`)
+			throw new Error(
+				`Drag Ruler | "${settingId}" is not a registered setting for "${this.id}". If you're the module/system developer, please add it to the return values of your Speed Providers "get settings()" function.`,
+			);
 		}
 	}
 
@@ -120,32 +121,34 @@ export class SpeedProvider {
 	 * This function should neither be called or overridden by speed provider implementations
 	 */
 	constructor(id) {
-		this.id = id
+		this.id = id;
 	}
 }
-
 
 export class GenericSpeedProvider extends SpeedProvider {
 	get colors() {
 		return [
-			{id: "walk", default: 0x00FF00, name: "drag-ruler.genericSpeedProvider.speeds.walk"},
-			{id: "dash", default: 0xFFFF00, name: "drag-ruler.genericSpeedProvider.speeds.dash"}
-		]
+			{id: "walk", default: 0x00ff00, name: "drag-ruler.genericSpeedProvider.speeds.walk"},
+			{id: "dash", default: 0xffff00, name: "drag-ruler.genericSpeedProvider.speeds.dash"},
+		];
 	}
 
 	getRanges(token) {
-		const speedAttribute = this.getSetting("speedAttribute")
-		if (!speedAttribute)
-			return []
+		const speedAttribute = this.getSetting("speedAttribute");
+		if (!speedAttribute) return [];
 		const tokenSpeed = parseFloat(getProperty(token, speedAttribute));
 		if (tokenSpeed === undefined) {
-			console.warn(`Drag Ruler (Generic Speed Provider) | The configured token speed attribute "${speedAttribute}" didn't return a speed value. To use colors based on drag distance set the setting to the correct value (or clear the box to disable this feature).`)
-			return []
+			console.warn(
+				`Drag Ruler (Generic Speed Provider) | The configured token speed attribute "${speedAttribute}" didn't return a speed value. To use colors based on drag distance set the setting to the correct value (or clear the box to disable this feature).`,
+			);
+			return [];
 		}
-		const dashMultiplier = this.getSetting("dashMultiplier")
-		if (!dashMultiplier)
-			return [{range: tokenSpeed, color: "walk"}]
-		return [{range: tokenSpeed, color: "walk"}, {range: tokenSpeed * dashMultiplier, color: "dash"}]
+		const dashMultiplier = this.getSetting("dashMultiplier");
+		if (!dashMultiplier) return [{range: tokenSpeed, color: "walk"}];
+		return [
+			{range: tokenSpeed, color: "walk"},
+			{range: tokenSpeed * dashMultiplier, color: "dash"},
+		];
 	}
 
 	get settings() {
@@ -167,7 +170,7 @@ export class GenericSpeedProvider extends SpeedProvider {
 				config: true,
 				type: Number,
 				default: getDefaultDashMultiplier(),
-			}
-		]
+			},
+		];
 	}
 }
