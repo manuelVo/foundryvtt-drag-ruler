@@ -14,11 +14,7 @@ import {disableSnap, registerKeybindings} from "./keybindings.js";
 import {libWrapper} from "./libwrapper_shim.js";
 import {performMigrations} from "./migration.js";
 import {removeLastHistoryEntryIfAt, resetMovementHistory} from "./movement_tracking.js";
-import {
-	wipePathfindingCache,
-	initializePathfinding,
-	startBackgroundCaching,
-} from "./pathfinding.js";
+import {wipePathfindingCache, initializePathfinding} from "./pathfinding.js";
 import {extendRuler} from "./ruler.js";
 import {registerSettings, RightClickAction, settingsKey} from "./settings.js";
 import {recalculate} from "./socket.js";
@@ -39,21 +35,6 @@ initGridlessPathfinding().then(() => {
 	Hooks.on("createWall", wipePathfindingCache);
 	Hooks.on("updateWall", wipePathfindingCache);
 	Hooks.on("deleteWall", wipePathfindingCache);
-
-	// Whenever the current user selects a token, start caching
-	Hooks.on("controlToken", (token, controlled) => {
-		if (controlled) {
-			startBackgroundCaching(token);
-		}
-	});
-
-	// Whenever a token the current user controls updates, start caching
-	Hooks.on("updateToken", document => {
-		const token = document.object;
-		if (token._controlled) {
-			startBackgroundCaching(token);
-		}
-	});
 });
 
 Hooks.once("init", () => {
