@@ -77,11 +77,11 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 		const origin = [firstWaypoint.x + entityOffset.x, firstWaypoint.y + entityOffset.y];
 		let dx, dy;
 		if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
-			dx = entity.data.x - origin[0];
-			dy = entity.data.y - origin[1];
+			dx = entity.x - origin[0];
+			dy = entity.y - origin[1];
 		} else {
-			dx = entity.data.x - origin[0];
-			dy = entity.data.y - origin[1];
+			dx = entity.x - origin[0];
+			dy = entity.y - origin[1];
 		}
 
 		return {entity, rays: offsetRays, dx, dy};
@@ -131,7 +131,7 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 }
 
 function calculateEntityOffset(entityA, entityB) {
-	return {x: entityA.data.x - entityB.data.x, y: entityA.data.y - entityB.data.y};
+	return {x: entityA.x - entityB.x, y: entityA.y - entityB.y};
 }
 
 function applyOffsetToRay(ray, offset) {
@@ -388,7 +388,7 @@ export function highlightMeasurementNative(
 	tokenShape = [{x: 0, y: 0}],
 	alpha = 1,
 ) {
-	const spacer = canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ? 1.41 : 1;
+	const spacer = canvas.scene.gridType === CONST.GRID_TYPES.SQUARE ? 1.41 : 1;
 	const nMax = Math.max(
 		Math.floor(ray.distance / (spacer * Math.min(canvas.grid.w, canvas.grid.h))),
 		1,

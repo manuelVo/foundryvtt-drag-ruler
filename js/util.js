@@ -28,8 +28,8 @@ export function sum(arr) {
 
 export function buildSnapPointTokenData(token) {
 	const tokenData = {
-		width: token.data.width,
-		height: token.data.height,
+		width: token.document.width,
+		height: token.document.height,
 	};
 
 	if (isModuleActive("hex-size-support")) {
@@ -158,9 +158,9 @@ export function getTokenShape(token) {
 }
 
 export function getTokenShapeForTokenData(tokenData, scene = canvas.scene) {
-	if (scene.data.gridType === CONST.GRID_TYPES.GRIDLESS) {
+	if (scene.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		return [{x: 0, y: 0}];
-	} else if (scene.data.gridType === CONST.GRID_TYPES.SQUARE) {
+	} else if (scene.grid.type === CONST.GRID_TYPES.SQUARE) {
 		const topOffset = -Math.floor(tokenData.height / 2);
 		const leftOffset = -Math.floor(tokenData.width / 2);
 		const shape = [];
@@ -211,12 +211,12 @@ export function getTokenShapeForTokenData(tokenData, scene = canvas.scene) {
 
 export function getTokenSize(token) {
 	let w, h;
-	const hexSizeSupportBorderSize = token.data.flags["hex-size-support"]?.borderSize;
+	const hexSizeSupportBorderSize = token.document.flags["hex-size-support"]?.borderSize;
 	if (hexSizeSupportBorderSize > 0) {
 		w = h = hexSizeSupportBorderSize;
 	} else {
-		w = token.data.width;
-		h = token.data.height;
+		w = token.document.width;
+		h = token.document.height;
 	}
 	return {w, h};
 }

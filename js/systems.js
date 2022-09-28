@@ -1,26 +1,26 @@
 export function getDefaultSpeedAttribute() {
 	switch (game.system.id) {
 		case "CoC7":
-			return "actor.data.data.attribs.mov.value";
+			return "actor.system.attribs.mov.value";
 		case "dcc":
-			return "actor.data.data.attributes.speed.value";
+			return "actor.system.attributes.speed.value";
 		case "dnd4e":
-			return "actor.data.data.movement.walk.value";
+			return "actor.system.movement.walk.value";
 		case "dnd5e":
-			return "actor.data.data.attributes.movement.walk";
+			return "actor.system.attributes.movement.walk";
 		case "lancer":
-			return "actor.data.data.derived.speed";
+			return "actor.system.derived.speed";
 		case "pf1":
 		case "D35E":
-			return "actor.data.data.attributes.speed.land.total";
+			return "actor.system.attributes.speed.land.total";
 		case "sfrpg":
-			return "actor.data.data.attributes.speed.value";
+			return "actor.system.attributes.speed.value";
 		case "shadowrun5e":
-			return "actor.data.data.movement.walk.value";
+			return "actor.system.movement.walk.value";
 		case "swade":
-			return "actor.data.data.stats.speed.adjusted";
+			return "actor.system.stats.speed.adjusted";
 		case "ds4":
-			return "actor.data.data.combatValues.movement.total";
+			return "actor.system.combatValues.movement.total";
 		case "splittermond":
 			return "actor.derivedValues.speed.value";
 	}
