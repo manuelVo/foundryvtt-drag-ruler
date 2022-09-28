@@ -10,7 +10,7 @@ import {settingsKey} from "./settings.js";
 import {getSnapPointForEntity} from "./util.js";
 
 export function extendRuler() {
-	class DragRulerRuler extends Ruler {
+	class DragRulerRuler extends CONFIG.Canvas.rulerClass {
 		// Functions below are overridden versions of functions in Ruler
 		constructor(user, {color = null} = {}) {
 			super(user, {color});
@@ -248,5 +248,5 @@ export function extendRuler() {
 		}
 	}
 
-	Ruler = DragRulerRuler;
+	CONFIG.Canvas.rulerClass = DragRulerRuler;
 }
