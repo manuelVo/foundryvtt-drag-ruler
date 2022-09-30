@@ -5,7 +5,6 @@ import {
 	updateSpeedProvider,
 } from "./api.js";
 import {SpeedProvider} from "./speed_provider.js";
-import {wipePathfindingCache} from "./pathfinding.js";
 import {early_isGM} from "./util.js";
 
 export const settingsKey = "drag-ruler";
@@ -93,32 +92,26 @@ export function registerSettings() {
 		default: true,
 	});
 
-	game.settings.register(settingsKey, "allowPathfinding", {
-		name: "drag-ruler.settings.allowPathfinding.name",
-		hint: "drag-ruler.settings.allowPathfinding.hint",
-		scope: "world",
-		config: true,
-		type: Boolean,
-		default: false,
-		onChange: delayedReload,
-	});
+	if (game.modules.get("routinglib")?.active) {
+		game.settings.register(settingsKey, "allowPathfinding", {
+			name: "drag-ruler.settings.allowPathfinding.name",
+			hint: "drag-ruler.settings.allowPathfinding.hint",
+			scope: "world",
+			config: true,
+			type: Boolean,
+			default: false,
+			onChange: delayedReload,
+		});
 
-	game.settings.register(settingsKey, "autoPathfinding", {
-		name: "drag-ruler.settings.autoPathfinding.name",
-		hint: "drag-ruler.settings.autoPathfinding.hint",
-		scope: "client",
-		config: early_isGM() || game.settings.get(settingsKey, "allowPathfinding"),
-		type: Boolean,
-		default: false,
-	});
-
-	game.settings.register(settingsKey, "pathfindingRadius", {
-		scope: "world",
-		config: false,
-		type: Number,
-		default: 0.9,
-		onChange: wipePathfindingCache,
-	});
+		game.settings.register(settingsKey, "autoPathfinding", {
+			name: "drag-ruler.settings.autoPathfinding.name",
+			hint: "drag-ruler.settings.autoPathfinding.hint",
+			scope: "client",
+			config: early_isGM() || game.settings.get(settingsKey, "allowPathfinding"),
+			type: Boolean,
+			default: false,
+		});
+	}
 
 	game.settings.register(settingsKey, "lastTerrainRulerHintTime", {
 		config: false,

@@ -1,6 +1,7 @@
 import {getPixelsFromGridPosition} from "./foundry_fixes.js";
 import {findVertexSnapPoint} from "./hex_support.js";
-import {disableSnap} from "./keybindings.js";
+import {disableSnap, moveWithoutAnimation, togglePathfinding} from "./keybindings.js";
+import {settingsKey} from "./settings.js";
 
 export function* zip(it1, it2) {
 	for (let i = 0; i < Math.min(it1.length, it2.length); i++) {
@@ -291,4 +292,12 @@ export function early_isGM() {
 
 export function isModuleActive(moduleName) {
 	return game.modules.get(moduleName)?.active;
+}
+
+export function isPathfindingEnabled() {
+	if (!window.routinglib) return false;
+	if (this.user !== game.user) return false;
+	if (!game.user.isGM && !game.settings.get(settingsKey, "allowPathfinding")) return false;
+	if (moveWithoutAnimation) return false;
+	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
 }

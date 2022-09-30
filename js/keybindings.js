@@ -65,14 +65,16 @@ export function registerKeybindings() {
 		precedence: -1,
 	});
 
-	game.keybindings.register(settingsKey, "togglePathfinding", {
-		name: "drag-ruler.keybindings.togglePathfinding.name",
-		hint: "drag-ruler.keybindings.togglePathfinding.hint",
-		onDown: handleTogglePathfinding,
-		onUp: handleTogglePathfinding,
-		precedence: -1,
-		restricted: !game.settings.get(settingsKey, "allowPathfinding"),
-	});
+	if (game.modules.get("routinglib")?.active) {
+		game.keybindings.register(settingsKey, "togglePathfinding", {
+			name: "drag-ruler.keybindings.togglePathfinding.name",
+			hint: "drag-ruler.keybindings.togglePathfinding.hint",
+			onDown: handleTogglePathfinding,
+			onUp: handleTogglePathfinding,
+			precedence: -1,
+			restricted: !game.settings.get(settingsKey, "allowPathfinding"),
+		});
+	}
 }
 
 function handleDeleteWaypoint() {

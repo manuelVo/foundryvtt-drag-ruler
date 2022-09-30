@@ -8,11 +8,18 @@ import {
 	highlightMeasurementTerrainRuler,
 	measureDistances,
 } from "./compatibility.js";
+import {getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
 import {cancelScheduledMeasurement, highlightMeasurementNative} from "./foundry_imports.js";
 import {disableSnap} from "./keybindings.js";
 import {getMovementHistory} from "./movement_tracking.js";
 import {settingsKey} from "./settings.js";
-import {applyTokenSizeOffset, getSnapPointForEntity, getTokenShape} from "./util.js";
+import {
+	applyTokenSizeOffset,
+	getSnapPointForEntity,
+	getSnapPointForTokenObj,
+	getTokenShape,
+	isPathfindingEnabled,
+} from "./util.js";
 
 export function extendRuler() {
 	class DragRulerRuler extends CONFIG.Canvas.rulerClass {
@@ -102,6 +109,52 @@ export function extendRuler() {
 			const d = this._getMeasurementDestination(destination);
 			if (d.x === this.destination.x && d.y === this.destination.y) return;
 			this.destination = d;
+
+			// TODO Cancel running pathfinding operations
+			// TODO Check if we can reuse the old path
+			this.dragRulerRemovePathfindingWaypoints();
+
+			if (isToken && isPathfindingEnabled.call(this)) {
+				// TODO Show a busy indicator
+				const from = getGridPositionFromPixelsObj(this.waypoints[this.waypoints.length - 1]);
+				const to = getGridPositionFromPixelsObj(destination);
+
+				return routinglib
+					.calculatePath(from, to, {token: this.draggedEntity})
+					.then(result => this.addPathToWaypoints(result.path))
+					.then(() => this.performPostPathfindingActions(options));
+			}
+
+			return this.performPostPathfindingActions(options);
+		}
+
+		addPathToWaypoints(path) {
+			path = path.map(point =>
+				getSnapPointForTokenObj(getPixelsFromGridPositionObj(point), this.draggedEntity),
+			);
+
+			// If the token is snapped to the grid, the first point of the path is already handled by the ruler
+			if (
+				path[0].x === this.waypoints[this.waypoints.length - 1].x &&
+				path[0].y === this.waypoints[this.waypoints.length - 1].y
+			) {
+				path = path.slice(1);
+			}
+
+			// If snapping is enabled, the last point of the path is already handled by the ruler
+			if (this.dragRulerSnap) {
+				path = path.slice(0, path.length - 1);
+			}
+
+			for (const point of path) {
+				point.isPathfinding = true;
+				this.labels.addChild(new PreciseText("", CONFIG.canvasTextStyle));
+			}
+			this.waypoints = this.waypoints.concat(path);
+		}
+
+		performPostPathfindingActions(options) {
+			// TODO Clear pathfinding busy indicator
 			this.segments = this._getMeasurementSegments();
 			this._computeDistance(options.gridSpaces);
 
@@ -111,6 +164,7 @@ export function extendRuler() {
 
 			// Draw grid highlight
 			this.highlightLayer.clear();
+			const isToken = this.draggedEntity instanceof Token;
 			if (isToken && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS && this.dragRulerGridSpaces) {
 				const shape = getTokenShape(this.draggedEntity);
 				if (!this.dragRulerEnableTerrainRuler) {
@@ -154,7 +208,6 @@ export function extendRuler() {
 		}
 
 		_getMeasurementSegments() {
-			// TODO Recalculate pathfinding, if necessary
 			if (this.isDragRuler) {
 				const unsnappedWaypoints = this.waypoints.concat([this.destination]);
 				const waypoints =
