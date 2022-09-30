@@ -3,11 +3,16 @@ import {
 	getColorForDistanceAndToken,
 	getRangesFromSpeedProvider,
 } from "./api.js";
-import {getHexSizeSupportTokenGridCenter} from "./compatibility.js";
-import {cancelScheduledMeasurement, measure} from "./foundry_imports.js";
+import {
+	getHexSizeSupportTokenGridCenter,
+	highlightMeasurementTerrainRuler,
+	measureDistances,
+} from "./compatibility.js";
+import {cancelScheduledMeasurement, highlightMeasurementNative} from "./foundry_imports.js";
+import {disableSnap} from "./keybindings.js";
 import {getMovementHistory} from "./movement_tracking.js";
 import {settingsKey} from "./settings.js";
-import {getSnapPointForEntity} from "./util.js";
+import {applyTokenSizeOffset, getSnapPointForEntity, getTokenShape} from "./util.js";
 
 export function extendRuler() {
 	class DragRulerRuler extends CONFIG.Canvas.rulerClass {
@@ -67,13 +72,231 @@ export function extendRuler() {
 		}
 
 		measure(destination, options = {}) {
-			if (this.isDragRuler) {
-				// If this is the ruler of a remote user take the waypoints as they were transmitted and don't apply any additional snapping to them
-				if (this.user !== game.user) options.snap = false;
-				return measure.call(this, destination, options);
-			} else {
+			if (!this.isDragRuler) {
 				return super.measure(destination, options);
 			}
+			if (options.gridSpaces === undefined) {
+				options.gridSpaces = canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS;
+			}
+			this.dragRulerGridSpaces = options.gridSpaces;
+			const isToken = this.draggedEntity instanceof Token;
+			if (isToken && !this.draggedEntity.isVisible) {
+				return [];
+			}
+			if (canvas.grid.diagonalRule === "EUCL") {
+				options.gridSpaces = false;
+				options.ignoreGrid = true;
+			}
+			if (options.ignoreGrid === undefined) {
+				options.ignoreGrid = false;
+			}
+			this.dragRulerIgnoreGrid = options.ignoreGrid;
+			// If this is the ruler of a remote user take the waypoints as they were transmitted and don't apply any additional snapping to them
+			if (this.user !== game.user) {
+				options.snap = false;
+			}
+			this.dragRulerSnap = options.snap ?? !disableSnap;
+			this.dragRulerEnableTerrainRuler = isToken && window.terrainRuler;
+
+			// Compute the measurement destination, segments, and distance
+			const d = this._getMeasurementDestination(destination);
+			if (d.x === this.destination.x && d.y === this.destination.y) return;
+			this.destination = d;
+			this.segments = this._getMeasurementSegments();
+			this._computeDistance(options.gridSpaces);
+
+			// Draw the ruler graphic
+			this.ruler.clear();
+			this._drawMeasuredPath();
+
+			// Draw grid highlight
+			this.highlightLayer.clear();
+			if (isToken && canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS && this.dragRulerGridSpaces) {
+				const shape = getTokenShape(this.draggedEntity);
+				if (!this.dragRulerEnableTerrainRuler) {
+					for (const [i, segment] of [...this.segments].reverse().entries()) {
+						const opacityMultiplier = segment.ray.isPrevious ? 0.33 : 1;
+						const previousSegments = this.segments.slice(0, this.segments.length - 1 - i);
+						highlightMeasurementNative.call(
+							this,
+							segment.ray,
+							previousSegments,
+							shape,
+							opacityMultiplier,
+						);
+					}
+				} else {
+					for (const segment of [...this.dragRulerUnsnappedSegments].reverse()) {
+						const opacityMultiplier = segment.ray.isPrevious ? 0.33 : 1;
+						highlightMeasurementTerrainRuler.call(
+							this,
+							segment.ray,
+							segment.startDistance,
+							shape,
+							opacityMultiplier,
+						);
+					}
+				}
+			}
+			return this.segments;
+		}
+
+		_getMeasurementDestination(destination) {
+			if (this.isDragRuler) {
+				if (this.dragRulerSnap) {
+					return getSnapPointForEntity(destination.x, destination.y, this.draggedEntity);
+				} else {
+					return destination;
+				}
+			} else {
+				return super._getMeasurementDestination(destination);
+			}
+		}
+
+		_getMeasurementSegments() {
+			// TODO Recalculate pathfinding, if necessary
+			if (this.isDragRuler) {
+				const unsnappedWaypoints = this.waypoints.concat([this.destination]);
+				const waypoints =
+					this.draggedEntity instanceof Token
+						? applyTokenSizeOffset(unsnappedWaypoints, this.draggedEntity)
+						: duplicate(unsnappedWaypoints);
+				const unsnappedSegments = [];
+				const segments = [];
+				for (const [i, p1] of waypoints.entries()) {
+					if (i === 0) continue;
+					const unsnappedP1 = unsnappedWaypoints[i];
+					const p0 = waypoints[i - 1];
+					const unsnappedP0 = unsnappedWaypoints[i - 1];
+					const label = this.labels.children[i - 1];
+					const ray = new Ray(p0, p1);
+					const unsnappedRay = new Ray(unsnappedP0, unsnappedP1);
+					ray.isPrevious = Boolean(unsnappedP0.isPrevious);
+					unsnappedRay.isPrevious = ray.isPrevious;
+					ray.dragRulerVisitedSpaces = unsnappedP0.dragRulerVisitedSpaces;
+					unsnappedRay.dragRulerVisitedSpaces = ray.dragRulerVisitedSpaces;
+					ray.dragRulerFinalState = unsnappedP0.dragRulerFinalState;
+					unsnappedRay.dragRulerFinalState = ray.dragRulerFinalState;
+					if (ray.distance < 10) {
+						if (label) label.visible = false;
+						continue;
+					}
+					segments.push({ray, label});
+					unsnappedSegments.push({ray: unsnappedRay, label});
+				}
+				this.dragRulerUnsnappedSegments = unsnappedSegments;
+				return segments;
+			} else {
+				return super._getMeasurementSegments();
+			}
+		}
+
+		_computeDistance(gridSpaces) {
+			if (!this.isDragRuler) {
+				return super._computeDistance(gridSpaces);
+			}
+			if (!this.dragRulerEnableTerrainRuler) {
+				if (!this.dragRulerIgnoreGrid) {
+					gridSpaces = true;
+				}
+				super._computeDistance(gridSpaces);
+			} else {
+				const shape = this.draggedEntity ? getTokenShape(this.draggedEntity) : null;
+				const options = {
+					ignoreGrid: this.dragRulerIgnoreGrid,
+					gridSpaces,
+					enableTerrainRuler: this.dragRulerEnableTerrainRuler,
+				};
+				const distances = measureDistances(this.segments, this.draggedEntity, shape, options);
+				for (const [i, d] of distances.entries()) {
+					totalDistance += d;
+					let s = this.segements[i];
+					s.last = i === this.segements.length - 1;
+					s.distance = d;
+					s.text = this._getSegmentLabel(s, totalDistance);
+				}
+			}
+			/*if (!this.dragRulerEnableTerrainRuler) {
+				if (!this.dragRulerIgnoreGrid) {
+					gridSpaces = true;
+				}
+				super._computeDistance(gridSpaces);
+			} else {
+				const unsnappedSegments = this.dragRulerUnsnappedSegments;
+				const firstNewSegmentIndex = unsnappedSegments.findIndex(
+					segment => !segment.ray.dragRulerVisitedSpaces,
+				);
+				const previousSegments = unsnappedSegments.slice(0, firstNewSegmentIndex);
+				const newSegments = unsnappedSegments.slice(firstNewSegmentIndex);
+				const distances = previousSegments.map(
+					segment =>
+						segment.ray.dragRulerVisitedSpaces[segment.ray.dragRulerVisitedSpaces.length - 1]
+							.distance,
+				);
+				previousSegments.forEach(
+					segment =>
+						(segment.ray.terrainRulerVisitedSpaces = duplicate(segment.ray.dragRulerVisitedSpaces)),
+				);
+				const shape = isToken ? getTokenShape(this.draggedEntity) : null;
+				const options = {};
+				options.costFunction = buildCostFunction(this.draggedEntity, shape);
+				if (previousSegments.length > 0)
+					opts.terrainRulerInitialState =
+						previousSegments[previousSegments.length - 1].ray.dragRulerFinalState;
+				distances = distances.concat(terrainRuler.measureDistances(newSegments, options));
+				for (const [i, d] of distances.entries()) {
+					totalDistance += d;
+					let s = this.segements[i];
+					s.last = i === this.segements.length - 1;
+					s.distance = d;
+					s.text = this._getSegmentLabel(s, totalDistance);
+				}
+			}*/
+			for (const [i, segment] of this.segments.entries()) {
+				const unsnappedSegment = this.dragRulerUnsnappedSegments[i];
+				unsnappedSegment.last = segment.last;
+				unsnappedSegment.distance = segment.distance;
+				unsnappedSegment.text = segment.text;
+			}
+		}
+
+		_drawMeasuredPath() {
+			if (!this.isDragRuler) {
+				return super._drawMeasuredPath();
+			}
+			let rulerColor = this.color;
+			if (!this.dragRulerGridSpaces || canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+				const totalDistance = this.segments.reduce((total, current) => total + current.distance, 0);
+				rulerColor = this.dragRulerGetColorForDistance(totalDistance);
+			}
+			const r = this.ruler.beginFill(rulerColor, 0.25);
+			for (const segment of this.dragRulerUnsnappedSegments) {
+				const opacityMultiplier = segment.ray.isPrevious ? 0.33 : 1;
+				const {ray, distance, label, text, last} = segment;
+				if (distance === 0) continue;
+
+				// Draw Line
+				r.moveTo(ray.A.x, ray.A.y)
+					.lineStyle(6, 0x000000, 0.5 * opacityMultiplier)
+					.lineTo(ray.B.x, ray.B.y)
+					.lineStyle(4, rulerColor, 0.25 * opacityMultiplier)
+					.moveTo(ray.A.x, ray.A.y)
+					.lineTo(ray.B.x, ray.B.y);
+
+				// Draw Waypoints
+				r.lineStyle(2, 0x000000, 0.5).drawCircle(ray.A.x, ray.A.y, 8);
+				if (last) r.drawCircle(ray.B.x, ray.B.y, 8);
+
+				// Draw Label
+				if (label) {
+					label.text = text;
+					label.alpha = last ? 1.0 : 0.5;
+					label.visible = true;
+					let labelPosition = ray.project((ray.distance + 50) / ray.distance);
+					label.position.set(labelPosition.x, labelPosition.y);
+				}
+			}
+			r.endFill();
 		}
 
 		_endMeasurement() {
