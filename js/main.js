@@ -243,9 +243,11 @@ function applyGridlessSnapping(event) {
 
 	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active;
 	if (terrainRulerAvailable) {
-		const segments = Ruler.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination).map(ray => {
-			return {ray};
-		});
+		const segments = ruler.constructor
+			.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination)
+			.map(ray => {
+				return {ray};
+			});
 		const pinpointDistances = new Map();
 		for (const range of ranges) {
 			pinpointDistances.set(range.range, null);
@@ -268,11 +270,11 @@ function applyGridlessSnapping(event) {
 		let waypointDistance = 0;
 		let origin = event.data.origin;
 		if (ruler.waypoints.length > 1) {
-			const segments = Ruler.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination).map(
-				ray => {
+			const segments = ruler.constructor
+				.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination)
+				.map(ray => {
 					return {ray};
-				},
-			);
+				});
 			origin = segments.pop().ray.A;
 			waypointDistance = canvas.grid.measureDistances(segments).reduce((a, b) => a + b);
 			origin = {x: origin.x - ruler.rulerOffset.x, y: origin.y - ruler.rulerOffset.y};
