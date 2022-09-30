@@ -1,8 +1,13 @@
 import {settingsKey} from "./settings.js";
 import {getMeasurePosition, setSnapParameterOnOptions} from "./util.js";
 
+// Indicates whether the user is currently pressing the button to disable snapping
 export let disableSnap = false;
+
+// Indicates whether the user is currently pressing the button to disable the movement animation
 export let moveWithoutAnimation = false;
+
+// Indicates whether the user is pressing the pathfinding toggle button
 export let togglePathfinding = false;
 
 export function registerKeybindings() {
