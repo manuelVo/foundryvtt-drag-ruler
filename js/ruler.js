@@ -126,7 +126,7 @@ export function extendRuler() {
 						);
 					}
 				} else {
-					for (const segment of [...this.dragRulerUnsnappedSegments].reverse()) {
+					for (const segment of [...this.segments].reverse()) {
 						const opacityMultiplier = segment.ray.isPrevious ? 0.33 : 1;
 						highlightMeasurementTerrainRuler.call(
 							this,
@@ -208,52 +208,19 @@ export function extendRuler() {
 					enableTerrainRuler: this.dragRulerEnableTerrainRuler,
 				};
 				const distances = measureDistances(this.segments, this.draggedEntity, shape, options);
+				let totalDistance = 0;
 				for (const [i, d] of distances.entries()) {
+					let s = this.segments[i];
+					s.startDistance = totalDistance;
 					totalDistance += d;
-					let s = this.segements[i];
-					s.last = i === this.segements.length - 1;
+					s.last = i === this.segments.length - 1;
 					s.distance = d;
 					s.text = this._getSegmentLabel(s, totalDistance);
 				}
 			}
-			/*if (!this.dragRulerEnableTerrainRuler) {
-				if (!this.dragRulerIgnoreGrid) {
-					gridSpaces = true;
-				}
-				super._computeDistance(gridSpaces);
-			} else {
-				const unsnappedSegments = this.dragRulerUnsnappedSegments;
-				const firstNewSegmentIndex = unsnappedSegments.findIndex(
-					segment => !segment.ray.dragRulerVisitedSpaces,
-				);
-				const previousSegments = unsnappedSegments.slice(0, firstNewSegmentIndex);
-				const newSegments = unsnappedSegments.slice(firstNewSegmentIndex);
-				const distances = previousSegments.map(
-					segment =>
-						segment.ray.dragRulerVisitedSpaces[segment.ray.dragRulerVisitedSpaces.length - 1]
-							.distance,
-				);
-				previousSegments.forEach(
-					segment =>
-						(segment.ray.terrainRulerVisitedSpaces = duplicate(segment.ray.dragRulerVisitedSpaces)),
-				);
-				const shape = isToken ? getTokenShape(this.draggedEntity) : null;
-				const options = {};
-				options.costFunction = buildCostFunction(this.draggedEntity, shape);
-				if (previousSegments.length > 0)
-					opts.terrainRulerInitialState =
-						previousSegments[previousSegments.length - 1].ray.dragRulerFinalState;
-				distances = distances.concat(terrainRuler.measureDistances(newSegments, options));
-				for (const [i, d] of distances.entries()) {
-					totalDistance += d;
-					let s = this.segements[i];
-					s.last = i === this.segements.length - 1;
-					s.distance = d;
-					s.text = this._getSegmentLabel(s, totalDistance);
-				}
-			}*/
 			for (const [i, segment] of this.segments.entries()) {
 				const unsnappedSegment = this.dragRulerUnsnappedSegments[i];
+				unsnappedSegment.startDistance = segment.startDistance;
 				unsnappedSegment.last = segment.last;
 				unsnappedSegment.distance = segment.distance;
 				unsnappedSegment.text = segment.text;
