@@ -110,19 +110,26 @@ export function extendRuler() {
 			if (d.x === this.destination.x && d.y === this.destination.y) return;
 			this.destination = d;
 
-			// TODO Cancel running pathfinding operations
 			// TODO Check if we can reuse the old path
 			this.dragRulerRemovePathfindingWaypoints();
+			if (this.pathfindingJob) {
+				routinglib.cancelPathfinding(this.pathfindingJob);
+				this.pathfindingJob = undefined;
+			}
 
 			if (isToken && isPathfindingEnabled.call(this)) {
 				// TODO Show a busy indicator
 				const from = getGridPositionFromPixelsObj(this.waypoints[this.waypoints.length - 1]);
 				const to = getGridPositionFromPixelsObj(destination);
 
-				return routinglib
-					.calculatePath(from, to, {token: this.draggedEntity})
-					.then(result => this.addPathToWaypoints(result?.path))
-					.then(() => this.performPostPathfindingActions(options));
+				const pathfindingJob = routinglib.calculatePath(from, to, {token: this.draggedEntity});
+				this.pathfindingJob = pathfindingJob;
+				return this.pathfindingJob.then(result => {
+					if (pathfindingJob === this.pathfindingJob) {
+						this.addPathToWaypoints(result?.path);
+						return this.performPostPathfindingActions(options);
+					}
+				});
 			}
 
 			return this.performPostPathfindingActions(options);
