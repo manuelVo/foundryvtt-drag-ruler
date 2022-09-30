@@ -71,9 +71,9 @@ export function getMovementHistory(token) {
 	if (!combat) return [];
 	const combatant = combat.getCombatantByToken(token.id);
 	if (!combatant) return [];
-	const dragRulerFlags = combatant.data.flags.dragRuler;
+	const dragRulerFlags = combatant.flags.dragRuler;
 	if (!dragRulerFlags) return [];
-	if (combat.data.round > dragRulerFlags.trackedRound) return [];
+	if (combat.round > dragRulerFlags.trackedRound) return [];
 	return dragRulerFlags.passedWaypoints ?? [];
 }
 
