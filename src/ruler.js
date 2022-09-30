@@ -121,7 +121,7 @@ export function extendRuler() {
 
 				return routinglib
 					.calculatePath(from, to, {token: this.draggedEntity})
-					.then(result => this.addPathToWaypoints(result.path))
+					.then(result => this.addPathToWaypoints(result?.path))
 					.then(() => this.performPostPathfindingActions(options));
 			}
 
@@ -129,6 +129,14 @@ export function extendRuler() {
 		}
 
 		addPathToWaypoints(path) {
+			if (!path) {
+				// TODO Show an indicator informing that there is no path
+
+				// Don't show a path if the pathfinding yields no result to show the user that the destination is unreachable
+				this.destination = this.waypoints[this.waypoints.length - 1];
+				return;
+			}
+
 			path = path.map(point =>
 				getSnapPointForTokenObj(getPixelsFromGridPositionObj(point), this.draggedEntity),
 			);
