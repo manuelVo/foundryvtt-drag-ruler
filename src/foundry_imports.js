@@ -95,9 +95,7 @@ async function animateEntities(entities, draggedEntity, draggedRays, wasPaused) 
 		);
 		if (animate)
 			await Promise.all(
-				entityPaths.map(
-					({entity}) => CanvasAnimation.getAnimation(entity.movementAnimationName)?.promise,
-				),
+				entityPaths.map(({entity}) => CanvasAnimation.getAnimation(entity.animationName)?.promise),
 			);
 
 		// This is a flag of the "Monk's Active Tile Triggers" module that signals that the movement should be cancelled early
