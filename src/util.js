@@ -52,6 +52,7 @@ export function getSnapPointForTokenDataObj(pos, tokenData) {
 	return getSnapPointForTokenData(pos.x, pos.y, tokenData);
 }
 
+// A copy of this function lives in the librouting module
 function getSnapPointForTokenData(x, y, tokenData) {
 	if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		return new PIXI.Point(x, y);
