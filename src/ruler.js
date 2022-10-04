@@ -338,6 +338,10 @@ export function extendRuler() {
 		_endMeasurement() {
 			super._endMeasurement();
 			this.draggedEntity = null;
+			if (this.pathfindingJob) {
+				routinglib.cancelPathfinding(this.pathfindingJob);
+				this.pathfindingJob = undefined;
+			}
 		}
 
 		// The functions below aren't present in the orignal Ruler class and are added by Drag Ruler
