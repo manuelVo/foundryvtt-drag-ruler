@@ -126,6 +126,7 @@ export function extendRuler() {
 				this.pathfindingJob = pathfindingJob;
 				return this.pathfindingJob.then(result => {
 					if (pathfindingJob === this.pathfindingJob) {
+						this.pathfindingJob = undefined;
 						this.addPathToWaypoints(result?.path);
 						return this.performPostPathfindingActions(options);
 					}
