@@ -52,6 +52,7 @@ The game systems that offer Drag Ruler integration are:
 - Tagmar RPG (starting with version 1.1.4)
 - TheWitcherTRPG (starting with version 0.0.62)
 - Tormenta20 (starting with version 1.1.37)
+- The Dark Eye 5 / Das Schwarze Auge 5 (via the module [TDE5/DSA5 Drag Ruler Integration](https://foundryvtt.com/packages/dsa5-drag-ruler))
 - Shadow of the Demon Lord  (starting with version 1.7.15)
 - Wasteland Ventures (starting with version 0.1.0)
 - WWII:OWB (starting with version 1.0.4)
