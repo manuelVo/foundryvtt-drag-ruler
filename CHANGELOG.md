@@ -1,3 +1,20 @@
+## 1.13.0
+### Breaking changes
+- Drag Ruler's pathfinder has been extracted into a dedicated library module. If you'd like to continue to use Drag Ruler's pathfinding feature, please install [routinglib](https://foundryvtt.com/packages/routinglib) alongside Drag Ruler.
+- Drag Ruler's API no longer supports the function `getCostForStep`. Instead, module authors are asked to use [Enhanced Terrain Layer's game system integration API](https://github.com/ironmonk88/enhanced-terrain-layer/blob/main/README.md#integrating-game-system-rules) to introduce game system specific terrain rules.
+
+### New features
+- Drag Ruler's pathfinding will now be running as a background task. This means that Foundry will no longer freeze while Drag Ruler is calculating a path.
+- Drag Ruler's pathfinding will now take difficult terrain into account on griddes scenes
+
+### Bug fixes
+- Fixed a bug that would cause gridless snapping to snap slightly below the allowed range
+
+### Compatibility
+- Drag Ruler is now compatible with Foundry VTT v10
+- Drag Ruler's compatibility with the Wall Height module is restored
+
+
 ## 1.12.8
 ### Bugfixes
 - Fixed a bug that could cause grid cells to be highlighted in the wrong color
