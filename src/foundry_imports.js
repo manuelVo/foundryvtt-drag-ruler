@@ -26,10 +26,13 @@ export async function moveEntities(draggedEntity, selectedEntities) {
 			const offsetRays = rays
 				.filter(ray => !ray.isPrevious)
 				.map(ray => applyOffsetToRay(ray, offset));
-			if (window.WallHeight) {
-				window.WallHeight.addBoundsToRays(offsetRays, draggedEntity);
-			}
-			return offsetRays.some(r => canvas.walls.checkCollision(r));
+			return offsetRays.some(r =>
+				token.checkCollision(r.B, {
+					origin: r.A,
+					mode: "any",
+					type: "move",
+				}),
+			);
 		});
 		if (hasCollision) {
 			ui.notifications.error(game.i18n.localize("ERROR.TokenCollide"));
