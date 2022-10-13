@@ -32,6 +32,16 @@ During combat, Drag Ruler will remember the path a token has taken during it's t
 ![Demonstration of the Movement History](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/movement_history.webp)
 
 
+## Pathfinding
+**To use pathfinding you must install the [routinglib](https://foundryvtt.com/packages/routinglib) module**
+
+When routinglib is installed, Drag Ruler can automatically place waypoints to walk around walls and terrain to reach the destination with the shortest possible movement. Pathfinding can be activated using a configurable key. Alternatively, Drag Ruler can be configured to always use pathfinding when a token is being dragged.
+
+Pathfinding is restricted to GM users by default, since the pathfinding algorithm can create ways that lead through unexplored fog of war. If you want to allow your players to use Drag Ruler's pathfinding functionality, you need to enable the associated setting in Drag Ruler's module settings.
+
+![Demonstration of pathfinding](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/15cda2cdbe50d6c32ac75544edf43368560ab1bc/media/pathfinding.webp)
+
+
 ## Game systems with Drag Ruler integration
 Drag Ruler will work with all Foundry VTT game systems. However, some game systems offer a special integration via the [Drag Ruler API](#api), that allows Drag Ruler to take the rules of the game system into account when dispaying speeds (such as weight carried or conditions that apply to the character), offering a smoother experience. While some game systems offer this integration natively, for other game systems there are modules providing the integration. If the integration is provided via a module you need to install and activate both Drag Ruler and the integration module to benefit from the integration.
 
