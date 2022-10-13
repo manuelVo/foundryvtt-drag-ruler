@@ -114,18 +114,6 @@ export function getUnreachableColorFromSpeedProvider() {
 	}
 }
 
-export function getCostFromSpeedProvider(token, area, options) {
-	try {
-		if (currentSpeedProvider instanceof Function) {
-			return SpeedProvider.prototype.getCostForStep.call(undefined, token, area, options);
-		}
-		return currentSpeedProvider.getCostForStep(token, area, options);
-	} catch (e) {
-		console.error(e);
-		return 1;
-	}
-}
-
 export function getColorForDistanceAndToken(distance, token, ranges = null) {
 	if (!ranges) {
 		ranges = getRangesFromSpeedProvider(token);
@@ -159,8 +147,12 @@ export function getMovedDistanceFromToken(token) {
 }
 
 export function buildCostFunction(token, shape) {
-	return (x, y, costOptions = {}) =>
-		getCostFromSpeedProvider(token, getAreaFromPositionAndShape({x, y}, shape), costOptions);
+	return (x, y, costOptions = {}) => {
+		costOptions.token = token;
+		const area = getAreaFromPositionAndShape({x, y}, shape);
+		const costs = area.map(space => canvas.terrain.cost({x: space.x, y: space.y, costOptions}));
+		return costs.reduce((max, current) => Math.max(max, current));
+	};
 }
 
 export function registerModule(moduleId, speedProvider) {
