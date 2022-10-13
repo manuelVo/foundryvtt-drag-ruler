@@ -39,6 +39,7 @@ The game systems that offer Drag Ruler integration are:
 - Cypher System (starting with version 1.13.0)
 - DnD5e (via the module [DnD5e Drag Ruler Integration](https://foundryvtt.com/packages/elevation-drag-ruler))
 - GURPS 4th Edition Game Aid (Unofficial) (starting with version 0.9.1)
+- Hackmaster (starting with version 0.2.11)
 - Ironclaw Second Edition (starting with version 0.2.2)
 - Lancer (via the module [Lancer Speed Provider](https://foundryvtt.com/packages/lancer-speed-provider))
 - Level Up: Advanced 5th Edition (Official) (via the module [A5E Drag Ruler Integration](https://foundryvtt.com/packages/a5edragruler))
