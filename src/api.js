@@ -150,7 +150,7 @@ export function buildCostFunction(token, shape) {
 	return (x, y, costOptions = {}) => {
 		costOptions.token = token;
 		const area = getAreaFromPositionAndShape({x, y}, shape);
-		const costs = area.map(space => canvas.terrain.cost({x: space.x, y: space.y, costOptions}));
+		const costs = area.map(space => canvas.terrain.cost({x: space.x, y: space.y}, costOptions));
 		return costs.reduce((max, current) => Math.max(max, current));
 	};
 }
