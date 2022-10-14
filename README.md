@@ -39,7 +39,7 @@ When routinglib is installed, Drag Ruler can automatically place waypoints to wa
 
 Pathfinding is restricted to GM users by default, since the pathfinding algorithm can create ways that lead through unexplored fog of war. If you want to allow your players to use Drag Ruler's pathfinding functionality, you need to enable the associated setting in Drag Ruler's module settings.
 
-![Demonstration of pathfinding](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/15cda2cdbe50d6c32ac75544edf43368560ab1bc/media/pathfinding.webp)
+![Demonstration of pathfinding](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/a5de9bbf0a54a5bafaa53c786bed4379dc244253/media/pathfinding.webp)
 
 
 ## Game systems with Drag Ruler integration
