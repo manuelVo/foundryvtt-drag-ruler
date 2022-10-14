@@ -16,19 +16,41 @@
 		"genericSpeedProvider": {
 			"settings": {
 				"dashMultiplier": {
-					"name": "Multiplicateur de courses",
+					"name": "Multiplicateur de course",
 					"hint": "Cela peut être utilisé pour donner aux jetons une vitesse secondaire pendant la coloration du chemin mesuré. Réglez-le sur 0 pour désactiver la vitesse secondaire."
 				},
 				"speedAttribute": {
                                         "name": "Attribut de vitesse",
-                                        "hint": "L'attribut qui définit la vitesse de marche d'un jeton. Il est utilisé lors de la coloration du chemin mesuré." 				}
+                                        "hint": "L'attribut qui définit la vitesse de marche d'un jeton. Il est utilisé lors de la coloration du chemin mesuré."
+				}
 			},
 			"speeds": {
 				"walk": "marche",
 				"dash": "course"
 			}
 		},
+		"keybindings": {
+			"cancelDrag": "Effacer glisser",
+			"createWaypoint": "Créer un point de passage",
+			"deleteWaypoint": "Effacer un point de passage",
+			"disableSnap": {
+				"name": "Désactiver l'interruption",
+				"hint": "l'interruption sera temporairement désactivée tant que cette clé est maintenue enfoncée"
+			},
+			"moveWithoutAnimation": {
+				"name": "Désactiver l'animation du jeton",
+				"hint": "Lorsqu'elle est maintenue lorsque vous déposer un jeton, le jeton se déplacera vers le lieu ciblé sans s'animer"
+			},
+			"togglePathfinding": {
+				"name": "Activer la recherche de l'itinéraire",
+				"hint": "Lorsqu'elle est maintenue en glissant un jeton, la fonction de recherche de l'itinéraire sera temporairement activée/désactivée"
+			}
+		},
 		"settings": {
+			"allowPathfinding": {
+				"name": "Autoriser la recherche de l'itinéraire pour les joueurs",
+				"hint": "Permet aux joueurs d'utiliser la fonction de recherche de l'itinéraire de Drag Ruler dans ce monde. Soyez conscient que la recherche de l'itinéraire peut conduire à travers le brouillard de guerre inexploré et les murs éthérés, ce qui pourrait révéler des secrets à vos joueurs avant l'heure."
+			},
 			"alwaysShowSpeedForPCs": {
 				"name": "Afficher la vitesse du PJ à tout le monde",
 				"hint": "Si activé, la coloration basée sur la vitesse de l'acteur pour les personnages joueurs sera montrée à tout le monde, même s'ils n'ont pas la permission d'observateur pour la feuille de personnage."
@@ -37,9 +59,22 @@
 				"name": "Démarrer automatiquement la mesure",
 				"hint": "Si activé, Drag Ruler commencera à mesurer dès que le jeton est glissé. S'il est désactivé, Drag Ruler restera inactif et ne commencera à mesurer qu'une fois que le bouton pour ajouter un waypoint est enfoncé."
 			},
+			"autoPathfinding": {
+				"name": "Recherche d'itinéraire par défaut",
+				"hint": "Si activé, glisser un jeton utilisera automatiquement une recherche de l'intinéraire"
+			},
 			"enableMovementHistory": {
 				"name": "Activer l'historique des mouvements pendant le combat",
 				"hint": "Si activé, Drag Ruler se souviendra du chemin emprunté par un jeton pendant son tour de combat et l'affichera lorsque vous récupérerez le jeton."
+			},
+			"rightClickAction": {
+				"name": "action de Clic droit",
+				"hint": "Quelle sera l'action accomplie lorsque vous ferez un clic droit en glissant un jeton ?",
+				"choices": {
+					"create": "Créer un point de passage",
+					"delete": "Effacer un point de passage",
+					"cancel": "Annuler le glisser"
+				}
 			},
 			"showGMRulerToPlayers": {
 				"name": "Afficher la règle MJ aux joueurs",
@@ -51,7 +86,7 @@
 				"button": "Paramètres du système de vitesse",
 				"windowTitle": "Paramètres du système de vitesse",
 				"headers": {
-					"speedProvider": "système de vitesse",
+					"speedProvider": "Système de vitesse",
 					"speedProviderSettings": "Paramètres spécifiques au système de vitesse"
 				},
 				"activeProvider": {
@@ -63,13 +98,13 @@
 					"name": "Couleur pour {colorName}",
 					"hint": "La couleur qui sera utilisée pour colorier les carrés qui sont dans la plage {colorName}",
 					"unreachable": {
-						"name": "injoignable",
-						"hint": "La couleur des espaces qui ne sont pas accessibles par le jeton déplacé"
+						"name": "inaccessible",
+						"hint": "La couleur des cases qui ne sont pas accessibles pour le jeton déplacé"
 					}
 				},
 				"speedProvider": {
-					"name": "système de paramètres de vitesse",
-					"indice": "Sélectionnez qui fournit les informations de vitesse pour les jetons lors de la coloration. Drag Ruler offre un système de vitesse générique qui fournit des fonctionnalités de base et devrait fonctionner pour tous les systèmes de jeu s'il est correctement configuré. Plus de systèmes de vitesse peuvent être mis à disposition via les systèmes de jeu et les modules installés . La sélection d'un autre système de vitesse que le système de vitesse générique peut offrir une meilleure intégration dans les règles du système de jeu que vous utilisez. Les options ci-dessous dépendent du système de vitesse sélectionné ici.",
+					"name": "Système de paramètres de vitesse",
+					"indice": "Sélectionnez qui fournit les informations de vitesse pour les jetons lors de la coloration. Drag Ruler offre un système de vitesse générique qui fournit des fonctionnalités de base et devrait fonctionner pour tous les systèmes de jeu s'il est correctement configuré. Plus de systèmes de vitesse peuvent être mis à disposition via les systèmes de jeu et les modules installés. La sélection d'un autre système de vitesse que le système de vitesse générique peut offrir une meilleure intégration dans les règles du système de jeu que vous utilisez. Les options ci-dessous dépendent du système de vitesse sélectionné ici.",
 					"choices": {
 						"module": "Module {name}",
 						"native": "Générique",
@@ -78,8 +113,8 @@
 				}
 			},
 			"useGridlessRaster": {
-				"name": "Use speed based snapping",
-				"hint": "On Gridless scenes, this makes tokens snap to the token's speed ranges. This can be temporarily disabled by pressing Shift during drag."
+				"name": "Utilise l'interruption basée sur la vitesse",
+				"hint": "Sur des scènes sans grilles, cela permet aux jetons de s'interrompre à la portée de leur vitesse. Cela peut être temporairement désactivé en pressant Shift en faisant glisser."
 			}
 		}
 	}
