@@ -460,7 +460,7 @@ export function extendRuler() {
 				// If this is a pc and alwaysShowSpeedForPCs is enabled we show the color anyway
 				if (
 					!(
-						this.draggedEntity.actor.data.type === "character" &&
+						this.draggedEntity.actor.type === "character" &&
 						game.settings.get(settingsKey, "alwaysShowSpeedForPCs")
 					)
 				)
