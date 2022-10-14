@@ -4,7 +4,7 @@
 			"ok": "OK",
 			"terrain-ruler": {
 				"title": "Wie man schwieriges Gelände mit Drag Ruler misst",
-				"text": "Du hast das {moduleName} Modul installiert. Drag Ruler kann schwieriges Gelände, das mit diesem Modul platziert wurde in seinen Messungen berücksichtigen. Hierzu greift Drag Ruler auf die Funktionalität von Terrain Ruler zurück. Wenn Terrain Ruler installiert und aktiviert ist wird Drag Ruler automatisch anfangen schwieriges Gelände in den Messungen zu berücksichtigen.",
+				"text": "Du hast das {moduleName} Modul installiert. Drag Ruler kann schwieriges Gelände, das mit diesem Modul platziert wurde in seinen Messungen berücksichtigen. Hierzu greift Drag Ruler auf die Funktionalität von Terrain Ruler zurück. Wenn Terrain Ruler installiert und aktiviert ist, wird Drag Ruler automatisch anfangen schwieriges Gelände in den Messungen zu berücksichtigen.",
 				"neverShowAgain": "Zeige dies nie wieder an"
 			},
 			"socketlib": {
@@ -21,7 +21,7 @@
 				},
 				"speedAttribute": {
 					"name": "Geschwindigkeitsattribut",
-					"hint": "Das Attribut, das die Gehgeschwindigkeit einer Spielfigur definiert. Diese Attribut wird während der Färbung des hervorgehobenen Pfads verwendet."
+					"hint": "Das Attribut, das die Gehgeschwindigkeit einer Spielfigur definiert. Dieses Attribut wird während der Färbung des hervorgehobenen Pfads verwendet."
 				}
 			},
 			"speeds": {
@@ -35,33 +35,33 @@
 			"deleteWaypoint": "Wegpunkt löschen",
 			"disableSnap": {
 				"name": "Raster deaktivieren",
-				"hint": "Während diese Taste gedrückt ist wird das Raster temporär deaktiviert"
+				"hint": "Während diese Taste gedrückt ist, wird das Raster temporär deaktiviert."
 			},
 			"moveWithoutAnimation": {
-				"name": "Token animation deaktivieren",
+				"name": "Tokenanimation deaktivieren",
 				"hint": "Wenn diese Taste gedrückt wird, während ein Token fallen gelassen wird, bewegt es sich ohne Animation zum Zielort."
 			},
 			"togglePathfinding": {
 				"name": "Wegfindung umschalten",
-				"hint": "Wenn diese Taste gedrückt gehalten wird, während ein Token gezogen wird, wird die Wegfindung vorübergehend aktiviert/deaktiviert"
+				"hint": "Wenn diese Taste gedrückt gehalten wird, während ein Token gezogen wird, wird die Wegfindung vorübergehend aktiviert/deaktiviert."
 			}
 		},
 		"settings": {
 			"allowPathfinding": {
 				"name": "Wegfindung für Spieler erlauben",
-				"hint": "Erlaubt es Spielern die Wegfindungs zu benutzen. Bitte beachte, dass die Wegfindung Wege durch unerkundeten Nebel des Kriegs und Ätherische Wände berechnen kann. Dies kann deinen Spielern Geheimnisse lüften, von denen sie noch nicht erfahren sollten."
+				"hint": "Erlaubt es Spielern die Wegfindung zu benutzen. Bitte beachte, dass die Wegfindung Wege durch unerkundeten Nebel des Kriegs und ätherische Wände berechnen kann. Dies kann deinen Spielern Geheimnisse lüften, von denen sie noch nicht erfahren sollten."
 			},
 			"alwaysShowSpeedForPCs": {
 				"name": "Geschwindigkeit von Spielercharakteren für jeden anzeigen",
-				"hint": "Wenn diese Einstellung aktiviert ist wird die Färbung der hervorgehobenen Felder bei Spielercharakteren allen Spielern angezeigt, selbst wenn diese keinen Zugriff auf den Charakterbogen haben."
+				"hint": "Wenn diese Einstellung aktiviert ist, wird die Färbung der hervorgehobenen Felder bei Spielercharakteren allen Spielern angezeigt, selbst wenn diese keinen Zugriff auf den Charakterbogen haben."
 			},
 			"autoStartMeasurement": {
 				"name": "Automatisch mit Messen beginnen",
-				"hint": "Wenn diese Option aktiviert ist beginnt Drag Ruler mit dem Messen sobald das Token bewegt wird. Wenn die Option deaktiviert ist bleibt Drag Ruler deaktiviert bis der Knopf zum platzieren eines Wegpunkts betätigt wird."
+				"hint": "Wenn diese Option aktiviert ist beginnt Drag Ruler mit dem Messen, sobald das Token bewegt wird. Wenn die Option deaktiviert ist, bleibt Drag Ruler deaktiviert bis der Knopf zum Platzieren eines Wegpunkts betätigt wird."
 			},
 			"enableMovementHistory": {
 				"name": "Bewegungsverlauf während des Kampfes aktivieren",
-				"hint": "Wenn diesen Option aktiviert ist merkt sich Drag Ruler die Bewegungen, die während einer Runde eines Kampfes gemacht wurden und zeigt diese an, wenn das Token weiterbewegt wird."
+				"hint": "Wenn diese Option aktiviert ist, merkt sich Drag Ruler die Bewegungen, die während einer Runde eines Kampfes gemacht wurden und zeigt diese an, wenn das Token weiterbewegt wird."
 			},
 			"rightClickAction": {
 				"name": "Aktion bei Rechtsklick",
@@ -74,7 +74,7 @@
 			},
 			"showGMRulerToPlayers": {
 				"name": "Lineal des Spielleiters bei Spielern anzeigen",
-				"hint": "Wenn diese Option deaktiviert ist wird das Lineal des Spielleiters bei den anderen Spielern nicht angezeigt."
+				"hint": "Wenn diese Option deaktiviert ist, wird das Lineal des Spielleiters bei den anderen Spielern nicht angezeigt."
 			},
 			"speedProviderSettings": {
 				"name": "Einstellungen zur Spielsystemintegration",
@@ -87,20 +87,20 @@
 				},
 				"activeProvider": {
 					"name": "Verwendete Spielsystemintegration",
-					"hint": "Die unten angezeigten Einstellungen hängen von der verwendeten Spielsystemintegration ab. Wenn der Spielleiter eine andere Spielsystemintegration auswählt können sich die zur Verfügung stehenden Einstellungen ändern."
+					"hint": "Die unten angezeigten Einstellungen hängen von der verwendeten Spielsystemintegration ab. Wenn der Spielleiter eine andere Spielsystemintegration auswählt, können sich die zur Verfügung stehenden Einstellungen ändern."
 				},
-				"noSettings": "Diese Spielsystemintegration hat keine Einstellmöglichkeiten",
+				"noSettings": "Diese Spielsystemintegration hat keine Einstellmöglichkeiten.",
 				"color": {
 					"name": "Farbe für {colorName}",
-					"hint": "Die Farbe mit der Felder in {colorName} Reichweite hervorgehoben werden",
+					"hint": "Die Farbe mit der Felder in {colorName} Reichweite hervorgehoben werden.",
 					"unreachable": {
 						"name": "unerreichbar",
-						"hint": "Die Farbe für Felder, die von der bewegten Spielfigur nicht erreicht werden können"
+						"hint": "Die Farbe für Felder, die von der bewegten Spielfigur nicht erreicht werden können."
 					}
 				},
 				"speedProvider": {
 					"name": "Verwendete Spielsystemintegration",
-					"hint": "Wähle aus, welche Spielsystemintegration für die farbliche Hervorhebung der Felder zuständig sein soll. Drag Ruler stellt eine generische Spielsystemintegration zur Verfügung, die grundlegende Funktionalität bietet und bei korrekter konfiguration mit allen Spielsystemen funktionieren sollte. Weitere Spielsystemintegrationen können durch Module und Spielsysteme angeboten werden. Eine andere Spielsystemintegration als die generische auszuwählen kann eine bessere Inegration in das verwendete Spielsystem bieten. Die Optionen unterhalb sind davon abhängig, welche Spielsystemintegration hier ausgewählt wurde.",
+					"hint": "Wähle aus, welche Spielsystemintegration für die farbliche Hervorhebung der Felder zuständig sein soll. Drag Ruler stellt eine generische Spielsystemintegration zur Verfügung, die grundlegende Funktionalität bietet und bei korrekter Konfiguration mit allen Spielsystemen funktionieren sollte. Weitere Spielsystemintegrationen können durch Module und Spielsysteme angeboten werden. Eine andere Spielsystemintegration als die generische auszuwählen kann eine bessere Integration in das verwendete Spielsystem bieten. Die Optionen unterhalb sind davon abhängig, welche Spielsystemintegration hier ausgewählt wurde.",
 					"choices": {
 						"module": "Modul {name}",
 						"native": "Generisch",
@@ -111,6 +111,14 @@
 			"useGridlessraster": {
 				"name": "Geschwindigkeitsraster aktivieren",
 				"hint": "Lässt Spielfiguren auf gitterlosen Szenen an deren Geschwindigkeitsgrenzen einrasten."
+			},
+			"autoPathfinding": {
+				"name": "Wegfindung grundsätzlich aktivieren",
+				"hint": "Wenn diese Option aktiviert ist, wird beim Ziehen eines Tokens automatisch die Wegfindung verwendet."
+			},
+			"useGridlessRaster": {
+				"name": "Geschwindigkeitsbasiertes Raster verwenden",
+				"hint": "Dies lässt Spielfiguren auf gitterlosen Szenen an ihren Geschwindigkeitsgrenzen einrasten."
 			}
 		}
 	}
