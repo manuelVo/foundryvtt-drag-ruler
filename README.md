@@ -9,7 +9,7 @@ This module shows a ruler when you drag a token or measurement template to infor
 
 
 ## Supports Tokens of all sizes
-Terrain ruler has excellent support for tokens of all sizes. The Ruler will always originate from the token's center and will always highlight all the squares that tokens move over. If the [Hex Token Size Support](https://foundryvtt.com/packages/hex-size-support) is installed this is also true for large tokens on hex scenes.
+Terrain ruler has excellent support for tokens of all sizes. The Ruler will always originate from the token's center and will always highlight all the squares that tokens move over.
 
 ![Drag Ruler being used with a large token on a square grid](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/large_token_square.webp)
 ![Drag Ruler being used with a large token on a hex grid](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/large_token_hex.webp)
