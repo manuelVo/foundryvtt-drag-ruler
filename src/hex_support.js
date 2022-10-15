@@ -10,7 +10,7 @@
  */
 export function findVertexSnapPoint(x, y, altOrientationFlag) {
 	const grid = canvas.grid.grid;
-	if (grid.columns) {
+	if (grid.columnar) {
 		return findSnapPointCols(x, y, grid.h, grid.w, altOrientationFlag);
 	} else {
 		return findSnapPointRows(x, y, grid.h, grid.w, altOrientationFlag);
@@ -59,11 +59,11 @@ function findSnapPointCols(x, y, h, w, alt) {
 		yOffset = -0.5;
 	}
 
-	let xOffset1 = 0.25;
-	let xOffset2 = 1.0;
+	let xOffset1 = 0.75;
+	let xOffset2 = 0.0;
 	if (alt) {
-		xOffset1 = 0.75;
-		xOffset2 = 0.0;
+		xOffset1 = 0.25;
+		xOffset2 = 1.0;
 	}
 
 	let row1 = calculateSnapPointsCols(x, y, h, w, xOffset1, 0.5 + yOffset);

@@ -2,11 +2,6 @@ import {buildCostFunction} from "./api.js";
 import {settingsKey} from "./settings.js";
 import {highlightTokenShape} from "./util.js";
 
-export function getHexSizeSupportTokenGridCenter(token) {
-	const tokenCenterOffset = CONFIG.hexSizeSupport.getCenterOffset(token);
-	return {x: token.x + tokenCenterOffset.x, y: token.y + tokenCenterOffset.y};
-}
-
 export function highlightMeasurementTerrainRuler(
 	ray,
 	startDistance,

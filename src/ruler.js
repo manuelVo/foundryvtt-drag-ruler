@@ -3,11 +3,7 @@ import {
 	getColorForDistanceAndToken,
 	getRangesFromSpeedProvider,
 } from "./api.js";
-import {
-	getHexSizeSupportTokenGridCenter,
-	highlightMeasurementTerrainRuler,
-	measureDistances,
-} from "./compatibility.js";
+import {highlightMeasurementTerrainRuler, measureDistances} from "./compatibility.js";
 import {getGridPositionFromPixelsObj, getPixelsFromGridPositionObj} from "./foundry_fixes.js";
 import {cancelScheduledMeasurement, highlightMeasurementNative} from "./foundry_imports.js";
 import {disableSnap} from "./keybindings.js";
@@ -17,6 +13,7 @@ import {
 	applyTokenSizeOffset,
 	getSnapPointForEntity,
 	getSnapPointForTokenObj,
+	getEntityCenter,
 	getTokenShape,
 	isPathfindingEnabled,
 } from "./util.js";
@@ -482,15 +479,7 @@ export function extendRuler() {
 			const ruler = canvas.controls.ruler;
 			ruler.clear();
 			ruler._state = Ruler.STATES.STARTING;
-			let entityCenter;
-			if (
-				isToken &&
-				canvas.grid.isHex &&
-				game.modules.get("hex-size-support")?.active &&
-				CONFIG.hexSizeSupport.getAltSnappingFlag(entity)
-			)
-				entityCenter = getHexSizeSupportTokenGridCenter(entity);
-			else entityCenter = entity.center;
+			const entityCenter = getEntityCenter(this.draggedEntity);
 			if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
 				ruler.dragRulerAddWaypointHistory(getMovementHistory(entity));
 			ruler.dragRulerAddWaypoint(entityCenter, {snap: false});

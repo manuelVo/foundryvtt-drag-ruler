@@ -8,7 +8,7 @@ import {
 	registerModule,
 	registerSystem,
 } from "./api.js";
-import {checkDependencies, getHexSizeSupportTokenGridCenter} from "./compatibility.js";
+import {checkDependencies} from "./compatibility.js";
 import {moveEntities, onMouseMove} from "./foundry_imports.js";
 import {disableSnap, registerKeybindings} from "./keybindings.js";
 import {libWrapper} from "./libwrapper_shim.js";
@@ -18,7 +18,7 @@ import {extendRuler} from "./ruler.js";
 import {registerSettings, RightClickAction, settingsKey} from "./settings.js";
 import {recalculate} from "./socket.js";
 import {SpeedProvider} from "./speed_provider.js";
-import {setSnapParameterOnOptions} from "./util.js";
+import {getEntityCenter, setSnapParameterOnOptions} from "./util.js";
 
 CONFIG.debug.dragRuler = false;
 export let debugGraphics = undefined;
@@ -136,15 +136,7 @@ function onEntityLeftDragStart(wrapped, event) {
 	const isToken = this instanceof Token;
 	const ruler = canvas.controls.ruler;
 	ruler.draggedEntity = this;
-	let entityCenter;
-	if (
-		isToken &&
-		canvas.grid.isHex &&
-		game.modules.get("hex-size-support")?.active &&
-		CONFIG.hexSizeSupport.getAltSnappingFlag(this)
-	)
-		entityCenter = getHexSizeSupportTokenGridCenter(this);
-	else entityCenter = this.center;
+	const entityCenter = getEntityCenter(this);
 	ruler.rulerOffset = {
 		x: entityCenter.x - event.data.origin.x,
 		y: entityCenter.y - event.data.origin.y,
