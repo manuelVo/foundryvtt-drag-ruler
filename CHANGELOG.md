@@ -1,3 +1,16 @@
+## 1.13.1
+### Bugfixes
+- Fixed a bug that caused large hex tokens to not snap correctly
+- Fixed a bug that prevented Drag Ruler from working on hex grids at all if the Hex Size Support module is enabled
+- Fixed a bug that prevented Enhanced Terrain Layer from determining dragged moving token
+- Fixed several deprecation warnings
+
+### Translations
+- Updated the english text for several UI items
+- Updated the german translation
+- Updated the french translation (thanks rectulo!)
+
+
 ## 1.13.0
 ### Breaking changes
 - Drag Ruler's pathfinder has been extracted into a dedicated library module. If you'd like to continue to use Drag Ruler's pathfinding feature, please install [routinglib](https://foundryvtt.com/packages/routinglib) alongside Drag Ruler.
