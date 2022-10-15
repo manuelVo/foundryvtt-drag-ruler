@@ -27,6 +27,7 @@ export function sum(arr) {
 	return arr.reduce((a, b) => a + b, 0);
 }
 
+// A copy of this function lives in the routinglib module
 export function getHexTokenSize(token) {
 	const size = token.document.width;
 	if (token.document.height !== size) {
@@ -61,6 +62,7 @@ export function getEntityCenter(token) {
 	return token.center;
 }
 
+// A copy of this function lives in the routinglib module
 export function getAltOrientationFlagForToken(token, size) {
 	const hexSizeSupport = game.modules.get("hex-size-support").api;
 	if (hexSizeSupport) {
@@ -171,6 +173,7 @@ export function getAreaFromPositionAndShape(position, shape) {
 	});
 }
 
+// A copy of this function lives in the routinglib module
 export function getTokenShape(token) {
 	let scene = canvas.scene;
 	if (scene.grid.type === CONST.GRID_TYPES.GRIDLESS) {
