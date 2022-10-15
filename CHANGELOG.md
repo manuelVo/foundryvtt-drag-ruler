@@ -1,3 +1,7 @@
+## 1.13.2
+### Bugfixes
+- Fixed a bug that prevented pathfinding on hex to work when the hex size support module is not installed
+
 ## 1.13.1
 ### Bugfixes
 - Fixed a bug that caused large hex tokens to not snap correctly
