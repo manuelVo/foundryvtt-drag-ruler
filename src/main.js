@@ -39,6 +39,7 @@ Hooks.once("init", () => {
 	extendRuler();
 
 	window.dragRuler = {
+		getRangesFromSpeedProvider,
 		getColorForDistanceAndToken,
 		getMovedDistanceFromToken,
 		registerModule,
