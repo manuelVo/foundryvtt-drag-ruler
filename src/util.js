@@ -90,33 +90,33 @@ export function getSnapPointForToken(x, y, token) {
 
 	const [topLeftX, topLeftY] = canvas.grid.getTopLeft(x, y);
 	let cellX, cellY;
-	if (token.width % 2 === 0) cellX = x - canvas.grid.h / 2;
+	if (token.document.width % 2 === 0) cellX = x - canvas.grid.h / 2;
 	else cellX = x;
-	if (token.height % 2 === 0) cellY = y - canvas.grid.h / 2;
+	if (token.document.height % 2 === 0) cellY = y - canvas.grid.h / 2;
 	else cellY = y;
 	const [centerX, centerY] = canvas.grid.getCenter(cellX, cellY);
 	let snapX, snapY;
 	// Tiny tokens can snap to the cells corners
-	if (token.width <= 0.5) {
+	if (token.document.width <= 0.5) {
 		const offsetX = x - topLeftX;
 		const subGridWidth = Math.floor(canvas.grid.w / 2);
 		const subGridPosX = Math.floor(offsetX / subGridWidth);
 		snapX = topLeftX + (subGridPosX + 0.5) * subGridWidth;
 	}
 	// Tokens with odd multipliers (1x1, 3x3, ...) and tokens smaller than 1x1 but bigger than 0.5x0.5 snap to the center of the grid cell
-	else if (Math.round(token.width) % 2 === 1 || token.width < 1) {
+	else if (Math.round(token.document.width) % 2 === 1 || token.document.width < 1) {
 		snapX = centerX;
 	}
 	// All remaining tokens (those with even or fractional multipliers on square grids) snap to the intersection points of the grid
 	else {
 		snapX = centerX + canvas.grid.w / 2;
 	}
-	if (token.height <= 0.5) {
+	if (token.document.height <= 0.5) {
 		const offsetY = y - topLeftY;
 		const subGridHeight = Math.floor(canvas.grid.h / 2);
 		const subGridPosY = Math.floor(offsetY / subGridHeight);
 		snapY = topLeftY + (subGridPosY + 0.5) * subGridHeight;
-	} else if (Math.round(token.height) % 2 === 1 || token.height < 1) {
+	} else if (Math.round(token.document.height) % 2 === 1 || token.document.height < 1) {
 		snapY = centerY;
 	} else {
 		snapY = centerY + canvas.grid.h / 2;
@@ -179,11 +179,11 @@ export function getTokenShape(token) {
 	if (scene.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 		return [{x: 0, y: 0}];
 	} else if (scene.grid.type === CONST.GRID_TYPES.SQUARE) {
-		const topOffset = -Math.floor(token.height / 2);
-		const leftOffset = -Math.floor(token.width / 2);
+		const topOffset = -Math.floor(token.document.height / 2);
+		const leftOffset = -Math.floor(token.document.width / 2);
 		const shape = [];
-		for (let y = 0; y < token.height; y++) {
-			for (let x = 0; x < token.width; x++) {
+		for (let y = 0; y < token.document.height; y++) {
+			for (let x = 0; x < token.document.width; x++) {
 				shape.push({x: x + leftOffset, y: y + topOffset});
 			}
 		}
