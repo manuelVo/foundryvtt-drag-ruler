@@ -1,1 +1,121 @@
-{}
+{
+	"drag-ruler": {
+		"dependencies": {
+			"ok": "OK",
+			"terrain-ruler": {
+				"title": "Drag Ruler 如何测量困难地形",
+				"text": "你已启用 {moduleName}。Drag Ruler 可以使用此模组测量放置的困难地形。为此，Drag Ruler 将使用 Terrain Ruler 模组。如果已经安装并启用了 Terrain Ruler，Drag Ruler 将自动开始在测量中反映困难地形的结果。",
+				"neverShowAgain": "不再显示此条"
+			},
+			"socketlib": {
+				"title": "Socketlib 模组未安装/启用",
+				"text": "Drag Ruler 依赖于 socketlib 模组以正常运行。请在该世界中激活 socketlib 模组。"
+			}
+		},
+		"resetMovementHistory": "重置移动历史",
+		"settings": {
+			"alwaysShowSpeedForPCs": {
+				"name": "向所有人展示 PC 的速度",
+				"hint": "启用后，基于 PC 速度的着色将会展示给所有人，即使并未对该角色有观察权限。"
+			},
+			"speedProviderSettings": {
+				"speedProvider": {
+					"choices": {
+						"native": "通用",
+						"system": "系统 {name}",
+						"module": "模组 {name}"
+					},
+					"name": "速度设置提供方",
+					"hint": "选择指示物移动着色时，速度信息的提供方。Drag Ruler 自带通用的速度提供方，提供基础功能并且在配置正确时，应对所有游戏系统都有效。游戏系统和安装的模组可能会提供可用的新速度提供方。选择其他速度提供方替换通用速度提供方可能会与正在使用的游戏系统的规则整合得更好。下列的选项依赖于此处选择的速度提供方。"
+				},
+				"name": "速度提供方设置",
+				"hint": "速度提供方设置内包含了所有游戏系统相关的设置。",
+				"button": "速度提供方设置",
+				"windowTitle": "速度提供方设置",
+				"headers": {
+					"speedProvider": "速度提供",
+					"speedProviderSettings": "速度提供方特定设置"
+				},
+				"activeProvider": {
+					"name": "激活的速度提供方",
+					"hint": "下方显示的此设置依赖于一个激活的速度提供方。如果 GM 选择了其他的速度提供方，可用的设置项可能会改变。"
+				},
+				"noSettings": "此速度提供方并不提供任何配置项。",
+				"color": {
+					"name": "颜色 {colorName}",
+					"hint": "将在 {colorName} 范围内的色彩格子内使用的颜色。",
+					"unreachable": {
+						"name": "不可抵达",
+						"hint": "拖拽指示物时显示的不可抵达的格子的颜色。"
+					}
+				}
+			},
+			"useGridlessRaster": {
+				"name": "使用基于速度的吸附",
+				"hint": "在无网格场景中，这使得指示物吸附至其速度范围。"
+			},
+			"allowPathfinding": {
+				"name": "允许玩家寻路",
+				"hint": "允许玩家在此世界中使用Drag Ruler的寻路功能。注意寻路可能经过未探索的战争迷雾和虚体墙，这可能提前向玩家暴露秘密。"
+			},
+			"autoStartMeasurement": {
+				"name": "自动测量",
+				"hint": "如果启用此选项，在你拖动棋子时标尺会自动显示，如果禁用，拖动棋子时将不会启用标尺，仅在按下显示路径按钮时显示。"
+			},
+			"autoPathfinding": {
+				"name": "默认寻路",
+				"hint": "若启用，拖动指示物会自动使用寻路标尺。"
+			},
+			"enableMovementHistory": {
+				"name": "在战斗时启用移动历史",
+				"hint": "启用后，Drag Ruler 将会记住指示物在战斗中其回合内行经的路径，并且会在拉起指示物时显示。"
+			},
+			"rightClickAction": {
+				"name": "右键点击动作",
+				"hint": "拖动指示物时点击右键应该执行什么动作？",
+				"choices": {
+					"create": "创建路径点",
+					"delete": "删除路径点",
+					"cancel": "取消拖动"
+				}
+			},
+			"showGMRulerToPlayers": {
+				"name": "向玩家展示 GM 尺子",
+				"hint": "禁用后，GM 的测量尺将不会向非 GM 玩家展示。"
+			}
+		},
+		"genericSpeedProvider": {
+			"settings": {
+				"dashMultiplier": {
+					"name": "疾跑倍数",
+					"hint": "此项可以赋予测量路径着色的指示物第二速度显示。将此项设置为 0 以禁用第二速度。"
+				},
+				"speedAttribute": {
+					"name": "速度字段",
+					"hint": "该字段定义了指示物的步行速度，用于测量路径的着色。"
+				}
+			},
+			"speeds": {
+				"walk": "步行",
+				"dash": "疾跑"
+			}
+		},
+		"keybindings": {
+			"cancelDrag": "取消拖动",
+			"createWaypoint": "创建路径点",
+			"deleteWaypoint": "删除路径点",
+			"disableSnap": {
+				"name": "禁用吸附",
+				"hint": "按下此键时吸附会被暂时禁用。"
+			},
+			"moveWithoutAnimation": {
+				"name": "禁用指示物动画",
+				"hint": "放置指示物时按住，则指示物将直接移动至目标地点。"
+			},
+			"togglePathfinding": {
+				"name": "寻路开关",
+				"hint": "拖动指示物时按住，寻路功能便会暂时启用/禁用。"
+			}
+		}
+	}
+}
