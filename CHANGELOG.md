@@ -1,3 +1,8 @@
+## 1.13.3
+### Translations
+- New translation: Chinese (Simplified) (thanks bnp800!)
+
+
 ## 1.13.2
 ### Bugfixes
 - Fixed a bug that prevented pathfinding on hex to work when the hex size support module is not installed
