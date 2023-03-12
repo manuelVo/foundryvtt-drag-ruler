@@ -1,1 +1,121 @@
-{}
+{
+	"drag-ruler": {
+		"dependencies": {
+			"ok": "Ok",
+			"terrain-ruler": {
+				"neverShowAgain": "Nunca mostre isso de novo",
+				"title": "Como medir terrenos difíceis com o Drag Ruler",
+				"text": "Você tem o módulo {moduleName} habilitado. Drag Ruler é capaz de medir terreno difícil que foi colocado para baixo usando esse módulo. Para tornar isto possível, Drag Ruler utiliza o módulo Terrain Ruler. Se o Terrain Ruler for instalado e ativado, o Drag Ruler começará automaticamente a respeitar o terreno difícil em suas medições."
+			},
+			"socketlib": {
+				"title": "Módulo Socketlib ausente",
+				"text": "Drag Ruler requer que o módulo socketlib funcione corretamente. Por favor, ative o módulo socketlib neste mundo."
+			}
+		},
+		"resetMovementHistory": "Redefinir histórico de movimento",
+		"genericSpeedProvider": {
+			"settings": {
+				"dashMultiplier": {
+					"name": "Traço Multiplicador",
+					"hint": "Isso pode ser usado para dar aos tokens uma velocidade secundária durante a coloração do caminho medido. Defina-o como 0 para desativar a velocidade secundária."
+				},
+				"speedAttribute": {
+					"name": "Atributo de velocidade",
+					"hint": "O atributo que define a velocidade de caminhada de um token. Isso é usado durante a coloração do caminho medido."
+				}
+			},
+			"speeds": {
+				"walk": "andar",
+				"dash": "traço"
+			}
+		},
+		"keybindings": {
+			"cancelDrag": "Cancelar o arrasto",
+			"disableSnap": {
+				"name": "Desativar encaixe",
+				"hint": "O encaixe será desativado temporariamente enquanto esta tecla estiver pressionada."
+			},
+			"createWaypoint": "Criar parada",
+			"deleteWaypoint": "Apagar parada",
+			"togglePathfinding": {
+				"name": "Alternar localização de caminhos",
+				"hint": "Ao ser segurado enquanto arrasta um token, a funcionalidade de localização de caminhos será temporariamente habilitada/desabilitada."
+			},
+			"moveWithoutAnimation": {
+				"name": "Desativar animação de token",
+				"hint": "Ao ser segurado ao soltar um token, o token se moverá para o local de destino sem animação."
+			}
+		},
+		"settings": {
+			"allowPathfinding": {
+				"name": "Permitir localização de caminhos para jogadores",
+				"hint": "Permite que os jogadores usem a funcionalidade de localização de caminhos do Drag Ruler neste mundo. Esteja ciente de que a localização de caminhos pode passar por uma névoa de guerra inexplorada e paredes etéreas, que podem revelar segredos para seus jogadores antes do tempo."
+			},
+			"alwaysShowSpeedForPCs": {
+				"name": "Mostre a velocidade do PJ para todos",
+				"hint": "Se ativado, a coloração baseada na velocidade do ator para os personagens dos jogadores será mostrada a todos, mesmo que eles não tenham permissão de observador para a ficha de personagem."
+			},
+			"autoStartMeasurement": {
+				"name": "Iniciar a medição automaticamente",
+				"hint": "Se ativado, Drag Ruler começará a medir assim que o token estiver sendo arrastado. Se desativado, o Drag Ruler permanecerá inativo e só começará a medir quando o botão para adicionar uma parada for pressionado."
+			},
+			"autoPathfinding": {
+				"hint": "Se ativado, arrastar um token usará automaticamente uma régua de localização de caminho.",
+				"name": "localização de caminho por padrão"
+			},
+			"enableMovementHistory": {
+				"name": "Habilitar histórico de movimento durante o combate",
+				"hint": "Se ativado, o Drag Ruler lembrará o caminho que um token percorreu durante seu turno em combate e o exibirá quando você pegar o token de volta."
+			},
+			"rightClickAction": {
+				"name": "Ação do botão direito",
+				"hint": "Que ação deve ser executada ao clicar com o botão direito do mouse enquanto arrasta um token?",
+				"choices": {
+					"create": "Criar parada",
+					"delete": "Apagar parada",
+					"cancel": "Cancelar arrasto"
+				}
+			},
+			"showGMRulerToPlayers": {
+				"name": "Mostrar régua do GM aos jogadores",
+				"hint": "Se desativado, o governante dos GMs não será exibido para jogadores não-GM."
+			},
+			"speedProviderSettings": {
+				"name": "Configurações do provedor de velocidade",
+				"button": "Configurações do provedor de velocidade",
+				"windowTitle": "Configurações do provedor de velocidade",
+				"headers": {
+					"speedProvider": "Provedor de velocidade",
+					"speedProviderSettings": "Configurações específicas do provedor de velocidade"
+				},
+				"activeProvider": {
+					"name": "Provedor de velocidade ativo",
+					"hint": "As configurações mostradas abaixo dependem do provedor de velocidade ativo. Se o GM selecionar um provedor de velocidade diferente, as configurações disponíveis podem mudar."
+				},
+				"noSettings": "Este provedor de velocidade não oferece nenhuma opção de configuração.",
+				"color": {
+					"name": "Cor para {colorName}",
+					"hint": "A cor que será usada para colorir os quadrados que estão dentro do intervalo {colorName}.",
+					"unreachable": {
+						"name": "inacessível",
+						"hint": "A cor dos espaços que não podem ser acessados pelo token arrastado."
+					}
+				},
+				"speedProvider": {
+					"name": "Provedor de configurações de velocidade",
+					"hint": "Selecione quem fornece informações de velocidade para tokens durante a coloração. Drag Ruler oferece um provedor de velocidade genérico que fornece funcionalidade básica e deve funcionar para todos os sistemas de jogo se configurado corretamente. Mais provedores de velocidade podem ser disponibilizados por meio de sistemas de jogos e módulos instalados. Selecionar um provedor de velocidade diferente do provedor de velocidade genérico pode oferecer uma melhor integração com as regras do sistema de jogo que você está usando. As opções abaixo dependem do provedor de velocidade selecionado aqui.",
+					"choices": {
+						"module": "Módulo {name}",
+						"native": "Genérico",
+						"system": "Sistema {name}"
+					}
+				},
+				"hint": "As configurações do provedor de velocidade contêm todas as configurações específicas do sistema de jogo."
+			},
+			"useGridlessRaster": {
+				"name": "Use o ajuste baseado em velocidade",
+				"hint": "Em cenas Gridless, isso faz com que os tokens se encaixem nas faixas de velocidade do token."
+			}
+		}
+	}
+}
