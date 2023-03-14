@@ -1,3 +1,9 @@
+## 1.13.4
+### Translations
+- New translation: Portuguese (Brazil) (thanks eunaumtenhoid!)
+- Foundry should now be able to detect the Simplified Chenese translation properly
+
+
 ## 1.13.3
 ### Translations
 - New translation: Chinese (Simplified) (thanks bnp800!)
