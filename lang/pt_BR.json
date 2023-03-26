@@ -78,7 +78,7 @@
 			},
 			"showGMRulerToPlayers": {
 				"name": "Mostrar régua do GM aos jogadores",
-				"hint": "Se desativado, o governante dos GMs não será exibido para jogadores não-GM."
+				"hint": "Se desativado, a régua dos GMs não será exibido para jogadores não-GM."
 			},
 			"speedProviderSettings": {
 				"name": "Configurações do provedor de velocidade",
@@ -114,7 +114,7 @@
 			},
 			"useGridlessRaster": {
 				"name": "Use o ajuste baseado em velocidade",
-				"hint": "Em cenas Gridless, isso faz com que os tokens se encaixem nas faixas de velocidade do token."
+				"hint": "Em cenas sem grid, isso faz com que os tokens se encaixem nas faixas de velocidade do token."
 			}
 		}
 	}
