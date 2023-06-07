@@ -260,6 +260,12 @@ export function extendRuler() {
 		_computeDistance(gridSpaces) {
 			if (!this.isDragRuler) {
 				return super._computeDistance(gridSpaces);
+			}
+			if (!this.dragRulerEnableTerrainRuler) {
+				if (!this.dragRulerIgnoreGrid) {
+					gridSpaces = true;
+				}
+				super._computeDistance(gridSpaces);
 			} else {
 				const shape = this.draggedEntity ? getTokenShape(this.draggedEntity) : null;
 				const options = {
@@ -373,7 +379,7 @@ export function extendRuler() {
 			options.snap = options.snap ?? true;
 			if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 				event.preventDefault();
-				const mousePosition = canvas.app.renderer.events.pointer.getLocalPosition(
+				const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(
 					canvas.tokens,
 				);
 				const rulerOffset = this.rulerOffset;
@@ -477,7 +483,7 @@ export function extendRuler() {
 			if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
 				ruler.dragRulerAddWaypointHistory(getMovementHistory(entity));
 			ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
-			const mousePosition = canvas.app.renderer.events.pointer.getLocalPosition(
+			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(
 				canvas.tokens,
 			);
 			const destination = {
