@@ -23,6 +23,8 @@ export function getDefaultSpeedAttribute() {
 			return "actor.system.combatValues.movement.total";
 		case "splittermond":
 			return "actor.derivedValues.speed.value";
+		case "wfrp4e":
+			return "actor.system.details.move.walk";
 	}
 	return "";
 }
@@ -45,6 +47,8 @@ export function getDefaultDashMultiplier() {
 			return 5;
 		case "splittermond":
 			return 3;
+		case "wfrp4e":
+			return 2;
 	}
 	return 0;
 }
