@@ -286,8 +286,8 @@ export function isClose(a, b, delta) {
 }
 
 export function getPointer() {
-	pointerV10 = canvas.app.renderer.plugins.interaction.mouse
-	pointerV11 = canvas.app.renderer.events.pointer
+	const pointerV10 = canvas.app.renderer.plugins.interaction?.mouse
+	const pointerV11 = canvas.app.renderer.events.pointer
 	return pointerV10 || pointerV11
 }
 
