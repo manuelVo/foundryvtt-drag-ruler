@@ -138,8 +138,8 @@ function onEntityLeftDragStart(wrapped, event) {
 	ruler.draggedEntity = this;
 	const entityCenter = getEntityCenter(this);
 	ruler.rulerOffset = {
-		x: entityCenter.x - event.data.origin.x,
-		y: entityCenter.y - event.data.origin.y,
+		x: entityCenter.x - event.interactionData.origin.x,
+		y: entityCenter.y - event.interactionData.origin.y,
 	};
 	if (game.settings.get(settingsKey, "autoStartMeasurement")) {
 		let options = {};
@@ -247,7 +247,7 @@ function applyGridlessSnapping(event) {
 		}
 	} else {
 		let waypointDistance = 0;
-		let origin = event.data.origin;
+		let origin = event.interactionData.origin;
 		if (ruler.waypoints.length > 1) {
 			const segments = ruler.constructor
 				.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination)
