@@ -133,8 +133,8 @@ export function onMouseMove(event) {
 
 	// Extract event data
 	const destination = {
-		x: event.data.destination.x + this.rulerOffset.x,
-		y: event.data.destination.y + this.rulerOffset.y,
+		x: event.interactionData.destination.x + this.rulerOffset.x,
+		y: event.interactionData.destination.y + this.rulerOffset.y,
 	};
 
 	// Hide any existing Token HUD
