@@ -285,8 +285,14 @@ export function isClose(a, b, delta) {
 	return Math.abs(a - b) <= delta;
 }
 
+export function getPointer() {
+	pointerV10 = canvas.app.renderer.plugins.interaction.mouse
+	pointerV11 = canvas.app.renderer.events.pointer
+	return pointerV10 || pointerV11
+}
+
 export function getMeasurePosition() {
-	const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(
+	const mousePosition = getPointer().getLocalPosition(
 		canvas.tokens,
 	);
 	const rulerOffset = canvas.controls.ruler.rulerOffset;
