@@ -18,7 +18,7 @@ export function measureDistances(segments, entity, shape, options = {}) {
 	const opts = duplicate(options);
 	if (canvas.grid.diagonalRule === "EUCL") {
 		opts.ignoreGrid = true;
-		opts.gridSpaes = false;
+		opts.gridSpaces = false;
 	}
 	if (opts.enableTerrainRuler) {
 		opts.gridSpaces = true;
