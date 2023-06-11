@@ -17,6 +17,7 @@ import {
 	getTokenShape,
 	isPathfindingEnabled,
 } from "./util.js";
+import {getPointer} from "./util.js";
 
 export function extendRuler() {
 	class DragRulerRuler extends CONFIG.Canvas.rulerClass {
@@ -379,7 +380,7 @@ export function extendRuler() {
 			options.snap = options.snap ?? true;
 			if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 				event.preventDefault();
-				const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(
+				const mousePosition = getPointer().getLocalPosition(
 					canvas.tokens,
 				);
 				const rulerOffset = this.rulerOffset;
@@ -483,7 +484,7 @@ export function extendRuler() {
 			if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
 				ruler.dragRulerAddWaypointHistory(getMovementHistory(entity));
 			ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
-			const mousePosition = canvas.app.renderer.plugins.interaction.mouse.getLocalPosition(
+			const mousePosition = getPointer().getLocalPosition(
 				canvas.tokens,
 			);
 			const destination = {

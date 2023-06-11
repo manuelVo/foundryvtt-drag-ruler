@@ -138,8 +138,8 @@ function onEntityLeftDragStart(wrapped, event) {
 	ruler.draggedEntity = this;
 	const entityCenter = getEntityCenter(this);
 	ruler.rulerOffset = {
-		x: entityCenter.x - event.data.origin.x,
-		y: entityCenter.y - event.data.origin.y,
+		x: entityCenter.x - event.interactionData.origin.x,
+		y: entityCenter.y - event.interactionData.origin.y,
 	};
 	if (game.settings.get(settingsKey, "autoStartMeasurement")) {
 		let options = {};
@@ -215,8 +215,8 @@ function applyGridlessSnapping(event) {
 	if (canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS) return;
 
 	const rasterWidth = 35 / canvas.stage.scale.x;
-	const tokenX = event.data.destination.x;
-	const tokenY = event.data.destination.y;
+	const tokenX = event.interactionData.destination.x;
+	const tokenY = event.interactionData.destination.y;
 	const destination = {x: tokenX + ruler.rulerOffset.x, y: tokenY + ruler.rulerOffset.y};
 	const ranges = getRangesFromSpeedProvider(ruler.draggedEntity);
 
@@ -241,13 +241,13 @@ function applyGridlessSnapping(event) {
 			const deltaY = destination.y - rasterLocation.y;
 			const rasterDistance = Math.hypot(deltaX, deltaY);
 			if (rasterDistance < rasterWidth) {
-				event.data.destination.x = rasterLocation.x - ruler.rulerOffset.x;
-				event.data.destination.y = rasterLocation.y - ruler.rulerOffset.y;
+				event.interactionData.destination.x = rasterLocation.x - ruler.rulerOffset.x;
+				event.interactionData.destination.y = rasterLocation.y - ruler.rulerOffset.y;
 			}
 		}
 	} else {
 		let waypointDistance = 0;
-		let origin = event.data.origin;
+		let origin = event.interactionData.origin;
 		if (ruler.waypoints.length > 1) {
 			const segments = ruler.constructor
 				.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination)
@@ -271,8 +271,8 @@ function applyGridlessSnapping(event) {
 			.reduce((a, b) => Math.max(a, b), 0);
 		if (targetDistance) {
 			if (distance < targetDistance + rasterWidth) {
-				event.data.destination.x = origin.x + (deltaX * targetDistance) / distance;
-				event.data.destination.y = origin.y + (deltaY * targetDistance) / distance;
+				event.interactionData.destination.x = origin.x + (deltaX * targetDistance) / distance;
+				event.interactionData.destination.y = origin.y + (deltaY * targetDistance) / distance;
 			}
 		}
 	}
