@@ -1,11 +1,11 @@
-import {buildCostFunction} from "./api.js";
-import {settingsKey} from "./settings.js";
-import {highlightTokenShape} from "./util.js";
+import { buildCostFunction } from "./api.js";
+import { settingsKey } from "./settings.js";
+import { highlightTokenShape } from "./util.js";
 
 export function highlightMeasurementTerrainRuler(
 	ray,
 	startDistance,
-	tokenShape = [{x: 0, y: 0}],
+	tokenShape = [{ x: 0, y: 0 }],
 	alpha = 1,
 ) {
 	for (const space of ray.terrainRulerVisitedSpaces.reverse()) {
