@@ -262,29 +262,23 @@ export function extendRuler() {
 			if (!this.isDragRuler) {
 				return super._computeDistance(gridSpaces);
 			}
-			if (!this.dragRulerEnableTerrainRuler) {
-				if (!this.dragRulerIgnoreGrid) {
-					gridSpaces = true;
-				}
-				super._computeDistance(gridSpaces);
-			} else {
-				const shape = this.draggedEntity ? getTokenShape(this.draggedEntity) : null;
-				const options = {
-					ignoreGrid: this.dragRulerIgnoreGrid,
-					gridSpaces,
-					enableTerrainRuler: this.dragRulerEnableTerrainRuler,
-				};
-				const distances = measureDistances(this.segments, this.draggedEntity, shape, options);
-				let totalDistance = 0;
-				for (const [i, d] of distances.entries()) {
-					let s = this.segments[i];
-					s.startDistance = totalDistance;
-					totalDistance += d;
-					s.last = i === this.segments.length - 1;
-					s.distance = d;
-					s.text = this._getSegmentLabel(s, totalDistance);
-				}
+			const shape = this.draggedEntity ? getTokenShape(this.draggedEntity) : null;
+			const options = {
+				ignoreGrid: this.dragRulerIgnoreGrid,
+				gridSpaces,
+				enableTerrainRuler: this.dragRulerEnableTerrainRuler,
+			};
+			const distances = measureDistances(this.segments, this.draggedEntity, shape, options);
+			let totalDistance = 0;
+			for (const [i, d] of distances.entries()) {
+				let s = this.segments[i];
+				s.startDistance = totalDistance;
+				totalDistance += d;
+				s.last = i === this.segments.length - 1;
+				s.distance = d;
+				s.text = this._getSegmentLabel(s, totalDistance);
 			}
+
 			for (const [i, segment] of this.segments.entries()) {
 				const unsnappedSegment = this.dragRulerUnsnappedSegments[i];
 				unsnappedSegment.startDistance = segment.startDistance;
