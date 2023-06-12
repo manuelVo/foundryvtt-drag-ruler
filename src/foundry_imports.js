@@ -185,7 +185,7 @@ export function highlightMeasurementNative(
 	tokenShape = [{x: 0, y: 0}],
 	alpha = 1,
 ) {
-	const spacer = canvas.scene.gridType === CONST.GRID_TYPES.SQUARE ? 1.41 : 1;
+	const spacer = canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ? 1.41 : 1;
 	const nMax = Math.max(
 		Math.floor(ray.distance / (spacer * Math.min(canvas.grid.w, canvas.grid.h))),
 		1,
