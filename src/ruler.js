@@ -380,9 +380,7 @@ export function extendRuler() {
 			options.snap = options.snap ?? true;
 			if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 				event.preventDefault();
-				const mousePosition = getPointer().getLocalPosition(
-					canvas.tokens,
-				);
+				const mousePosition = getPointer().getLocalPosition(canvas.tokens);
 				const rulerOffset = this.rulerOffset;
 
 				// Options are not passed to _removeWaypoint in vanilla Foundry.
@@ -484,9 +482,7 @@ export function extendRuler() {
 			if (isToken && game.settings.get(settingsKey, "enableMovementHistory"))
 				ruler.dragRulerAddWaypointHistory(getMovementHistory(entity));
 			ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
-			const mousePosition = getPointer().getLocalPosition(
-				canvas.tokens,
-			);
+			const mousePosition = getPointer().getLocalPosition(canvas.tokens);
 			const destination = {
 				x: mousePosition.x + ruler.rulerOffset.x,
 				y: mousePosition.y + ruler.rulerOffset.y,

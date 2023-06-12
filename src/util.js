@@ -286,13 +286,11 @@ export function isClose(a, b, delta) {
 }
 
 export function getPointer() {
-	return canvas.app.renderer.plugins.interaction?.mouse ?? canvas.app.renderer.events.pointer
+	return canvas.app.renderer.plugins.interaction?.mouse ?? canvas.app.renderer.events.pointer;
 }
 
 export function getMeasurePosition() {
-	const mousePosition = getPointer().getLocalPosition(
-		canvas.tokens,
-	);
+	const mousePosition = getPointer().getLocalPosition(canvas.tokens);
 	const rulerOffset = canvas.controls.ruler.rulerOffset;
 	const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y};
 	return measurePosition;
