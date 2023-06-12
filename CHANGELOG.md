@@ -1,3 +1,9 @@
+## 1.13.6
+### Bugfixes
+- Fixed a bug that caused no measurements to be shown next to the ruler
+- Fixed a bug where diagonal paths would sometimes highlight squares that don't blong to the path on square maps
+
+
 ## 1.13.5
 ### Compatibility
 - Drag Ruler is now compatible with Foundry VTT v11 (thanks to pkonshik for doing much of the porting work!)
