@@ -415,7 +415,7 @@ export function extendRuler() {
 			this._endMeasurement();
 
 			// Deactivate the drag workflow in mouse
-			token.mouseInteractionManager._deactivateDragEvents();
+			token.mouseInteractionManager.cancel(event);
 			token.mouseInteractionManager.state = token.mouseInteractionManager.states.HOVER;
 
 			// This will cancel the current drag operation
