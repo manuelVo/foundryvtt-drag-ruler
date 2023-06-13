@@ -1,3 +1,8 @@
+## 1.13.8
+### Bugfixes
+- `getMovedDistanceFromToken` no longer returns incorrect values on gridless maps
+
+
 ## 1.13.7
 ### Compatibility
 - Drag Ruler's generic speed provider is now aware of good defaults for the Crucible game system
