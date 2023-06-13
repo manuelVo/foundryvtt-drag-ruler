@@ -1,3 +1,8 @@
+## 1.13.7
+### Compatibility
+- Drag Ruler's generic speed provider is now aware of good defaults for the Crucible game system
+
+
 ## 1.13.6
 ### Bugfixes
 - Fixed a bug that caused no measurements to be shown next to the ruler
