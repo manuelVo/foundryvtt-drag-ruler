@@ -25,6 +25,8 @@ export function getDefaultSpeedAttribute() {
 			return "actor.derivedValues.speed.value";
 		case "wfrp4e":
 			return "actor.system.details.move.walk";
+		case "crucible":
+			return "actor.system.movement.stride";
 	}
 	return "";
 }
@@ -49,6 +51,8 @@ export function getDefaultDashMultiplier() {
 			return 3;
 		case "wfrp4e":
 			return 2;
+		case "crucible":
+			return 0;
 	}
 	return 0;
 }
