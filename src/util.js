@@ -286,7 +286,7 @@ export function isClose(a, b, delta) {
 }
 
 export function getPointer() {
-	return canvas.app.renderer.plugins.interaction?.mouse ?? canvas.app.renderer.events.pointer;
+	return canvas.app.renderer.events.pointer;
 }
 
 export function getMeasurePosition() {
