@@ -147,11 +147,11 @@ export function onMouseMove(event) {
 
 function scheduleMeasurement(destination, event) {
 	const measurementInterval = 50;
-	const mt = event._measureTime || 0;
+	const mt = event.interactionData._measureTime || 0;
 	const originalEvent = event.interactionData.originalEvent;
 	if (Date.now() - mt > measurementInterval) {
 		this.measure(destination, {snap: !disableSnap});
-		event._measureTime = Date.now();
+		event.interactionData._measureTime = Date.now();
 		this._state = Ruler.STATES.MEASURING;
 		cancelScheduledMeasurement.call(this);
 	} else {
