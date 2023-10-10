@@ -115,6 +115,14 @@
 			"useGridlessRaster": {
 				"name": "Use speed based snapping",
 				"hint": "On Gridless scenes, this makes tokens snap to the token's speed ranges."
+			},
+			"gridlessRulerWidth": {
+				"name": "Ruler Width",
+				"hint": "Set width of Drag Ruler on Gridless scenes"
+			},
+			"gridlessRulerBorderWidth": {
+				"name": "Ruler Border Width",
+				"hint": "Set width of Drag Ruler border on Gridless scenes"
 			}
 		}
 	}

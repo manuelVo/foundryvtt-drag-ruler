@@ -142,6 +142,24 @@ export function registerSettings() {
 		type: SpeedProviderSettings,
 		restricted: false,
 	});
+
+	game.settings.register(settingsKey, "rulerWidth", {
+		name: "drag-ruler.settings.gridlessRulerWidth.name",
+		hint: "drag-ruler.settings.gridlessRulerWidth.hint",
+		scope: "client",
+		config: true,
+		type: Number,
+		default: 4,
+	});
+
+	game.settings.register(settingsKey, "rulerBorderWidth", {
+		name: "drag-ruler.settings.gridlessRulerBorderWidth.name",
+		hint: "drag-ruler.settings.gridlessRulerBorderWidth.hint",
+		scope: "client",
+		config: true,
+		type: Number,
+		default: 2,
+	});
 }
 
 class SpeedProviderSettings extends FormApplication {
