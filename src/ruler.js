@@ -456,11 +456,19 @@ export function extendRuler() {
 				)
 					return this.color;
 			}
+
+		        const points = this.segments.map(s => {
+			  return {
+		            A: new PIXI.Point(s.ray.A.x, s.ray.A.y),
+			    B: new PIXI.Point(s.ray.B.x, s.ray.B.y)
+			  };
+		        });
+
 			distance = Math.round(distance * 100) / 100;
 			if (!this.dragRulerRanges)
 				this.dragRulerRanges = getRangesFromSpeedProvider(this.draggedEntity);
 			return (
-				getColorForDistanceAndToken(distance, this.draggedEntity, this.dragRulerRanges) ??
+				getColorForDistanceAndToken(distance, this.draggedEntity, this.dragRulerRanges, points) ??
 				this.color
 			);
 		}
