@@ -35,7 +35,7 @@ export async function moveEntities(draggedEntity, selectedEntities) {
 			);
 		});
 		if (hasCollision) {
-			ui.notifications.error(game.i18n.localize("ERROR.TokenCollide"));
+			ui.notifications.error(game.i18n.localize("RULER.MovementCollision"));
 			this._endMeasurement();
 			return true;
 		}
