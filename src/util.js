@@ -212,6 +212,16 @@ export function getTokenShape(token) {
 				{x: 0, y: -2},
 				{x: 1, y: -2},
 			]);
+		if (size >= 5)
+			shape = shape.concat([
+				{x: -2, y: 0},
+				{x: 1, y: 1},
+				{x: -1, y: 2},
+				{x: 0, y: 2},
+				{x: 1, y: 2},
+				{x: -2, y: 1},
+				{x: 2, y: 0},
+			]);
 
 		if (getAltOrientationFlagForToken(token, size)) {
 			shape.forEach(space => (space.y *= -1));
