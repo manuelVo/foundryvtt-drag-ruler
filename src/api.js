@@ -114,11 +114,33 @@ export function getUnreachableColorFromSpeedProvider() {
 	}
 }
 
-export function getColorForDistanceAndToken(distance, token, ranges = null) {
+export function getColorForDistanceAndToken(distance, token, ranges = null, points = []) {
 	if (!ranges) {
 		ranges = getRangesFromSpeedProvider(token);
 	}
 	if (ranges.length === 0) return null;
+	
+	const terrainAPI = game.modules.get("terrainmapper")?.api;
+	if ( terrainAPI && points.length ) {
+	  let terrainDistance = 0;
+	  for ( const point of points ) {
+	    const dist = PIXI.Point.distanceBetween(point.A, point.B);
+	    const moveMult = terrainAPI.Terrain.percentMovementForTokenAlongPath(token, point.A, point.B);
+	    // NOTE: If SpeedProvider provided the token actor attribute path, it could be passed
+	    // to api.Terrain.percentMovementForTokenAlongPath to ensure the correct attribute is used:
+	    // api.Terrain.percentMovementForTokenAlongPath(token, point.A, point.B, moveAttribute)
+
+            // Invert because moveMult is < 1 if speed is penalized.
+	    terrainDistance += (dist * (1 / moveMult));
+	  }
+
+	  // Convert to grid units.
+          terrainDistance = Math.round(100 * (terrainDistance / canvas.dimensions.distancePixels)) / 100;
+
+	  // A check here to try to keep a valid distance in case of error.
+	  if ( terrainDistance > 0 ) distance = terrainDistance;
+	}
+	
 	const currentRange = ranges.reduce(
 		(minRange, currentRange) => {
 			if (distance <= currentRange.range && currentRange.range < minRange.range)
