@@ -66,6 +66,7 @@ The game systems that offer Drag Ruler integration are:
 - The Dark Eye 5 / Das Schwarze Auge 5 (via the module [TDE5/DSA5 Drag Ruler Integration](https://foundryvtt.com/packages/dsa5-drag-ruler))
 - Shadow of the Demon Lord  (starting with version 1.7.15)
 - Wasteland Ventures (starting with version 0.1.0)
+- World of Darkness 20th ed (starting with version 3.3.0)
 - WWII:OWB (starting with version 1.0.4)
 
 
