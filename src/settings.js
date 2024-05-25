@@ -142,6 +142,14 @@ export function registerSettings() {
 		type: SpeedProviderSettings,
 		restricted: false,
 	});
+
+  game.settings.register(settingsKey, "rulerScale", {
+    name: "Ruler Scale",
+    scope: "client",
+    config: true,
+    default: 100,
+    type: Number,
+  });
 }
 
 class SpeedProviderSettings extends FormApplication {

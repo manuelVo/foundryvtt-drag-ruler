@@ -322,6 +322,11 @@ export function extendRuler() {
 					label.visible = true;
 					let labelPosition = ray.project((ray.distance + 50) / ray.distance);
 					label.position.set(labelPosition.x, labelPosition.y);
+
+          let scale = game.settings.get(settingsKey, "rulerScale")
+          let gs = (canvas.scene.dimensions.size /100) 
+          let zs = 1/canvas.stage.scale.x
+          label.transform.scale.set((gs+zs) * (scale/100))
 				}
 			}
 			r.endFill();
