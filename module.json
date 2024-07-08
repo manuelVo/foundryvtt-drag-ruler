@@ -81,7 +81,7 @@
 	"socket": true,
 	"url": "https://github.com/manuelVo/foundryvtt-drag-ruler",
 	"download": "https://github.com/aedelen/foundryvtt-drag-ruler/archive/refs/tags/1.13.9.zip",
-	"manifest": "https://raw.githubusercontent.com/aedelen/foundryvtt-drag-ruler/1.13.9/module.json",
+	"manifest": "https://raw.githubusercontent.com/aedelen/foundryvtt-drag-ruler/rulerWidth/module.json",
 	"readme": "https://github.com/manuelVo/foundryvtt-drag-ruler/blob/master/README.md",
 	"changelog": "https://github.com/manuelVo/foundryvtt-drag-ruler/blob/master/CHANGELOG.md",
 	"bugs": "https://github.com/manuelVo/foundryvtt-drag-ruler/issues",
