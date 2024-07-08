@@ -293,9 +293,15 @@ export function extendRuler() {
 				return super._drawMeasuredPath();
 			}
 			let rulerColor = this.color;
+			let rulerWidth = 4;
+			let rulerBorderWidth = 2;
+
+
 			if (!this.dragRulerGridSpaces || canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 				const totalDistance = this.segments.reduce((total, current) => total + current.distance, 0);
 				rulerColor = this.dragRulerGetColorForDistance(totalDistance);
+				rulerWidth = game.settings.get(settingsKey, "rulerWidth");
+				rulerBorderWidth = game.settings.get(settingsKey, "rulerBorderWidth");
 			}
 			const r = this.ruler.beginFill(rulerColor, 0.25);
 			for (const segment of this.dragRulerUnsnappedSegments) {
@@ -305,9 +311,9 @@ export function extendRuler() {
 
 				// Draw Line
 				r.moveTo(ray.A.x, ray.A.y)
-					.lineStyle(6, 0x000000, 0.5 * opacityMultiplier)
+					.lineStyle(rulerWidth + rulerBorderWidth, 0x000000, 0.5 * opacityMultiplier)
 					.lineTo(ray.B.x, ray.B.y)
-					.lineStyle(4, rulerColor, 0.25 * opacityMultiplier)
+					.lineStyle(rulerWidth, rulerColor, 0.25 * opacityMultiplier)
 					.moveTo(ray.A.x, ray.A.y)
 					.lineTo(ray.B.x, ray.B.y);
 
