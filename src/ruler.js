@@ -393,6 +393,7 @@ export function extendRuler() {
 					{x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y},
 					options,
 				);
+				this.performPostPathfindingActions(options);
 				game.user.broadcastActivity({ruler: this});
 			} else {
 				this.dragRulerAbortDrag(event);
