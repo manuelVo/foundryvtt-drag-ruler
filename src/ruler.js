@@ -257,6 +257,9 @@ export function extendRuler() {
 					unsnappedSegments.push({ray: unsnappedRay, label});
 				}
 				this.dragRulerUnsnappedSegments = unsnappedSegments;
+				if ( this.labels.children.length > segments.length ) {
+					this.labels.removeChildren(segments.length).forEach(c => c.destroy());
+				}
 				return segments;
 			} else {
 				return super._getMeasurementSegments();
