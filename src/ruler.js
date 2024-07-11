@@ -105,7 +105,7 @@ export function extendRuler() {
 
 			// Compute the measurement destination, segments, and distance
 			const d = this._getMeasurementDestination(destination);
-			if (d.x === this.destination.x && d.y === this.destination.y) return;
+			if ( this.destination && (d.x === this.destination.x) && (d.y === this.destination.y)) return;
 			this.destination = d;
 
 			// TODO Check if we can reuse the old path
