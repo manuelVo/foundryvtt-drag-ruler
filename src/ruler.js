@@ -111,7 +111,10 @@ export function extendRuler() {
 
 			// Compute the measurement destination, segments, and distance
 			const d = this._getMeasurementDestination(destination);
-			if ( this.destination && (d.x === this.destination.x) && (d.y === this.destination.y)) return;
+			if ( this.destination && (d.x === this.destination.x) && (d.y === this.destination.y)) {
+				this.performPostPathfindingActions(options);
+				return;
+			}
 			this.destination = d;
 
 			// TODO Check if we can reuse the old path
@@ -212,6 +215,7 @@ export function extendRuler() {
 					}
 				}
 			}
+			this.dragRulerSendState();
 			return this.segments;
 		}
 
@@ -395,7 +399,6 @@ export function extendRuler() {
 					options,
 				);
 				this.performPostPathfindingActions(options);
-				this.dragRulerSendState();
 			} else {
 				this.dragRulerAbortDrag(event);
 			}
@@ -497,6 +500,9 @@ export function extendRuler() {
 		}
 
 		dragRulerSendState() {
+			if (this.user !== game.user) {
+				return;
+			}
 			game.user.broadcastActivity({
 				ruler: this._getMeasurementData(),
 			});
