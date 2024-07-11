@@ -41,8 +41,8 @@ export function extendRuler() {
 			if (!this.isDragRuler) return await super.moveToken(event);
 		}
 
-		toJSON() {
-			const json = super.toJSON();
+		_getMeasurementData() {
+			const json = typeof super._getMeasurementData === 'function' ? super._getMeasurementData() : super.toJSON();
 			if (this.draggedEntity) {
 				const isToken = this.draggedEntity instanceof Token;
 				json.draggedEntityIsToken = isToken;
@@ -54,6 +54,11 @@ export function extendRuler() {
 				});
 			}
 			return json;
+		}
+
+		/** @deprecated since V12 */
+		toJSON() {
+			return this._getMeasurementData();
 		}
 
 		update(data) {
@@ -488,7 +493,7 @@ export function extendRuler() {
 
 		dragRulerSendState() {
 			game.user.broadcastActivity({
-				ruler: this.toJSON(),
+				ruler: this._getMeasurementData(),
 			});
 		}
 	}
