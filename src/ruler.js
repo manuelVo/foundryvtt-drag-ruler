@@ -62,6 +62,7 @@ export function extendRuler() {
 		}
 
 		update(data) {
+			if ( !data || (data.state === Ruler.STATES.INACTIVE) ) return this.clear();
 			// Don't show a GMs drag ruler to non GM players
 			if (
 				data.draggedEntity &&
@@ -394,7 +395,7 @@ export function extendRuler() {
 					options,
 				);
 				this.performPostPathfindingActions(options);
-				game.user.broadcastActivity({ruler: this});
+				this.dragRulerSendState();
 			} else {
 				this.dragRulerAbortDrag(event);
 			}
@@ -439,7 +440,7 @@ export function extendRuler() {
 				this.dragRulerAddWaypoint(waypoint, {snap: false});
 			}
 			this.measure(this.destination);
-			game.user.broadcastActivity({ruler: this});
+			this.dragRulerSendState();
 		}
 
 		static dragRulerGetRaysFromWaypoints(waypoints, destination) {
