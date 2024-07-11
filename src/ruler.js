@@ -269,14 +269,16 @@ export function extendRuler() {
 				enableTerrainRuler: this.dragRulerEnableTerrainRuler,
 			};
 			const distances = measureDistances(this.segments, this.draggedEntity, shape, options);
-			let totalDistance = 0;
+			this.totalDistance = 0;
 			for (const [i, d] of distances.entries()) {
 				let s = this.segments[i];
-				s.startDistance = totalDistance;
-				totalDistance += d;
+				s.startDistance = this.totalDistance;
+				this.totalDistance += d;
 				s.last = i === this.segments.length - 1;
 				s.distance = d;
-				s.text = this._getSegmentLabel(s, totalDistance);
+				// V11 and lower use totalDistance as a second arg
+				// V12 ignores the 2nd argument and uses this.totalDistance
+				s.text = this._getSegmentLabel(s, this.totalDistance);
 			}
 
 			for (const [i, segment] of this.segments.entries()) {
