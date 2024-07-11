@@ -15,7 +15,7 @@ export function highlightMeasurementTerrainRuler(
 }
 
 export function measureDistances(segments, entity, shape, options = {}) {
-	const opts = duplicate(options);
+	const opts = foundry.utils.duplicate(options);
 	if (canvas.grid.diagonalRule === "EUCL") {
 		opts.ignoreGrid = true;
 		opts.gridSpaces = false;
@@ -31,7 +31,7 @@ export function measureDistances(segments, entity, shape, options = {}) {
 		);
 		previousSegments.forEach(
 			segment =>
-				(segment.ray.terrainRulerVisitedSpaces = duplicate(segment.ray.dragRulerVisitedSpaces)),
+				(segment.ray.terrainRulerVisitedSpaces = foundry.utils.duplicate(segment.ray.dragRulerVisitedSpaces)),
 		);
 		opts.costFunction = buildCostFunction(entity, shape);
 		if (previousSegments.length > 0)

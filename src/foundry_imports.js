@@ -36,6 +36,7 @@ export async function moveEntities(draggedEntity, selectedEntities) {
 		});
 		if (hasCollision) {
 			ui.notifications.error(game.i18n.localize("RULER.MovementCollision"));
+			this._state = Ruler.STATES.MEASURING;
 			this._endMeasurement();
 			return true;
 		}
@@ -47,7 +48,10 @@ export async function moveEntities(draggedEntity, selectedEntities) {
 	await animateEntities.call(this, selectedEntities, draggedEntity, rays, wasPaused);
 
 	// Once all animations are complete we can clear the ruler
-	if (this.draggedEntity?.id === draggedEntity.id) this._endMeasurement();
+	if (this.draggedEntity?.id === draggedEntity.id) {
+    this._state = Ruler.STATES.MEASURING;
+		this._endMeasurement();
+	}
 }
 
 // This is a modified version code extracted from Ruler.moveToken from foundry 0.7.9

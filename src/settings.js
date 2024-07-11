@@ -298,7 +298,7 @@ function enumerateProviderSettings(provider) {
 	for (const setting of provider.settings) {
 		try {
 			if (setting.scope === "world" && !game.user.isGM) continue;
-			const s = duplicate(setting);
+			const s = foundry.utils.duplicate(setting);
 			s.id = `${provider.id}.setting.${s.id}`;
 			s.name = game.i18n.localize(s.name);
 			s.hint = game.i18n.localize(s.hint);
