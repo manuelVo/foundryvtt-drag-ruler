@@ -104,6 +104,10 @@ export function extendRuler() {
 			this.dragRulerEnableTerrainRuler = isToken && window.terrainRuler;
 
 			// Compute the measurement destination, segments, and distance
+			this.destination = {
+				x: undefined,
+				y: undefined
+			}
 			const d = this._getMeasurementDestination(destination);
 			if (d.x === this.destination.x && d.y === this.destination.y) return;
 			this.destination = d;
