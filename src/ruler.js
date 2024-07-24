@@ -57,6 +57,9 @@ export function extendRuler() {
 		}
 
 		update(data) {
+
+			if ( !data || (data.state === Ruler.STATES.INACTIVE) ) return this.clear();
+
 			// Don't show a GMs drag ruler to non GM players
 			if (
 				data.draggedEntity &&
@@ -296,6 +299,7 @@ export function extendRuler() {
 			if (!this.isDragRuler) {
 				return super._drawMeasuredPath();
 			}
+			this._broadcastMeasurement();
 			let rulerColor = this.color;
 			if (!this.dragRulerGridSpaces || canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 				const totalDistance = this.segments.reduce((total, current) => total + current.distance, 0);
