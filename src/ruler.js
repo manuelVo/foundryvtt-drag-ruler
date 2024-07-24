@@ -57,6 +57,9 @@ export function extendRuler() {
 		}
 
 		update(data) {
+
+			if ( !data || (data.state === Ruler.STATES.INACTIVE) ) return this.clear();
+
 			// Don't show a GMs drag ruler to non GM players
 			if (
 				data.draggedEntity &&
@@ -104,6 +107,10 @@ export function extendRuler() {
 			this.dragRulerEnableTerrainRuler = isToken && window.terrainRuler;
 
 			// Compute the measurement destination, segments, and distance
+			this.destination = {
+				x: undefined,
+				y: undefined
+			}
 			const d = this._getMeasurementDestination(destination);
 			if (d.x === this.destination.x && d.y === this.destination.y) return;
 			this.destination = d;
@@ -276,7 +283,8 @@ export function extendRuler() {
 				totalDistance += d;
 				s.last = i === this.segments.length - 1;
 				s.distance = d;
-				s.text = this._getSegmentLabel(s, totalDistance);
+				this.totalDistance = totalDistance;
+				s.text = this._getSegmentLabel(s);
 			}
 
 			for (const [i, segment] of this.segments.entries()) {
@@ -292,6 +300,7 @@ export function extendRuler() {
 			if (!this.isDragRuler) {
 				return super._drawMeasuredPath();
 			}
+			this._broadcastMeasurement();
 			let rulerColor = this.color;
 			if (!this.dragRulerGridSpaces || canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
 				const totalDistance = this.segments.reduce((total, current) => total + current.distance, 0);
@@ -329,11 +338,14 @@ export function extendRuler() {
 
 		_endMeasurement() {
 			super._endMeasurement();
+			this.clear();
 			this.draggedEntity = null;
 			if (this.pathfindingJob) {
 				routinglib.cancelPathfinding(this.pathfindingJob);
 				this.pathfindingJob = undefined;
 			}
+
+			this._broadcastMeasurement();
 		}
 
 		// The functions below aren't present in the orignal Ruler class and are added by Drag Ruler
