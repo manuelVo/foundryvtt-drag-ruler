@@ -333,6 +333,7 @@ export function extendRuler() {
 
 		_endMeasurement() {
 			super._endMeasurement();
+			this.clear();
 			this.draggedEntity = null;
 			if (this.pathfindingJob) {
 				routinglib.cancelPathfinding(this.pathfindingJob);
