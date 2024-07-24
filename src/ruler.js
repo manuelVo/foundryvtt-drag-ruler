@@ -283,7 +283,8 @@ export function extendRuler() {
 				totalDistance += d;
 				s.last = i === this.segments.length - 1;
 				s.distance = d;
-				s.text = this._getSegmentLabel(s, totalDistance);
+				this.totalDistance = totalDistance;
+				s.text = this._getSegmentLabel(s);
 			}
 
 			for (const [i, segment] of this.segments.entries()) {
@@ -343,6 +344,8 @@ export function extendRuler() {
 				routinglib.cancelPathfinding(this.pathfindingJob);
 				this.pathfindingJob = undefined;
 			}
+
+			this._broadcastMeasurement();
 		}
 
 		// The functions below aren't present in the orignal Ruler class and are added by Drag Ruler
