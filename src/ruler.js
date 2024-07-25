@@ -336,7 +336,6 @@ export function extendRuler() {
 					label.alpha = last ? 1.0 : 0.5;
 					label.visible = true;
 					let labelPosition = ray.project((ray.distance + 50) / ray.distance);
-					console.log({labelPosition})
 					label.position.set(labelPosition.x, labelPosition.y);
 				}
 			}
