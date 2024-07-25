@@ -48,7 +48,7 @@ export function extendRuler() {
 				json.draggedEntityIsToken = isToken;
 				json.draggedEntity = this.draggedEntity.id;
 				json.waypoints = json.waypoints.map(old => {
-					let w = duplicate(old);
+					let w = foundry.utils.duplicate(old);
 					w.isPathfinding = undefined;
 					return w;
 				});
@@ -237,7 +237,7 @@ export function extendRuler() {
 				const waypoints =
 					this.draggedEntity instanceof Token
 						? applyTokenSizeOffset(unsnappedWaypoints, this.draggedEntity)
-						: duplicate(unsnappedWaypoints);
+						: foundry.utils.duplicate(unsnappedWaypoints);
 				const unsnappedSegments = [];
 				const segments = [];
 				for (const [i, p1] of waypoints.entries()) {
@@ -336,6 +336,7 @@ export function extendRuler() {
 					label.alpha = last ? 1.0 : 0.5;
 					label.visible = true;
 					let labelPosition = ray.project((ray.distance + 50) / ray.distance);
+					console.log({labelPosition})
 					label.position.set(labelPosition.x, labelPosition.y);
 				}
 			}

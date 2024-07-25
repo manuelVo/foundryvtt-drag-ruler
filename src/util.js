@@ -37,7 +37,7 @@ export function getHexTokenSize(token) {
 }
 
 export function getEntityCenter(token) {
-	if (token instanceof Token && canvas.grid.isHex) {
+	if (token instanceof Token && isCanvasHex()) {
 		const center = token.center;
 		const size = getHexTokenSize(token);
 		if (size % 2 === 0) {
@@ -79,7 +79,7 @@ export function getSnapPointForToken(x, y, token) {
 		return {x, y};
 	}
 
-	if (canvas.grid.isHex) {
+	if (isCanvasHex()) {
 		const size = getHexTokenSize(token);
 		if (size % 2 === 0) {
 			return findVertexSnapPoint(x, y, getAltOrientationFlagForToken(token, size));
@@ -155,7 +155,7 @@ export function getAreaFromPositionAndShape(position, shape) {
 	return shape.map(space => {
 		let x = position.x + space.x;
 		let y = position.y + space.y;
-		if (canvas.grid.isHex) {
+		if (isCanvasHex()) {
 			let shiftedRow;
 			if (canvas.grid.grid.options.even) shiftedRow = 1;
 			else shiftedRow = 0;
@@ -236,7 +236,7 @@ export function getTokenShape(token) {
 
 export function getTokenSize(token) {
 	let w, h;
-	if (canvas.grid.isHex) {
+	if (isCanvasHex()) {
 		w = h = getHexTokenSize(token);
 	} else {
 		w = token.document.width;
@@ -254,7 +254,7 @@ export function applyTokenSizeOffset(waypoints, token) {
 
 	const tokenSize = getTokenSize(token);
 	const waypointOffset = {x: 0, y: 0};
-	if (canvas.grid.isHex) {
+	if (isCanvasHex()) {
 		const isAltOrientation = getAltOrientationFlagForToken(token, getHexTokenSize(token));
 		if (canvas.grid.grid.columnar) {
 			if (tokenSize.w % 2 === 0) {
@@ -323,4 +323,10 @@ export function isPathfindingEnabled() {
 	if (!game.user.isGM && !game.settings.get(settingsKey, "allowPathfinding")) return false;
 	if (moveWithoutAnimation) return false;
 	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
+}
+
+function isCanvasHex() {
+	// isHexagonal is introduced in V12 (undefined in V11)
+	// isHex is deprecated since V12
+	return canvas.grid.isHexagonal ?? canvas.grid.isHex
 }
