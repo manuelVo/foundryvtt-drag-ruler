@@ -9,11 +9,11 @@
  * - Instead of taking a grid parameter, get the grid value from the globas canvas
  */
 export function findVertexSnapPoint(x, y, altOrientationFlag) {
-	const grid = canvas.grid.grid;
+	const grid = canvas.grid;
 	if (grid.columnar) {
-		return findSnapPointCols(x, y, grid.h, grid.w, altOrientationFlag);
+		return findSnapPointCols(x, y, grid.sizeY, grid.sizeX, altOrientationFlag);
 	} else {
-		return findSnapPointRows(x, y, grid.h, grid.w, altOrientationFlag);
+		return findSnapPointRows(x, y, grid.sizeY, grid.sizeX, altOrientationFlag);
 	}
 }
 

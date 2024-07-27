@@ -1,31 +1,26 @@
 // Wrapper to fix a FoundryVTT bug that causes the return values of canvas.grid.grid.getPixelsFromGridPosition to be ordered inconsistently
 
-// https://gitlab.com/foundrynet/foundryvtt/-/issues/4705
+// This code could be phased out. The bug that caused the creation of these functions is now fixed, so this is only a wrapper function now
 export function getPixelsFromGridPosition(xGrid, yGrid) {
-	if (canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS) {
-		return canvas.grid.grid.getPixelsFromGridPosition(yGrid, xGrid);
-	}
-	return canvas.grid.grid.getPixelsFromGridPosition(xGrid, yGrid);
+	let coord = getPixelsFromGridPositionObj({x: xGrid, y: yGrid});
+	return [coord.x, coord.y];
 }
 
-// Wrapper to fix a FoundryVTT bug that causes the return values of canvas.grid.grid.getPixelsFromGridPosition to be ordered inconsistently
-// https://gitlab.com/foundrynet/foundryvtt/-/issues/4705
+// This code could be phased out. The bug that caused the creation of these functions is now fixed, so this is only a wrapper function now
 export function getGridPositionFromPixels(xPixel, yPixel) {
-	const [x, y] = canvas.grid.grid.getGridPositionFromPixels(xPixel, yPixel);
-	if (canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS) return [y, x];
-	return [x, y];
+	let coord = getGridPositionFromPixelsObj({x: xPixel, y: yPixel});
+	return [coord.x, coord.y];
 }
 
+// This code could be phased out. The bug that caused the creation of these functions is now fixed, so this is only a wrapper function now
 export function getGridPositionFromPixelsObj(o) {
-	const r = {};
-	[r.x, r.y] = getGridPositionFromPixels(o.x, o.y);
-	return r;
+	const coord = canvas.grid.getOffset(o);
+	return {x: coord.j, y: coord.i};
 }
 
+// This code could be phased out. The bug that caused the creation of these functions is now fixed, so this is only a wrapper function now
 export function getPixelsFromGridPositionObj(o) {
-	const r = {};
-	[r.x, r.y] = getPixelsFromGridPosition(o.x, o.y);
-	return r;
+	return canvas.grid.getTopLeftPoint({j: o.x, i: o.y});
 }
 
 export function getCenterFromGridPositionObj(o) {
