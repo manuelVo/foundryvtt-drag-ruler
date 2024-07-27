@@ -157,8 +157,7 @@ export function getAreaFromPositionAndShape(position, shape) {
 		let y = position.y + space.y;
 		if (isCanvasHex()) {
 			let shiftedRow;
-			// v12 ?? v11
-			if (canvas.grid?.even ?? canvas.grid.grid.options.even) shiftedRow = 1;
+			if (canvas.grid?.even) shiftedRow = 1;
 			else shiftedRow = 0;
 			if (canvas.grid.grid.columnar) {
 				if (space.x % 2 !== 0 && position.x % 2 !== shiftedRow) {
@@ -302,8 +301,7 @@ export function getPointer() {
 
 export function getMeasurePosition() {
 	const mousePosition = getPointer().getLocalPosition(canvas.tokens);
-	const rulerOffset = canvas.controls.ruler.rulerOffset;
-	const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y};
+	const measurePosition = {x: mousePosition.x, y: mousePosition.y};
 	return measurePosition;
 }
 
@@ -327,7 +325,5 @@ export function isPathfindingEnabled() {
 }
 
 function isCanvasHex() {
-	// isHexagonal is introduced in V12 (undefined in V11)
-	// isHex is deprecated since V12
-	return canvas.grid.isHexagonal ?? canvas.grid.isHex
+	return canvas.grid.isHexagonal;
 }

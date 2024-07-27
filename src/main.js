@@ -137,11 +137,6 @@ function onEntityLeftDragStart(wrapped, event) {
 	const ruler = canvas.controls.ruler;
 	ruler.draggedEntity = this;
 	const entityCenter = getEntityCenter(this);
-	const isV11 = game.release.generation === 11;
-    ruler.rulerOffset = {
-    	x: isV11 ? entityCenter.x - event.interactionData.origin.x : 0,
-      	y: isV11 ? entityCenter.y - event.interactionData.origin.y : 0,
-    };
 	if (game.settings.get(settingsKey, "autoStartMeasurement")) {
 		let options = {};
 		setSnapParameterOnOptions(ruler, options);
@@ -218,7 +213,7 @@ function applyGridlessSnapping(event) {
 	const rasterWidth = 35 / canvas.stage.scale.x;
 	const tokenX = event.interactionData.destination.x;
 	const tokenY = event.interactionData.destination.y;
-	const destination = {x: tokenX + ruler.rulerOffset.x, y: tokenY + ruler.rulerOffset.y};
+	const destination = {x: tokenX, y: tokenY};
 	const ranges = getRangesFromSpeedProvider(ruler.draggedEntity);
 
 	const terrainRulerAvailable = game.modules.get("terrain-ruler")?.active;
@@ -242,8 +237,8 @@ function applyGridlessSnapping(event) {
 			const deltaY = destination.y - rasterLocation.y;
 			const rasterDistance = Math.hypot(deltaX, deltaY);
 			if (rasterDistance < rasterWidth) {
-				event.interactionData.destination.x = rasterLocation.x - ruler.rulerOffset.x;
-				event.interactionData.destination.y = rasterLocation.y - ruler.rulerOffset.y;
+				event.interactionData.destination.x = rasterLocation.x;
+				event.interactionData.destination.y = rasterLocation.y;
 			}
 		}
 	} else {
@@ -257,7 +252,7 @@ function applyGridlessSnapping(event) {
 				});
 			origin = segments.pop().ray.A;
 			waypointDistance = canvas.grid.measureDistances(segments).reduce((a, b) => a + b);
-			origin = {x: origin.x - ruler.rulerOffset.x, y: origin.y - ruler.rulerOffset.y};
+			origin = {x: origin.x, y: origin.y};
 		}
 
 		const deltaX = tokenX - origin.x;

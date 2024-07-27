@@ -42,7 +42,10 @@ export function extendRuler() {
 		}
 
 		_getMeasurementData() {
-			const json = typeof super._getMeasurementData === 'function' ? super._getMeasurementData() : super.toJSON();
+			const json =
+				typeof super._getMeasurementData === "function"
+					? super._getMeasurementData()
+					: super.toJSON();
 			if (this.draggedEntity) {
 				const isToken = this.draggedEntity instanceof Token;
 				json.draggedEntityIsToken = isToken;
@@ -62,7 +65,7 @@ export function extendRuler() {
 		}
 
 		update(data) {
-			if ( !data || (data.state === Ruler.STATES.INACTIVE) ) return this.clear();
+			if (!data || data.state === Ruler.STATES.INACTIVE) return this.clear();
 			// Don't show a GMs drag ruler to non GM players
 			if (
 				data.draggedEntity &&
@@ -111,7 +114,7 @@ export function extendRuler() {
 
 			// Compute the measurement destination, segments, and distance
 			const d = this._getMeasurementDestination(destination);
-			if ( this.destination && (d.x === this.destination.x) && (d.y === this.destination.y)) {
+			if (this.destination && d.x === this.destination.x && d.y === this.destination.y) {
 				this.performPostPathfindingActions(options);
 				return;
 			}
@@ -262,7 +265,7 @@ export function extendRuler() {
 					unsnappedSegments.push({ray: unsnappedRay, label});
 				}
 				this.dragRulerUnsnappedSegments = unsnappedSegments;
-				if ( this.labels.children.length > segments.length ) {
+				if (this.labels.children.length > segments.length) {
 					this.labels.removeChildren(segments.length).forEach(c => c.destroy());
 				}
 				return segments;
@@ -289,9 +292,7 @@ export function extendRuler() {
 				this.totalDistance += d;
 				s.last = i === this.segments.length - 1;
 				s.distance = d;
-				// V11 and lower use totalDistance as a second arg
-				// V12 ignores the 2nd argument and uses this.totalDistance
-				s.text = this._getSegmentLabel(s, this.totalDistance);
+				s.text = this._getSegmentLabel(s);
 			}
 
 			for (const [i, segment] of this.segments.entries()) {
@@ -390,14 +391,10 @@ export function extendRuler() {
 			if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 				event.preventDefault();
 				const mousePosition = getPointer().getLocalPosition(canvas.tokens);
-				const rulerOffset = this.rulerOffset;
 
 				// Options are not passed to _removeWaypoint in vanilla Foundry.
 				// Send them in case other modules have overriden that behavior and accept an options parameter (Toggle Snap to Grid)
-				this._removeWaypoint(
-					{x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y},
-					options,
-				);
+				this._removeWaypoint({x: mousePosition.x, y: mousePosition.y}, options);
 				this.performPostPathfindingActions(options);
 			} else {
 				this.dragRulerAbortDrag(event);
@@ -493,8 +490,8 @@ export function extendRuler() {
 			ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
 			const mousePosition = getPointer().getLocalPosition(canvas.tokens);
 			const destination = {
-				x: mousePosition.x + ruler.rulerOffset.x,
-				y: mousePosition.y + ruler.rulerOffset.y,
+				x: mousePosition.x,
+				y: mousePosition.y,
 			};
 			if (measureImmediately) ruler.measure(destination, options);
 		}

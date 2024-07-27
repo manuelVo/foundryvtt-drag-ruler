@@ -49,7 +49,7 @@ export async function moveEntities(draggedEntity, selectedEntities) {
 
 	// Once all animations are complete we can clear the ruler
 	if (this.draggedEntity?.id === draggedEntity.id) {
-    this._state = Ruler.STATES.MEASURING;
+		this._state = Ruler.STATES.MEASURING;
 		this._endMeasurement();
 	}
 }
@@ -137,8 +137,8 @@ export function onMouseMove(event) {
 
 	// Extract event data
 	const destination = {
-		x: event.interactionData.destination.x + this.rulerOffset.x,
-		y: event.interactionData.destination.y + this.rulerOffset.y,
+		x: event.interactionData.destination.x,
+		y: event.interactionData.destination.y,
 	};
 
 	// Hide any existing Token HUD
