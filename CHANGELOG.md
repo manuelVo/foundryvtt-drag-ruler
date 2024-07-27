@@ -1,3 +1,11 @@
+## 1.14.0
+### New features
+- Drag Ruler now supports hex tokens of size 5 (thanks KitCat!)
+
+### Compatibility
+- Drag Ruler has been updated to work with Foundry v12 (thanks TPNils and N0q!)
+
+
 ## 1.13.8
 ### Bugfixes
 - `getMovedDistanceFromToken` no longer returns incorrect values on gridless maps
