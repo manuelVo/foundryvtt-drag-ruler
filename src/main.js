@@ -137,10 +137,11 @@ function onEntityLeftDragStart(wrapped, event) {
 	const ruler = canvas.controls.ruler;
 	ruler.draggedEntity = this;
 	const entityCenter = getEntityCenter(this);
-	ruler.rulerOffset = {
-		x: entityCenter.x - event.interactionData.origin.x,
-		y: entityCenter.y - event.interactionData.origin.y,
-	};
+	const isV11 = game.release.generation === 11;
+    ruler.rulerOffset = {
+    	x: isV11 ? entityCenter.x - event.interactionData.origin.x : 0,
+      	y: isV11 ? entityCenter.y - event.interactionData.origin.y : 0,
+    };
 	if (game.settings.get(settingsKey, "autoStartMeasurement")) {
 		let options = {};
 		setSnapParameterOnOptions(ruler, options);

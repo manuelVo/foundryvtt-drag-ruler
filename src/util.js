@@ -157,7 +157,8 @@ export function getAreaFromPositionAndShape(position, shape) {
 		let y = position.y + space.y;
 		if (isCanvasHex()) {
 			let shiftedRow;
-			if (canvas.grid.grid.options.even) shiftedRow = 1;
+			// v12 ?? v11
+			if (canvas.grid?.even ?? canvas.grid.grid.options.even) shiftedRow = 1;
 			else shiftedRow = 0;
 			if (canvas.grid.grid.columnar) {
 				if (space.x % 2 !== 0 && position.x % 2 !== shiftedRow) {
