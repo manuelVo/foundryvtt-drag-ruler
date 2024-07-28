@@ -140,10 +140,6 @@ export function onMouseMove(event) {
 		x: event.interactionData.destination.x,
 		y: event.interactionData.destination.y,
 	};
-	if (!canvas.grid.isHex) {
-		destination.x += this.rulerOffset.x;
-		destination.y += this.rulerOffset.y;
-	}
 
 	// Hide any existing Token HUD
 	canvas.hud.token.clear();

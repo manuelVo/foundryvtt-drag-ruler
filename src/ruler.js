@@ -391,14 +391,10 @@ export function extendRuler() {
 			if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 				event.preventDefault();
 				const mousePosition = getPointer().getLocalPosition(canvas.tokens);
-				const rulerOffset = this.rulerOffset;
 
 				// Options are not passed to _removeWaypoint in vanilla Foundry.
 				// Send them in case other modules have overriden that behavior and accept an options parameter (Toggle Snap to Grid)
-				this._removeWaypoint(
-					{x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y},
-					options,
-				);
+				this._removeWaypoint({x: mousePosition.x, y: mousePosition.y}, options);
 				this.performPostPathfindingActions(options);
 			} else {
 				this.dragRulerAbortDrag(event);
@@ -494,8 +490,8 @@ export function extendRuler() {
 			ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
 			const mousePosition = getPointer().getLocalPosition(canvas.tokens);
 			const destination = {
-				x: mousePosition.x + ruler.rulerOffset.x,
-				y: mousePosition.y + ruler.rulerOffset.y,
+				x: mousePosition.x,
+				y: mousePosition.y,
 			};
 			if (measureImmediately) ruler.measure(destination, options);
 		}

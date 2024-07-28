@@ -301,8 +301,7 @@ export function getPointer() {
 
 export function getMeasurePosition() {
 	const mousePosition = getPointer().getLocalPosition(canvas.tokens);
-	const rulerOffset = canvas.controls.ruler.rulerOffset;
-	const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y};
+	const measurePosition = {x: mousePosition.x, y: mousePosition.y};
 	return measurePosition;
 }
 
