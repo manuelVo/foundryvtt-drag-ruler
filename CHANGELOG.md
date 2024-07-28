@@ -1,3 +1,8 @@
+## 1.14.1
+### Bug fixes
+- The functionality Drag Ruler on gridless has been restored
+
+
 ## 1.14.0
 ### New features
 - Drag Ruler now supports hex tokens of size 5 (thanks KitCat!)
