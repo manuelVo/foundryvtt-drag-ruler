@@ -1,3 +1,9 @@
+## 1.14.2
+### Bug fixes
+- Fixed a bug where tokens would snap to inconsistent distances on gridless scenes
+- Fixed a bug that caused the highlighted path on hex grids to be incorrect
+
+
 ## 1.14.1
 ### Bug fixes
 - The functionality Drag Ruler on gridless has been restored
