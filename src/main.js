@@ -251,7 +251,7 @@ function applyGridlessSnapping(event) {
 					return {ray};
 				});
 			origin = segments.pop().ray.A;
-			waypointDistance = canvas.grid.measurePath(segments).reduce((a, b) => a + b);
+			waypointDistance = canvas.grid.measureDistances(segments).reduce((a, b) => a + b);
 			origin = {x: origin.x, y: origin.y};
 		}
 
