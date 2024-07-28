@@ -145,7 +145,7 @@ function onEntityLeftDragStart(wrapped, event) {
 }
 
 function onEntityLeftDragMoveSnap(wrapped, event) {
-	applyGridlessSnapping.call(this, event);
+	applyGridlessSnapping.call(canvas.controls.ruler, event);
 	onEntityLeftDragMove.call(this, wrapped, event);
 }
 
@@ -243,7 +243,7 @@ function applyGridlessSnapping(event) {
 		}
 	} else {
 		let waypointDistance = 0;
-		let origin = event.interactionData.origin;
+		let origin = this.draggedEntity.getCenterPoint();
 		if (ruler.waypoints.length > 1) {
 			const segments = ruler.constructor
 				.dragRulerGetRaysFromWaypoints(ruler.waypoints, destination)
