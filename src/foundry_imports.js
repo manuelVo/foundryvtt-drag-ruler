@@ -195,7 +195,7 @@ export function highlightMeasurementNative(
 		const pathUntilSpace = previousSegments.concat([{ray: new Ray(ray.A, center)}]);
 		const distance = sum(canvas.grid.measureDistances(pathUntilSpace, {gridSpaces: true}));
 		const color = this.dragRulerGetColorForDistance(distance);
-		const snapPoint = getSnapPointForToken(point.x, point.y, this.draggedEntity);
+		const snapPoint = getSnapPointForToken(point.x + 1, point.y + 1, this.draggedEntity);
 		const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);
 		highlightTokenShape.call(this, {x: snapX, y: snapY}, tokenShape, color, alpha);
 	}
