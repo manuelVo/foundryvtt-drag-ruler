@@ -55,7 +55,7 @@ The game systems that offer Drag Ruler integration are:
 - GURPS 4th Edition Game Aid (Unofficial) (starting with version 0.9.1)
 - Hackmaster (starting with version 0.2.11)
 - Ironclaw Second Edition (starting with version 0.2.2)
-- Lancer (via the module [Lancer Speed Provider](https://foundryvtt.com/packages/lancer-speed-provider))
+- Lancer (via the module [Lancer Ruler Integration](https://foundryvtt.com/packages/lancer-speed-provider))
 - Level Up: Advanced 5th Edition (Official) (via the module [A5E Drag Ruler Integration](https://foundryvtt.com/packages/a5edragruler))
 - Pathfinder 1 (starting with version 0.77.3)
 - Pathfinder 2e (via the module [PF2E Drag Ruler Integration](https://foundryvtt.com/packages/pf2e-dragruler/))
