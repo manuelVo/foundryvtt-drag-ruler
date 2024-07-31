@@ -41,14 +41,17 @@ export function extendRuler() {
 			if (!this.isDragRuler) return await super.moveToken(event);
 		}
 
-		toJSON() {
-			const json = super.toJSON();
+		_getMeasurementData() {
+			const json =
+				typeof super._getMeasurementData === "function"
+					? super._getMeasurementData()
+					: super.toJSON();
 			if (this.draggedEntity) {
 				const isToken = this.draggedEntity instanceof Token;
 				json.draggedEntityIsToken = isToken;
 				json.draggedEntity = this.draggedEntity.id;
 				json.waypoints = json.waypoints.map(old => {
-					let w = duplicate(old);
+					let w = foundry.utils.duplicate(old);
 					w.isPathfinding = undefined;
 					return w;
 				});
@@ -56,7 +59,13 @@ export function extendRuler() {
 			return json;
 		}
 
+		/** @deprecated since V12 */
+		toJSON() {
+			return this._getMeasurementData();
+		}
+
 		update(data) {
+			if (!data || data.state === Ruler.STATES.INACTIVE) return this.clear();
 			// Don't show a GMs drag ruler to non GM players
 			if (
 				data.draggedEntity &&
@@ -105,7 +114,10 @@ export function extendRuler() {
 
 			// Compute the measurement destination, segments, and distance
 			const d = this._getMeasurementDestination(destination);
-			if (d.x === this.destination.x && d.y === this.destination.y) return;
+			if (this.destination && d.x === this.destination.x && d.y === this.destination.y) {
+				this.performPostPathfindingActions(options);
+				return;
+			}
 			this.destination = d;
 
 			// TODO Check if we can reuse the old path
@@ -206,6 +218,7 @@ export function extendRuler() {
 					}
 				}
 			}
+			this.dragRulerSendState();
 			return this.segments;
 		}
 
@@ -227,7 +240,7 @@ export function extendRuler() {
 				const waypoints =
 					this.draggedEntity instanceof Token
 						? applyTokenSizeOffset(unsnappedWaypoints, this.draggedEntity)
-						: duplicate(unsnappedWaypoints);
+						: foundry.utils.duplicate(unsnappedWaypoints);
 				const unsnappedSegments = [];
 				const segments = [];
 				for (const [i, p1] of waypoints.entries()) {
@@ -252,6 +265,9 @@ export function extendRuler() {
 					unsnappedSegments.push({ray: unsnappedRay, label});
 				}
 				this.dragRulerUnsnappedSegments = unsnappedSegments;
+				if (this.labels.children.length > segments.length) {
+					this.labels.removeChildren(segments.length).forEach(c => c.destroy());
+				}
 				return segments;
 			} else {
 				return super._getMeasurementSegments();
@@ -269,14 +285,14 @@ export function extendRuler() {
 				enableTerrainRuler: this.dragRulerEnableTerrainRuler,
 			};
 			const distances = measureDistances(this.segments, this.draggedEntity, shape, options);
-			let totalDistance = 0;
+			this.totalDistance = 0;
 			for (const [i, d] of distances.entries()) {
 				let s = this.segments[i];
-				s.startDistance = totalDistance;
-				totalDistance += d;
+				s.startDistance = this.totalDistance;
+				this.totalDistance += d;
 				s.last = i === this.segments.length - 1;
 				s.distance = d;
-				s.text = this._getSegmentLabel(s, totalDistance);
+				s.text = this._getSegmentLabel(s);
 			}
 
 			for (const [i, segment] of this.segments.entries()) {
@@ -375,15 +391,11 @@ export function extendRuler() {
 			if (this.waypoints.filter(w => !w.isPrevious).length > 1) {
 				event.preventDefault();
 				const mousePosition = getPointer().getLocalPosition(canvas.tokens);
-				const rulerOffset = this.rulerOffset;
 
 				// Options are not passed to _removeWaypoint in vanilla Foundry.
 				// Send them in case other modules have overriden that behavior and accept an options parameter (Toggle Snap to Grid)
-				this._removeWaypoint(
-					{x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y},
-					options,
-				);
-				game.user.broadcastActivity({ruler: this});
+				this._removeWaypoint({x: mousePosition.x, y: mousePosition.y}, options);
+				this.performPostPathfindingActions(options);
 			} else {
 				this.dragRulerAbortDrag(event);
 			}
@@ -428,7 +440,7 @@ export function extendRuler() {
 				this.dragRulerAddWaypoint(waypoint, {snap: false});
 			}
 			this.measure(this.destination);
-			game.user.broadcastActivity({ruler: this});
+			this.dragRulerSendState();
 		}
 
 		static dragRulerGetRaysFromWaypoints(waypoints, destination) {
@@ -478,15 +490,18 @@ export function extendRuler() {
 			ruler.dragRulerAddWaypoint(entityCenter, {snap: false});
 			const mousePosition = getPointer().getLocalPosition(canvas.tokens);
 			const destination = {
-				x: mousePosition.x + ruler.rulerOffset.x,
-				y: mousePosition.y + ruler.rulerOffset.y,
+				x: mousePosition.x,
+				y: mousePosition.y,
 			};
 			if (measureImmediately) ruler.measure(destination, options);
 		}
 
 		dragRulerSendState() {
+			if (this.user !== game.user) {
+				return;
+			}
 			game.user.broadcastActivity({
-				ruler: this.toJSON(),
+				ruler: this._getMeasurementData(),
 			});
 		}
 	}

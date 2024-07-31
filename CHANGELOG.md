@@ -1,3 +1,22 @@
+## 1.14.2
+### Bug fixes
+- Fixed a bug where tokens would snap to inconsistent distances on gridless scenes
+- Fixed a bug that caused the highlighted path on hex grids to be incorrect
+
+
+## 1.14.1
+### Bug fixes
+- The functionality Drag Ruler on gridless has been restored
+
+
+## 1.14.0
+### New features
+- Drag Ruler now supports hex tokens of size 5 (thanks KitCat!)
+
+### Compatibility
+- Drag Ruler has been updated to work with Foundry v12 (thanks TPNils and N0q!)
+
+
 ## 1.13.8
 ### Bugfixes
 - `getMovedDistanceFromToken` no longer returns incorrect values on gridless maps

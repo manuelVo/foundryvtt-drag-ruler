@@ -1,12 +1,16 @@
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/staebchenfisch)
 
+## Beware of bugs in v12 and onward
+Foundry v12 has introduced significant changes to how the grid and the ruler are implemented. While Drag Ruler has now been updated to generally work with v12, quite a lot of bugs remain. This is espeically true for Hex grids, but some bugs affect all the grid types. Some of the issues require a large code rewrite to address them properly. Unfortunately this means that Drag Ruler will not provide the same quality experience (snappyness, bugfreeness) you're used to in v12 (and possibly onward). If you're planning to update to v12 and depend on Drag Ruler, proceed with caution.
+
+
 # Drag Ruler
+
 This module shows a ruler when you drag a token or measurement template to inform you how far you've dragged it from its start point. Additionally, if you're using a grid, the spaces the token will travel though will be colored depending on your tokens speed. By default, three colors are being used: green for spaces that your token can reach by walking normally are colored green, spaces that can only be reached by dashing will be colored yellow and spaces that cannot be reached with the token's speed will be colored red. If you're using a gridless map the ruler color will change to convey this information.
 
 ![Drag Ruler being used on a square grids](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/basic_square.webp)
 ![Drag Ruler being used on a gridless scene](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/basic_gridless.webp)
 ![Drag Ruler while dragging a measurement template](https://raw.githubusercontent.com/manuelVo/foundryvtt-drag-ruler/709774b25f7dd818a90591165f74b3e6dbc788cc/media/measurement_template.webp)
-
 
 ## Supports Tokens of all sizes
 Terrain ruler has excellent support for tokens of all sizes. The Ruler will always originate from the token's center and will always highlight all the squares that tokens move over.
@@ -66,6 +70,7 @@ The game systems that offer Drag Ruler integration are:
 - The Dark Eye 5 / Das Schwarze Auge 5 (via the module [TDE5/DSA5 Drag Ruler Integration](https://foundryvtt.com/packages/dsa5-drag-ruler))
 - Shadow of the Demon Lord  (starting with version 1.7.15)
 - Wasteland Ventures (starting with version 0.1.0)
+- World of Darkness 20th ed (starting with version 3.3.0)
 - WWII:OWB (starting with version 1.0.4)
 
 

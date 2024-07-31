@@ -37,20 +37,20 @@ export function getHexTokenSize(token) {
 }
 
 export function getEntityCenter(token) {
-	if (token instanceof Token && canvas.grid.isHex) {
+	if (token instanceof Token && isCanvasHex()) {
 		const center = token.center;
 		const size = getHexTokenSize(token);
 		if (size % 2 === 0) {
 			let offset;
-			if (canvas.grid.grid.columnar) {
-				offset = canvas.grid.grid.w - canvas.grid.grid.h;
+			if (canvas.grid.columnar) {
+				offset = canvas.grid.sizeX - canvas.grid.sizeY;
 			} else {
-				offset = canvas.grid.grid.h - canvas.grid.grid.w;
+				offset = canvas.grid.sizeY - canvas.grid.sizeX;
 			}
 			if (getAltOrientationFlagForToken(token, size)) {
 				offset *= -1;
 			}
-			if (canvas.grid.grid.columnar) {
+			if (canvas.grid.columnar) {
 				center.x -= offset;
 				return center;
 			} else {
@@ -79,7 +79,7 @@ export function getSnapPointForToken(x, y, token) {
 		return {x, y};
 	}
 
-	if (canvas.grid.isHex) {
+	if (isCanvasHex()) {
 		const size = getHexTokenSize(token);
 		if (size % 2 === 0) {
 			return findVertexSnapPoint(x, y, getAltOrientationFlagForToken(token, size));
@@ -89,27 +89,27 @@ export function getSnapPointForToken(x, y, token) {
 	}
 
 	const [topLeftX, topLeftY] = canvas.grid.getTopLeft(x, y);
-	let cellX, cellY;
-	if (token.document.width % 2 === 0) cellX = x - canvas.grid.h / 2;
-	else cellX = x;
-	if (token.document.height % 2 === 0) cellY = y - canvas.grid.h / 2;
-	else cellY = y;
-	const [centerX, centerY] = canvas.grid.getCenter(cellX, cellY);
+	let cell = {};
+	if (token.document.width % 2 === 0) cell.x = x - canvas.grid.sizeY / 2;
+	else cell.x = x;
+	if (token.document.height % 2 === 0) cell.y = y - canvas.grid.sizeY / 2;
+	else cell.y = y;
+	const center = canvas.grid.getCenterPoint(cell);
 	let snapX, snapY;
 	// Tiny tokens can snap to the cells corners
 	if (token.document.width <= 0.5) {
 		const offsetX = x - topLeftX;
-		const subGridWidth = Math.floor(canvas.grid.w / 2);
+		const subGridWidth = Math.floor(canvas.grid.sizeX / 2);
 		const subGridPosX = Math.floor(offsetX / subGridWidth);
 		snapX = topLeftX + (subGridPosX + 0.5) * subGridWidth;
 	}
 	// Tokens with odd multipliers (1x1, 3x3, ...) and tokens smaller than 1x1 but bigger than 0.5x0.5 snap to the center of the grid cell
 	else if (Math.round(token.document.width) % 2 === 1 || token.document.width < 1) {
-		snapX = centerX;
+		snapX = center.x;
 	}
 	// All remaining tokens (those with even or fractional multipliers on square grids) snap to the intersection points of the grid
 	else {
-		snapX = centerX + canvas.grid.w / 2;
+		snapX = center.x + canvas.grid.sizeX / 2;
 	}
 	if (token.document.height <= 0.5) {
 		const offsetY = y - topLeftY;
@@ -117,9 +117,9 @@ export function getSnapPointForToken(x, y, token) {
 		const subGridPosY = Math.floor(offsetY / subGridHeight);
 		snapY = topLeftY + (subGridPosY + 0.5) * subGridHeight;
 	} else if (Math.round(token.document.height) % 2 === 1 || token.document.height < 1) {
-		snapY = centerY;
+		snapY = center.y;
 	} else {
-		snapY = centerY + canvas.grid.h / 2;
+		snapY = center.y + canvas.grid.sizeY / 2;
 	}
 	return {x: snapX, y: snapY};
 }
@@ -147,7 +147,7 @@ export function highlightTokenShape(position, shape, color, alpha) {
 	const area = getAreaFromPositionAndShape(position, shape);
 	for (const space of area) {
 		const [x, y] = getPixelsFromGridPosition(space.x, space.y);
-		canvas.grid.grid.highlightGridPosition(layer, {x, y, color, alpha: 0.25 * alpha});
+		canvas.grid.highlightGridPosition(layer, {x, y, color, alpha: 0.25 * alpha});
 	}
 }
 
@@ -155,9 +155,9 @@ export function getAreaFromPositionAndShape(position, shape) {
 	return shape.map(space => {
 		let x = position.x + space.x;
 		let y = position.y + space.y;
-		if (canvas.grid.isHex) {
+		if (isCanvasHex()) {
 			let shiftedRow;
-			if (canvas.grid.grid.options.even) shiftedRow = 1;
+			if (canvas.grid?.even) shiftedRow = 1;
 			else shiftedRow = 0;
 			if (canvas.grid.grid.columnar) {
 				if (space.x % 2 !== 0 && position.x % 2 !== shiftedRow) {
@@ -212,6 +212,16 @@ export function getTokenShape(token) {
 				{x: 0, y: -2},
 				{x: 1, y: -2},
 			]);
+		if (size >= 5)
+			shape = shape.concat([
+				{x: -2, y: 0},
+				{x: 1, y: 1},
+				{x: -1, y: 2},
+				{x: 0, y: 2},
+				{x: 1, y: 2},
+				{x: -2, y: 1},
+				{x: 2, y: 0},
+			]);
 
 		if (getAltOrientationFlagForToken(token, size)) {
 			shape.forEach(space => (space.y *= -1));
@@ -226,7 +236,7 @@ export function getTokenShape(token) {
 
 export function getTokenSize(token) {
 	let w, h;
-	if (canvas.grid.isHex) {
+	if (isCanvasHex()) {
 		w = h = getHexTokenSize(token);
 	} else {
 		w = token.document.width;
@@ -244,26 +254,26 @@ export function applyTokenSizeOffset(waypoints, token) {
 
 	const tokenSize = getTokenSize(token);
 	const waypointOffset = {x: 0, y: 0};
-	if (canvas.grid.isHex) {
+	if (isCanvasHex()) {
 		const isAltOrientation = getAltOrientationFlagForToken(token, getHexTokenSize(token));
 		if (canvas.grid.grid.columnar) {
 			if (tokenSize.w % 2 === 0) {
-				waypointOffset.x = canvas.grid.w / 2;
+				waypointOffset.x = canvas.grid.sizeX / 2;
 				if (isAltOrientation) waypointOffset.x *= -1;
 			}
 		} else {
 			if (tokenSize.h % 2 === 0) {
-				waypointOffset.y = canvas.grid.h / 2;
+				waypointOffset.y = canvas.grid.sizeY / 2;
 				if (isAltOrientation) waypointOffset.y *= -1;
 			}
 		}
 		// If hex size support isn't active leave the waypoints like they are
 	} else {
 		if (tokenSize.w % 2 === 0) {
-			waypointOffset.x = canvas.grid.w / 2;
+			waypointOffset.x = canvas.grid.sizeX / 2;
 		}
 		if (tokenSize.h % 2 === 0) {
-			waypointOffset.y = canvas.grid.h / 2;
+			waypointOffset.y = canvas.grid.sizeY / 2;
 		}
 	}
 
@@ -286,13 +296,12 @@ export function isClose(a, b, delta) {
 }
 
 export function getPointer() {
-	return canvas.app.renderer.plugins.interaction?.mouse ?? canvas.app.renderer.events.pointer;
+	return canvas.app.renderer.events.pointer;
 }
 
 export function getMeasurePosition() {
 	const mousePosition = getPointer().getLocalPosition(canvas.tokens);
-	const rulerOffset = canvas.controls.ruler.rulerOffset;
-	const measurePosition = {x: mousePosition.x + rulerOffset.x, y: mousePosition.y + rulerOffset.y};
+	const measurePosition = {x: mousePosition.x, y: mousePosition.y};
 	return measurePosition;
 }
 
@@ -313,4 +322,8 @@ export function isPathfindingEnabled() {
 	if (!game.user.isGM && !game.settings.get(settingsKey, "allowPathfinding")) return false;
 	if (moveWithoutAnimation) return false;
 	return game.settings.get(settingsKey, "autoPathfinding") != togglePathfinding;
+}
+
+function isCanvasHex() {
+	return canvas.grid.isHexagonal;
 }
