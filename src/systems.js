@@ -27,6 +27,8 @@ export function getDefaultSpeedAttribute() {
 			return "actor.system.details.move.walk";
 		case "crucible":
 			return "actor.system.movement.stride";
+		case "dragonbane":
+			return "actor.system.movement.value";
 	}
 	return "";
 }
@@ -44,6 +46,7 @@ export function getDefaultDashMultiplier() {
 		case "sfrpg":
 		case "shadowrun5e":
 		case "ds4":
+		case "dragonbane":
 			return 2;
 		case "CoC7":
 			return 5;
