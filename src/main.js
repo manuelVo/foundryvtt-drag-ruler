@@ -133,6 +133,7 @@ async function tokenLayerUndoHistory(wrapped) {
 
 function onEntityLeftDragStart(wrapped, event) {
 	wrapped(event);
+        if ( this.attachedToken ) return; // (Walled Templates) template has attached token.
 	const isToken = this instanceof Token;
 	const ruler = canvas.controls.ruler;
 	ruler.draggedEntity = this;
@@ -151,6 +152,7 @@ function onEntityLeftDragMoveSnap(wrapped, event) {
 
 function onEntityLeftDragMove(wrapped, event) {
 	wrapped(event);
+        if ( this.attachedToken ) return; // (Walled Templates) template has attached token.
 	const ruler = canvas.controls.ruler;
 	if (ruler.isDragRuler) onMouseMove.call(ruler, event);
 }
