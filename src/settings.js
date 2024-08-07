@@ -146,7 +146,7 @@ export function registerSettings() {
 
 class SpeedProviderSettings extends FormApplication {
 	static get defaultOptions() {
-		return mergeObject(super.defaultOptions, {
+		return foundry.utils.mergeObject(super.defaultOptions, {
 			id: "drag-ruler-speed-provider-settings",
 			title: game.i18n.localize("drag-ruler.settings.speedProviderSettings.windowTitle"),
 			template: "modules/drag-ruler/templates/speed_provider_settings.html",
