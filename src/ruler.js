@@ -110,7 +110,7 @@ export function extendRuler() {
 				options.snap = false;
 			}
 			this.dragRulerSnap = options.snap ?? !disableSnap;
-			this.dragRulerEnableTerrainRuler = isToken && window.terrainRuler;
+			this.dragRulerEnableTerrainRuler = isToken && window.terrainRuler && window.terrainRuler.active;
 
 			// Compute the measurement destination, segments, and distance
 			const d = this._getMeasurementDestination(destination);
