@@ -3,6 +3,7 @@ import {disableSnap, moveWithoutAnimation} from "./keybindings.js";
 import {trackRays} from "./movement_tracking.js";
 import {recalculate} from "./socket.js";
 import {getSnapPointForToken, highlightTokenShape, sum} from "./util.js";
+import {measureDistances} from "./compatibility.js";
 
 // This is a modified version of Ruler.moveToken from foundry 0.7.9
 export async function moveEntities(draggedEntity, selectedEntities) {
@@ -193,7 +194,7 @@ export function highlightMeasurementNative(
 		const point = canvas.grid.getTopLeftPoint(offset);
 		const center = canvas.grid.getCenterPoint(offset);
 		const pathUntilSpace = previousSegments.concat([{ray: new Ray(ray.A, center)}]);
-		const distance = sum(canvas.grid.measureDistances(pathUntilSpace, {gridSpaces: true}));
+		const distance = sum(measureDistances(pathUntilSpace, {gridSpaces: true}));
 		const color = this.dragRulerGetColorForDistance(distance);
 		const snapPoint = getSnapPointForToken(point.x + 1, point.y + 1, this.draggedEntity);
 		const [snapX, snapY] = getGridPositionFromPixels(snapPoint.x + 1, snapPoint.y + 1);

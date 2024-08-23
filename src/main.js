@@ -8,7 +8,7 @@ import {
 	registerModule,
 	registerSystem,
 } from "./api.js";
-import {checkDependencies} from "./compatibility.js";
+import {checkDependencies, measureDistances} from "./compatibility.js";
 import {moveEntities, onMouseMove} from "./foundry_imports.js";
 import {disableSnap, registerKeybindings} from "./keybindings.js";
 import {libWrapper} from "./libwrapper_shim.js";
@@ -251,7 +251,7 @@ function applyGridlessSnapping(event) {
 					return {ray};
 				});
 			origin = segments.pop().ray.A;
-			waypointDistance = canvas.grid.measureDistances(segments).reduce((a, b) => a + b);
+			waypointDistance = measureDistances(segments).reduce((a, b) => a + b);
 			origin = {x: origin.x, y: origin.y};
 		}
 

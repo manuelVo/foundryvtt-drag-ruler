@@ -88,7 +88,7 @@ export function getSnapPointForToken(x, y, token) {
 		return {x: snapX, y: snapY};
 	}
 
-	const [topLeftX, topLeftY] = canvas.grid.getTopLeft(x, y);
+	const {x: topLeftX, y: topLeftY} = canvas.grid.getTopLeftPoint({x, y});
 	let cell = {};
 	if (token.document.width % 2 === 0) cell.x = x - canvas.grid.sizeY / 2;
 	else cell.x = x;
@@ -142,12 +142,12 @@ export function getSnapPointForEntity(x, y, entity) {
 }
 
 export function highlightTokenShape(position, shape, color, alpha) {
-	const layer = canvas.grid.highlightLayers[this.name];
+	const layer = canvas.interface.grid.highlightLayers[this.name];
 	if (!layer) return false;
 	const area = getAreaFromPositionAndShape(position, shape);
 	for (const space of area) {
 		const [x, y] = getPixelsFromGridPosition(space.x, space.y);
-		canvas.grid.highlightGridPosition(layer, {x, y, color, alpha: 0.25 * alpha});
+		canvas.interface.grid.highlightPosition(layer.name, {x, y, color, alpha: 0.25 * alpha});
 	}
 }
 

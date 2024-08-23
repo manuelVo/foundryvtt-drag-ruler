@@ -44,7 +44,19 @@ export function measureDistances(segments, entity, shape, options = {}) {
 		if (!opts.ignoreGrid) {
 			opts.gridSpaces = true;
 		}
-		return canvas.grid.measureDistances(segments, opts);
+
+		if(segments.length === 0) return [];
+
+		// canvas.grid.measureDistances returns a wrong distance for diagonals in v12
+		// measurePath wants waypoints instead of segments - therefore, we just separate the rays into
+		// waypoints (assuming each ray ends where the next one starts)
+		const waypoints = [ segments[0].ray.A ];
+		for(const segment of segments) {
+			waypoints.push(segment.ray.B);
+		}
+
+		const measure = canvas.grid.measurePath(waypoints);
+		return measure.segments.map(s => s.distance);
 	}
 }
 
